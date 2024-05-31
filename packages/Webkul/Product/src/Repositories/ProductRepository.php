@@ -72,6 +72,7 @@ class ProductRepository extends Repository
             $product['channels'] = $data['channels'];
         }
 
+        dd( $product->variants);
         return $product;
     }
 

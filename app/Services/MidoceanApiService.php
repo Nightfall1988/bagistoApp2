@@ -54,29 +54,34 @@ class MidoceanApiService {
             $price = str_replace(',', '.', $priceItem['price']); // Convert price format
             $priceList[$sku] = $price;
         }
-    
+
         foreach ($response as $apiProduct) {
+
+            $product = $this->productRepository->create([
+                'attribute_family_id' => '1',
+                'sku' => $apiProduct->variants[0]->sku,
+                "type" => "simple",
+            ]);
+            
             if (isset($apiProduct->variants)) {
-                $variants = []; // Initialize variants array for each product
-                foreach ($apiProduct->variants as $variant) {
-                    $product = $this->productRepository->create([
-                        'attribute_family_id' => '1',
-                        'sku' => $variant->sku,
-                        "type" => "simple",
-                    ]);
-    
-                    if (isset($variant->color_description)) {
-                        $result = $this->attributeOptionRepository->getOption($variant->color_description);
+                $variants = [];
+
+                for ($i=1; $i<sizeof($apiProduct->variants); $i++) {
+
+                    if (isset($apiProduct->variants[$i]->color_description)) {
+                        $result = $this->attributeOptionRepository->getOption($apiProduct->variants[$i]->color_description);
                         if ($result != 0) {
                             $color = $result->id;
                         }
                     }
     
                     $variants[$product->id] = [
-                        'sku' => $variant->sku,
+                        'sku' => $apiProduct->variants[$i]->sku,
                         'name' => $apiProduct->product_name ?? 'no name',
-                        "url_key" => (!isset($apiProduct->product_name)) ? $variant->sku . '_' . $variant->variant_id : $apiProduct->product_name . '_' . $variant->variant_id,
-                        'price' => 0, 
+                        "url_key" => (!isset($apiProduct->product_name)) ? $apiProduct->variants[$i]->sku . '_' . 
+                                    $apiProduct->variants[$i]->variant_id : $apiProduct->product_name . '_' . 
+                                    $apiProduct->variants[$i]->variant_id,
+                        'price' =>  isset($priceList[ $apiProduct->variants[$i]->sku]) ? $priceList[ $apiProduct->variants[$i]->sku] : 0, 
                         'weight' => $apiProduct->gross_weight,
                         "status" => "new",
                         "color" => $color,
@@ -85,7 +90,7 @@ class MidoceanApiService {
                 }
     
                 // Get the product SKU and apply the price if available
-                $productSku = $apiProduct->product_code ?? ''; // Assuming `product_code` is the product SKU field
+                $productSku = $product->sku ?? ''; // Assuming `product_code` is the product SKU field
                 $price = isset($priceList[$productSku]) ? $priceList[$productSku] : 0;
     
                 $superAttributes = [
