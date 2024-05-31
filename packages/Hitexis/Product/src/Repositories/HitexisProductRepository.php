@@ -511,4 +511,8 @@ class HitexisProductRepository extends Repository
 
         return $query->max('min_price') ?? 0;
     }
+
+    public function saveImages($id, ) 
+    {
+    }
 }

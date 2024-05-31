@@ -89,10 +89,15 @@ class MidoceanApiService {
                     ];
                 }
     
-                // Get the product SKU and apply the price if available
-                $productSku = $product->sku ?? ''; // Assuming `product_code` is the product SKU field
+                $productSku = $product->sku ?? '';
                 $price = isset($priceList[$productSku]) ? $priceList[$productSku] : 0;
     
+                $images = [];
+                // if (isset($apiProduct->variants[0]->digital_assets)) {
+
+                //     $product->images->attach();
+                // }
+
                 $superAttributes = [
                     "channel" => "default",
                     "locale" => "en",
@@ -114,7 +119,8 @@ class MidoceanApiService {
                     "inventories" => [
                         1 => "100"
                     ],
-                    'variants' => $variants
+                    'variants' => $variants,
+                    'images' => $images
                 ];
                 $this->productRepository->update($superAttributes, $product->id, $attribute = 'id');
             }
