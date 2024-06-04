@@ -15,6 +15,8 @@ use Hitexis\Product\Repositories\AttributeRepository;
 use Hitexis\Product\Repositories\SearchSynonymRepository;
 use Hitexis\Product\Repositories\ElasticSearchRepository;
 use Hitexis\Product\Repositories\AttributeOptionRepository;
+use Webkul\Admin\Http\Controllers\Catalog\ProductController;
+use Illuminate\Support\Facades\Event;
 
 class HitexisProductRepository extends Repository
 {
@@ -69,18 +71,17 @@ class HitexisProductRepository extends Repository
      *
      * @param  int  $id
      * @param  string  $attribute
-     * @return \\Product\Contracts\Product
+     * @return \Hitexis\Product\Contracts\Product
      */
     public function update(array $data, $id, $attribute = 'id')
     {
         $product = $this->findOrFail($id);
 
         $product = $product->getTypeInstance()->update($data, $id, $attribute);
-
         $product->refresh();
 
-        if (isset($data['channel'])) {
-            $product['channel'] = $data['channel'];
+        if (isset($data['channels'])) {
+            $product['channels'] = $data['channels'];
         }
 
         return $product;
@@ -111,6 +112,20 @@ class HitexisProductRepository extends Repository
 
             return $copiedProduct;
         });
+    }
+
+
+    /**
+     * Update the specified resource in storage.
+     *
+     */
+    public function updateToShop($data, $id)
+    {
+        Event::dispatch('catalog.product.update.before', $id);
+
+        $product = $this->update($data, $id);
+
+        Event::dispatch('catalog.product.update.after', $product);
     }
 
     /**

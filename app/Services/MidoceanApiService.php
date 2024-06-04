@@ -16,7 +16,7 @@ class MidoceanApiService {
     protected $productRepository;
 
     public function __construct(
-        HitexisProductRepository $productRepository, 
+        HitexisProductRepository $productRepository,
         AttributeRepository $attributeRepository,
         AttributeOptionRepository $attributeOptionRepository
     ) {
@@ -101,28 +101,40 @@ class MidoceanApiService {
                 $superAttributes = [
                     "channel" => "default",
                     "locale" => "en",
-                    "product_number" => $apiProduct->commodity_code,
+                    'sku' => $productSku,
+                    "product_number" => $apiProduct->master_id,
                     "name" => (!isset($apiProduct->product_name)) ? 'no name' : $apiProduct->product_name,
                     "url_key" => (!isset($apiProduct->product_name)) ? '' : strtolower($apiProduct->product_name),
                     "short_description" => (!isset($apiProduct->short_description)) ? '' : '<p>' . $apiProduct->short_description . '</p>',
                     "description" => (!isset($apiProduct->long_description)) ? '' : '<p>' . $apiProduct->long_description . '</p>',
+                    "meta_title" => "",
+                    "meta_keywords" => "",
+                    "meta_description" => "",
+                    'price' => $price,
+                    'cost' => '',
+                    "special_price" => "",
+                    "special_price_from" => "",
+                    "special_price_to" => "",          
                     "length" => $apiProduct->length,
                     "width" => $apiProduct->width,
                     "height" => $apiProduct->height,
                     "weight" => $apiProduct->net_weight,
                     "new" => "1",
-                    'price' => $price,
                     "visible_individually" => "1",
                     "status" => "1",
+                    "featured" => "1",
                     "guest_checkout" => "1",
                     "manage_stock" => "1",
                     "inventories" => [
                         1 => "100"
                     ],
                     'variants' => $variants,
-                    'images' => $images
+                    'images' => $images,
+                    'categories' => [1]
                 ];
-                $this->productRepository->update($superAttributes, $product->id, $attribute = 'id');
+                $this->productRepository->updateToShop($superAttributes, $product->id, $attribute = 'id');
+                
+                // $this->productRepository->update($superAttributes, $product->id, $attribute = 'id');
             }
         }
     }

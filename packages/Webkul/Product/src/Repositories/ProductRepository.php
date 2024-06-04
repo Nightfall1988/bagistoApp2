@@ -65,7 +65,6 @@ class ProductRepository extends Repository
         $product = $this->findOrFail($id);
 
         $product = $product->getTypeInstance()->update($data, $id, $attribute);
-
         $product->refresh();
 
         if (isset($data['channels'])) {
