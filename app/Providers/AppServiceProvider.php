@@ -34,5 +34,9 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(MidoceanApiService::class, function ($app) {
             return new MidoceanApiService($app->make(HitexisProductRepository::class));
         });
+
+        $this->app->singleton(StrickerApiService::class, function ($app) {
+            return new StrickerApiService($app->make(HitexisProductRepository::class));
+        });
     }
 }
