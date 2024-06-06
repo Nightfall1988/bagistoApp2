@@ -19,7 +19,7 @@ class StrickerProductImport extends Command
      *
      * @var string
      */
-    protected $description = 'Command description';
+    protected $description = 'Stricker Product import';
 
     public function __construct(StrickerApiService $service)
     {

@@ -38,5 +38,9 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(StrickerApiService::class, function ($app) {
             return new StrickerApiService($app->make(HitexisProductRepository::class));
         });
+
+        $this->app->singleton(XDConnectsApiService::class, function ($app) {
+            return new XDConnectsApiService($app->make(HitexisProductRepository::class));
+        });
     }
 }

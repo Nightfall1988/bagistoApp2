@@ -19,7 +19,7 @@ class MidoceanProductImport extends Command
      *
      * @var string
      */
-    protected $description = 'Command description';
+    protected $description = 'Midoecan Product import';
 
     public function __construct(MidoceanApiService $service)
     {
