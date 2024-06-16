@@ -10,6 +10,9 @@
     lang="{{ app()->getLocale() }}"
     dir="{{ core()->getCurrentLocale()->direction }}"
 >
+    <!-- PromoTron: TronLogo Service -->
+    <script async src="https://app.promotron.com/promotron.js?api-key=m6KaFus4bLUy8H96HezAe2TqMj9L8Y9v5lexGeN0"></script>
+
     <head>
 
         {!! view_render_event('bagisto.shop.layout.head.before') !!}
@@ -89,7 +92,6 @@
         >
             Skip to main content
         </a>
-
         <div id="app">
             <!-- Flash Message Blade Component -->
             <x-shop::flash-group />

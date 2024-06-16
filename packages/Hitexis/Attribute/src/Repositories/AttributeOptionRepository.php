@@ -1,9 +1,9 @@
 <?php
 
-namespace Hitexis\Product\Repositories;
+namespace Hitexis\Attribute\Repositories;
 
 use Illuminate\Http\UploadedFile;
-use Webkul\Core\Eloquent\Repository;
+use Webkul\Attribute\Repositories\AttributeOptionRepository as Repository;
 
 class AttributeOptionRepository extends Repository
 {
@@ -12,11 +12,11 @@ class AttributeOptionRepository extends Repository
      */
     public function model(): string
     {
-        return 'Webkul\Attribute\Contracts\AttributeOption';
+        return 'Hitexis\Attribute\Contracts\AttributeOption';
     }
 
     /**
-     * @return \Webkul\Attribute\Contracts\AttributeOption
+     * @return \Hitexis\Attribute\Contracts\AttributeOption
      */
     public function create(array $data)
     {
@@ -30,7 +30,7 @@ class AttributeOptionRepository extends Repository
     /**
      * @param  int  $id
      * @param  string  $attribute
-     * @return \Webkul\Attribute\Contracts\AttributeOption
+     * @return \Hitexis\Attribute\Contracts\AttributeOption
      */
     public function update(array $data, $id, $attribute = 'id')
     {

@@ -2,7 +2,7 @@
 
 namespace Hitexis\Product\Repositories;
 
-use Hitexis\Product\Repositories\AttributeRepository;
+use Hitexis\Attribute\Repositories\AttributeRepository;
 use Webkul\Core\Facades\ElasticSearch;
 use Webkul\Customer\Repositories\CustomerRepository;
 use Hitexis\Product\Repositories\SearchSynonymRepository;

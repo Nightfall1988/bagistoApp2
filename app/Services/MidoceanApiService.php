@@ -4,8 +4,9 @@ namespace App\Services;
 use Hitexis\Product\Models\Product;
 use GuzzleHttp\Client as GuzzleClient;
 use Hitexis\Product\Repositories\HitexisProductRepository;
-use Hitexis\Product\Repositories\AttributeRepository;
-use Hitexis\Product\Repositories\AttributeOptionRepository;
+use Hitexis\Attribute\Repositories\AttributeRepository;
+use Hitexis\Attribute\Repositories\AttributeOptionRepository;
+use Hitexis\Product\Repositories\SupplierRepository;
 
 class MidoceanApiService {
 
@@ -18,13 +19,16 @@ class MidoceanApiService {
     public function __construct(
         HitexisProductRepository $productRepository,
         AttributeRepository $attributeRepository,
-        AttributeOptionRepository $attributeOptionRepository
+        AttributeOptionRepository $attributeOptionRepository,
+        SupplierRepository $supplierRepository
     ) {
         $this->productRepository = $productRepository;
         $this->attributeOptionRepository = $attributeOptionRepository;
         $this->attributeRepository = $attributeRepository;
+        $this->supplierRepository = $supplierRepository;
         $this->url = env('MIDOECAN_PRODUCTS_URL');
         $this->pricesUrl = env('MIDOECAN_PRICES_URL');
+        $this->identifier = env('MIDOECAN_IDENTIFIER');
     }
 
     public function getData()
@@ -38,7 +42,7 @@ class MidoceanApiService {
         $this->httpClient = new GuzzleClient([
             'headers' => $headers
         ]);
-    
+
         // GET PRODUCTS
         $request = $this->httpClient->get($this->url);
         $response = json_decode($request->getBody()->getContents());
@@ -62,6 +66,12 @@ class MidoceanApiService {
                 'sku' => $apiProduct->variants[0]->sku,
                 "type" => "simple",
             ]);
+
+            $this->supplierRepository->create([
+                'product_id' => $product->id,
+                'supplier_code' => $this->identifier
+            ]);
+
             
             if (isset($apiProduct->variants)) {
 
@@ -102,10 +112,17 @@ class MidoceanApiService {
         $productSku = $product->sku ?? '';
         $price = isset($priceList[$productSku]) ? $priceList[$productSku] : 0;
 
+        $search = ['.', '\'', ' ', '"'];
+        $replace = '-';
+        $name = $product->ItemName;
+        $urlKey = strtolower(str_replace($search, $replace, $name));
+        
+        $mainProductImgs = $apiProduct->variants[0]->digital_assets;
         $images = [];
-        // if (isset($apiProduct->variants[0]->digital_assets)) {
-
-        //     $product->images->attach();
+        // if (isset($mainProductImgs)) {
+        //     for ($i=0; $i<count($mainProductImgs); $i++) {
+        //         $images = $mainProductImgs[$i]->url_highress;
+        //     }
         // }
 
         $superAttributes = [
@@ -114,9 +131,9 @@ class MidoceanApiService {
             'sku' => $productSku,
             "product_number" => $apiProduct->master_id,
             "name" => (!isset($apiProduct->product_name)) ? 'no name' : $apiProduct->product_name,
-            "url_key" => (!isset($apiProduct->product_name)) ? '' : strtolower($apiProduct->product_name),
-            "short_description" => (!isset($apiProduct->short_description)) ? '' : '<p>' . $apiProduct->short_description . '</p>',
-            "description" => (!isset($apiProduct->long_description)) ? '' : '<p>' . $apiProduct->long_description . '</p>',
+            "url_key" => (!isset($apiProduct->product_name)) ? '' : $urlKey,
+            "short_description" => (isset($apiProduct->short_description)) ? '<p>' . $apiProduct->short_description . '</p>' : '',
+            "description" => (isset($apiProduct->long_description)) ? '<p>' . $apiProduct->long_description . '</p>'  : '',
             "meta_title" => "",
             "meta_keywords" => "",
             "meta_description" => "",
@@ -125,10 +142,10 @@ class MidoceanApiService {
             "special_price" => "",
             "special_price_from" => "",
             "special_price_to" => "",          
-            "length" => $apiProduct->length,
-            "width" => $apiProduct->width,
-            "height" => $apiProduct->height,
-            "weight" => $apiProduct->net_weight,
+            "length" => $apiProduct->length ?? '',
+            "width" => $apiProduct->width ?? '',
+            "height" => $apiProduct->height ?? '',
+            "weight" => $apiProduct->net_weight ?? 0,
             "new" => "1",
             "visible_individually" => "1",
             "status" => "1",
@@ -139,10 +156,10 @@ class MidoceanApiService {
                 1 => "100"
             ],
             'variants' => $variants,
-            'images' => $images,
-            'categories' => [1]
+            'categories' => [1],
+            'images' =>  ['files' => $images]
         ];
-        
+
         $this->productRepository->updateToShop($superAttributes, $product->id, $attribute = 'id');
     }
 }

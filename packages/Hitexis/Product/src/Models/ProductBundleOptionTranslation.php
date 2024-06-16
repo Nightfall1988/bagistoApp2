@@ -1,0 +1,10 @@
+<?php
+
+
+namespace Hitexis\Product\Models;
+use Webkul\Product\Models\ProductBundleOptionTranslation as WebkulProductBundleOptionTranslation;
+use Hitexis\Product\Contracts\ProductBundleOptionTranslation as ProductBundleOptionTranslationContract;
+
+class ProductBundleOptionTranslation extends WebkulProductBundleOptionTranslation implements ProductBundleOptionTranslationContract
+{
+}

@@ -1,28 +1,29 @@
 <?php
 
-namespace Hitexis\Product\Repositories;
+namespace Hitexis\Attribute\Repositories;
 
 use Illuminate\Container\Container;
-use Webkul\Attribute\Contracts\Attribute;
-use Webkul\Core\Eloquent\Repository;
-use Webkul\Attribute\Repositories\AttributeOptionRepository;
+use Webkul\Attribute\Repositories\AttributeRepository as WebkulRepository;
+use Hitexis\Attribute\Repositories\AttributeOptionRepository;
+use Hitexis\Attribute\Contracts\Attribute;
 
-class AttributeRepository extends Repository
+class AttributeRepository extends WebkulRepository
 {
     protected $attributes = [];
 
     /**
      * Create a new repository instance.
      *
-     * @return void
+     * @param AttributeOptionRepository $attributeOptionRepository
+     * @param Container $container
      */
     public function __construct(
-        protected AttributeOptionRepository $attributeOptionRepository,
+        AttributeOptionRepository $attributeOptionRepository,
         Container $container
     ) {
-        parent::__construct($container);
+        parent::__construct($attributeOptionRepository, $container); // Pass dependencies to the parent constructor
+        $this->attributeOptionRepository = $attributeOptionRepository;
     }
-
     /**
      * Specify model class name.
      */
@@ -34,7 +35,7 @@ class AttributeRepository extends Repository
     /**
      * Create attribute.
      *
-     * @return \Webkul\Attribute\Contracts\Attribute
+     * @return \Hitexis\Attribute\Contracts\Attribute
      */
     public function create(array $data)
     {
@@ -62,7 +63,7 @@ class AttributeRepository extends Repository
      *
      * @param  int  $id
      * @param  string  $attribute
-     * @return \Webkul\Attribute\Contracts\Attribute
+     * @return \Hitexis\Attribute\Contracts\Attribute
      */
     public function update(array $data, $id, $attribute = 'id')
     {
@@ -180,7 +181,7 @@ class AttributeRepository extends Repository
      * Get family attributes.
      *
      * @param  \Webkul\Attribute\Contracts\AttributeFamily  $attributeFamily
-     * @return \Webkul\Attribute\Contracts\Attribute
+     * @return \Hitexis\Attribute\Contracts\Attribute
      */
     public function getFamilyAttributes($attributeFamily)
     {

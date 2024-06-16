@@ -27,7 +27,8 @@ return [
 
         \Webkul\Admin\Providers\ModuleServiceProvider::class,
         \Hitexis\Admin\Providers\ModuleServiceProvider::class,
-        \Webkul\Attribute\Providers\ModuleServiceProvider::class,
+        \Webkul\Attribute\Providers\ModuleServiceProvider::class,  // WEBKUL
+        \Hitexis\Attribute\Providers\ModuleServiceProvider::class, // HITEXIS
         \Webkul\CartRule\Providers\ModuleServiceProvider::class,
         \Webkul\CatalogRule\Providers\ModuleServiceProvider::class,
         \Webkul\Category\Providers\ModuleServiceProvider::class,

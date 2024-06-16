@@ -9,14 +9,17 @@ use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\DB;
 use Webkul\Core\Eloquent\Repository;
 use Webkul\Customer\Repositories\CustomerRepository;
-use Hitexis\Product\Contracts\Product;
 use Hitexis\Product\Repositories\ProductAttributeValueRepository;
-use Hitexis\Product\Repositories\AttributeRepository;
+use Hitexis\Attribute\Repositories\AttributeRepository;
 use Hitexis\Product\Repositories\SearchSynonymRepository;
 use Hitexis\Product\Repositories\ElasticSearchRepository;
-use Hitexis\Product\Repositories\AttributeOptionRepository;
+use Hitexis\Attribute\Repositories\AttributeOptionRepository;
 use Webkul\Admin\Http\Controllers\Catalog\ProductController;
 use Illuminate\Support\Facades\Event;
+use Hitexis\Product\Contracts\Product;
+use Hitexis\Product\Adapters\ProductAdapter;
+use Webkul\Product\Repositories\ProductRepository as WebkulProductRepository;
+use Hitexis\Product\Models\Product as HitexisProductModel;
 
 class HitexisProductRepository extends Repository
 {
@@ -42,7 +45,7 @@ class HitexisProductRepository extends Repository
      */
     public function model(): string
     {
-        return Product::class;
+        return HitexisProductModel::class;
     }
 
     /**
@@ -76,8 +79,8 @@ class HitexisProductRepository extends Repository
     public function update(array $data, $id, $attribute = 'id')
     {
         $product = $this->findOrFail($id);
-
         $product = $product->getTypeInstance()->update($data, $id, $attribute);
+
         $product->refresh();
 
         if (isset($data['channels'])) {
@@ -85,6 +88,22 @@ class HitexisProductRepository extends Repository
         }
 
         return $product;
+    }
+
+    public function convertToHitexisProduct($product)
+    {
+        return new ProductAdapter($product);
+    }
+
+    public function getProductAdapter($productId)
+    {
+        $product = HitexisProductModel::find($productId);
+
+        if ($product) {
+            return $this->convertToHitexisProduct($product);
+        }
+
+        return null;
     }
 
     /**
@@ -133,9 +152,9 @@ class HitexisProductRepository extends Repository
      *
      * @param  string  $code
      * @param  mixed  $value
-     * @return \Hitexis\Product\Contracts\Product
+     * @return \Hitexis\Product\Models\Product|null
      */
-    public function findByAttributeCode($code, $value)
+    public function findByAttributeCode($code, $value): ?HitexisProductModel
     {
         $attribute = $this->attributeRepository->findOneByField('code', $code);
 
@@ -150,7 +169,7 @@ class HitexisProductRepository extends Repository
                     ->where('channel', core()->getRequestedChannelCode())
                     ->where('locale', core()->getRequestedLocaleCode());
 
-                if ($attributeValues->isEmpty()) {
+                if ($filteredAttributeValues->isEmpty()) {
                     $filteredAttributeValues = $attributeValues
                         ->where('channel', core()->getRequestedChannelCode())
                         ->where('locale', core()->getDefaultLocaleCodeFromDefaultChannel());
@@ -173,13 +192,15 @@ class HitexisProductRepository extends Repository
             }
         }
 
-        return $filteredAttributeValues->first()?->product;
+        $product = $filteredAttributeValues->first()?->product;
+        $product = new ProductAdapter($product);
+        $product = $product->getModel();
+        return $product;
     }
-
     /**
      * Retrieve product from slug without throwing an exception.
      */
-    public function findBySlug(string $slug): ?Product
+    public function findBySlug(string $slug): ?HitexisProductModel
     {
         if (core()->getConfigData('catalog.products.storefront.search_mode') == 'elastic') {
             $indices = $this->elasticSearchRepository->search([
@@ -194,6 +215,7 @@ class HitexisProductRepository extends Repository
 
             return $this->find(current($indices['ids']));
         }
+
 
         return $this->findByAttributeCode('url_key', $slug);
     }
@@ -482,7 +504,7 @@ class HitexisProductRepository extends Repository
     /**
      * Returns product's super attribute with options.
      *
-     * @param  \Webkul\Product\Contracts\Product  $product
+     * @param  \Hitexis\Product\Contracts\Product  $product
      * @return \Illuminate\Support\Collection
      */
     public function getSuperAttributes($product)

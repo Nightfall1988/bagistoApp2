@@ -8,12 +8,12 @@ use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Route;
 use Webkul\Core\Tree;
 use Webkul\Shop\Http\Middleware\AuthenticateCustomer;
-use Hitexis\Shop\Providers\ServiceProvider as WebkulShopServiceProvider;
+use Illuminate\Support\ServiceProvider;
 use Webkul\Shop\Http\Middleware\Currency;
 use Webkul\Shop\Http\Middleware\Locale;
 use Webkul\Shop\Http\Middleware\Theme;
 
-class ShopServiceProvider extends WebkulShopServiceProvider
+class ShopServiceProvider extends ServiceProvider
 {
     /**
      * Bootstrap services.
@@ -28,7 +28,7 @@ class ShopServiceProvider extends WebkulShopServiceProvider
 
         $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
         $this->loadTranslationsFrom(__DIR__.'/../Resources/lang', 'shop');
-        $this->loadViewsFrom(__DIR__.'/../Resources/views', 'shop');
+        $this->loadViewsFrom(__DIR__.'/../Resources', 'hitexis-shop');
 
         /* aliases */
         $router->aliasMiddleware('currency', Currency::class);
@@ -50,9 +50,9 @@ class ShopServiceProvider extends WebkulShopServiceProvider
         Blade::anonymousComponentPath(__DIR__.'/../Resources/views/components', 'shop');
 
         /* Breadcrumbs */
-        require __DIR__.'/../Routes/breadcrumbs.php';
+        // require __DIR__.'/../../../../Webkul/Shop/src/Routes/breadcrumbs.php';
 
-        $this->app->register(EventServiceProvider::class);
+        // $this->app->register(EventServiceProvider::class);
     }
 
     /**

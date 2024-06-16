@@ -12,6 +12,9 @@ use Webkul\Product\Observers\ProductObserver;
 use Webkul\Product\ProductImage;
 use Webkul\Product\ProductVideo;
 use Webkul\Product\Providers\EventServiceProvider;
+use Hitexis\Attribute\Contracts\Attribute as AttributeContract;
+use Hitexis\Attribute\Attribute;
+
 class ProductServiceProvider extends ServiceProvider
 {
     /**
@@ -40,6 +43,9 @@ class ProductServiceProvider extends ServiceProvider
         $this->registerCommands();
 
         $this->registerFacades();
+
+        $this->app->bind(AttributeContract::class, Attribute::class);
+
     }
 
     /**

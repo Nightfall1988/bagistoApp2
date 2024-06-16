@@ -5,8 +5,9 @@ namespace App\Services;
 use Hitexis\Product\Models\Product;
 use GuzzleHttp\Client as GuzzleClient;
 use Hitexis\Product\Repositories\HitexisProductRepository;
-use Hitexis\Product\Repositories\AttributeRepository;
-use Hitexis\Product\Repositories\AttributeOptionRepository;
+use Hitexis\Attribute\Repositories\AttributeRepository;
+use Hitexis\Attribute\Repositories\AttributeOptionRepository;
+use Hitexis\Product\Repositories\SupplierRepository;
 
 class StrickerApiService {
 
@@ -19,23 +20,27 @@ class StrickerApiService {
     public function __construct(
         HitexisProductRepository $productRepository,
         AttributeRepository $attributeRepository,
-        AttributeOptionRepository $attributeOptionRepository
+        AttributeOptionRepository $attributeOptionRepository,
+        SupplierRepository $supplierRepository
     ) {
         $this->productRepository = $productRepository;
         $this->attributeOptionRepository = $attributeOptionRepository;
         $this->attributeRepository = $attributeRepository;
-        
-        // $this->authUrl = env('STRICKER_AUTH_URL') . env('STRICKER_AUTH_TOKEN');
-        // $this->url = env('STRICKER_PRODUCTS_URL');
-        // $this->optionalsUrl = env('STRICKER_OPTIONALS_URL');
+        $this->supplierRepository = $supplierRepository;
+        $this->authUrl = env('STRICKER_AUTH_URL') . env('STRICKER_AUTH_TOKEN');
+        $this->url = env('STRICKER_PRODUCTS_URL');
+        $this->optionalsUrl = env('STRICKER_OPTIONALS_URL');
+        $this->identifier = env('STRICKER_IDENTIFIER');
 
+        // dd( $this->url, $this->authUrl, $this->optionalsUrl);
         // TEST DATA
-        $this->url = 'https://appbagst.free.beeceptor.com';
-        $this->optionalsUrl = 'https://appbagst.free.beeceptor.com/op';
+        // $this->url = 'https://appbagst.free.beeceptor.com';
+        // $this->optionalsUrl = 'https://appbagst.free.beeceptor.com/op';
     }
     
     public function getData()
     {
+        ini_set('memory_limit', '512M');
         $headers = [
             'Content-Type' => 'application/json',
         ];
@@ -44,20 +49,25 @@ class StrickerApiService {
             'headers' => $headers
         ]);
 
-        // $request = $this->httpClient->get($this->authUrl);
-        // $authToken = json_decode($request->getBody()->getContents())->Token;
-        
-        // $this->url = $this->url . $authToken . '&lang=en';
-        // $this->optionalsUrl = $this->url . $authToken . '&lang=en';
+        $request = $this->httpClient->get($this->authUrl);
+        $authToken = json_decode($request->getBody()->getContents())->Token;
+
+        $this->url = $this->url . $authToken . '&lang=en';
+        $this->optionalsUrl = $this->optionalsUrl . $authToken . '&lang=en';
 
         // GET PRODUCTS
         $request = $this->httpClient->get($this->url);
         $productsData = json_decode($request->getBody()->getContents(), true);
-    
+
         // GET OPTIONALS
         $optionalsData = $this->httpClient->get($this->optionalsUrl);
         $optionalsData = json_decode($optionalsData->getBody()->getContents(), true);
-    
+
+        // TEST RESPONSE FROM JSON FILE
+        // $json = file_get_contents('storage\app\private\New_Reques-complete.json');
+        // $optionalsData = json_decode($json, true);
+        // dd( $optionalsData );
+
         $products = $this->getProducts($productsData);
         $this->updateProducts($optionalsData, $products);
     }
@@ -76,7 +86,7 @@ class StrickerApiService {
     public function updateProducts($optionalsData, $products)
     {
         foreach ($optionalsData['OptionalsComplete'] as $optional) {
-            
+
             $prodReference = $optional['ProdReference'];
             $sku = $optional['Sku'];
 
@@ -89,10 +99,20 @@ class StrickerApiService {
                     'sku' => $product['sku'],
                     "type" => "simple",
                 ]);
+
+                $this->supplierRepository->create([
+                    'product_id' => $productObj->id,
+                    'supplier_code' => $this->identifier
+                ]);
             }
         
             $price = isset($optional['Price1']) ? $optional['Price1'] : 0;
             $yourPrice = isset($optional['YourPrice']) ? $optional['YourPrice'] : 0;
+
+            $search = ['.', '\'', ' ', '"'];
+            $replace = '-';
+            $name = $product['Name'];
+            $urlKey = strtolower(str_replace($search, $replace, $name));
 
             $images = [];
             
@@ -102,9 +122,9 @@ class StrickerApiService {
                 'sku' => $sku,
                 "product_number" => $optional['ProdReference'],
                 "name" => (!isset($product['Name'])) ? 'no name' : $product['Name'],
-                "url_key" => (!isset($product['Name'])) ? '' : strtolower($product['Name']),
-                "short_description" => (!isset($product['ShortDescription'])) ? '' : '<p>' . $product['ShortDescription'] . '</p>',
-                "description" => (!isset($product['Description'])) ? '' : '<p>' . $product['Description'] . '</p>',
+                "url_key" => (!isset($product['Name'])) ? $sku : $urlKey,
+                "short_description" =>(!isset($product['ShortDescription'])) ? 'no description provided' : '<p>' . $product['ShortDescription'] . '</p>',
+                "description" => (!isset($product['Description'])) ? 'no description provided' : '<p>' . $product['Description'] . '</p>',
                 "meta_title" => "",
                 "meta_keywords" => "",
                 "meta_description" => "",
@@ -113,9 +133,9 @@ class StrickerApiService {
                 "special_price" => "",
                 "special_price_from" => "",
                 "special_price_to" => "",          
-                "length" => $product['BoxLengthMM'] / 10,
-                "width" => $product['BoxWidthMM'] / 10,
-                "height" => $product['BoxHeightMM'] / 10,
+                "length" => $product['BoxLengthMM'] / 10 ?? '',
+                "width" => $product['BoxWidthMM'] / 10 ?? '',
+                "height" => $product['BoxHeightMM'] / 10 ?? '',
                 "weight" => $product['Weight'],
                 "new" => "1",
                 "visible_individually" => "1",
@@ -124,7 +144,7 @@ class StrickerApiService {
                 "guest_checkout" => "1",
                 "manage_stock" => "1",
                 "inventories" => [
-                    1 =>  $product['BoxQuantity']
+                    1 =>  $product['BoxQuantity'] ?? 0,
                 ],
                 'categories' => [1]
             ];

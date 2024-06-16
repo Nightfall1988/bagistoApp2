@@ -5,7 +5,7 @@ use Webkul\Shop\Http\Controllers\CompareController;
 use Webkul\Shop\Http\Controllers\HomeController;
 use Webkul\Shop\Http\Controllers\PageController;
 use Webkul\Shop\Http\Controllers\ProductController;
-use Webkul\Shop\Http\Controllers\ProductsCategoriesProxyController;
+use Hitexis\Shop\Http\Controllers\HitexisProductsCategoriesProxyController as ProductsCategoriesProxyController;
 use Webkul\Shop\Http\Controllers\SearchController;
 use Webkul\Shop\Http\Controllers\SubscriptionController;
 
@@ -69,7 +69,6 @@ Route::group(['middleware' => ['locale', 'theme', 'currency']], function () {
      */
     Route::controller(ProductController::class)->group(function () {
         Route::get('downloadable/download-sample/{type}/{id}', 'downloadSample')->name('shop.downloadable.download_sample');
-
         Route::get('product/{id}/{attribute_id}', 'download')->defaults('_config', [
             'view' => 'shop.products.index',
         ])->name('shop.product.file.download');

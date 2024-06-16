@@ -4,8 +4,10 @@ namespace App\Services;
 use Hitexis\Product\Models\Product;
 use GuzzleHttp\Client as GuzzleClient;
 use Hitexis\Product\Repositories\HitexisProductRepository;
-use Hitexis\Product\Repositories\AttributeRepository;
-use Hitexis\Product\Repositories\AttributeOptionRepository;
+use Hitexis\Attribute\Repositories\AttributeRepository;
+use Hitexis\Attribute\Repositories\AttributeOptionRepository;
+use Hitexis\Product\Repositories\SupplierRepository;
+
 
 class XDConnectsApiService {
 
@@ -18,15 +20,21 @@ class XDConnectsApiService {
     public function __construct(
         HitexisProductRepository $productRepository,
         AttributeRepository $attributeRepository,
-        AttributeOptionRepository $attributeOptionRepository
+        AttributeOptionRepository $attributeOptionRepository,
+        SupplierRepository $supplierRepository
     ) {
         $this->productRepository = $productRepository;
         $this->attributeOptionRepository = $attributeOptionRepository;
         $this->attributeRepository = $attributeRepository;
+        $this->supplierRepository = $supplierRepository;
+        $this->identifier = env('XDCONNECTS_IDENTIFIER');
+
     }
 
     public function getData()
     {
+        ini_set('memory_limit', '512M');
+
         $xmlProductData = simplexml_load_file('storage\app\private\Xindao.V4.ProductData-en-gb-C36797.xml');
         $xmlPriceData = simplexml_load_file('storage\app\private\Xindao.V2.ProductPrices-en-gb-C36797.xml');
         $xmlPrintData = simplexml_load_file('storage\app\private\Xindao.V2.PrintData-en-gb-C36797.xml');
@@ -70,27 +78,37 @@ class XDConnectsApiService {
                 "type" => "simple",
             ]);
 
+            $this->supplierRepository->create([
+                'product_id' => $productObj->id,
+                'supplier_code' => $this->identifier
+            ]);
+
+            $search = ['.', '\'', ' ', '"'];
+            $replace = '-';
+            $name = $product->ItemName;
+            $urlKey = strtolower(str_replace($search, $replace, $name));
+
             $superAttributes = [
                 "channel" => "default",
                 "locale" => "en",
                 'sku' => $sku,
                 "product_number" =>  (string)$product->ModelCode,
                 "name" => (!isset($product->ItemName)) ? 'no name' : (string)$product->ItemName,
-                "url_key" => (!isset($product->ItemName)) ? '' : strtolower((string)$product->ItemName),
-                "short_description" => (!isset($product->ShortDescription)) ? '' : '<p>' . (string)$product->ShortDescription . '</p>',
-                "description" => (!isset($product->LongDescription)) ? '' : '<p>' . (string)$product->LongDescription . '</p>',
+                "url_key" => $urlKey ?? '',
+                "short_description" => '<p>' . (string)$product->ShortDescription . '</p>' ?? '',
+                "description" => '<p>' . (string)$product->LongDescription . '</p>' ?? '',
                 "meta_title" => "",
                 "meta_keywords" => "",
                 "meta_description" => "",
-                'price' => (string)$priceDataList[(string)$product->ItemCode]->ItemPriceNet_Qty1,
+                'price' => (string)$priceDataList[(string)$product->ItemCode]->ItemPriceNet_Qty1 ?? '',
                 'cost' => '',
                 "special_price" => "",
                 "special_price_from" => "",
                 "special_price_to" => "",          
-                "length" => (string)$product->ItemBoxLengthCM,
-                "width" => (string)$product->ItemBoxWidthCM,
-                "height" => (string)$product->ItemBoxHeightCM,
-                "weight" => (string)$product->ItemWeightNetGr * 1000,
+                "length" => (string)$product->ItemBoxLengthCM ?? '',
+                "width" => (string)$product->ItemBoxWidthCM ?? '',
+                "height" => (string)$product->ItemBoxHeightCM ?? '',
+                "weight" => (string)$product->ItemWeightNetGr * 1000 ?? 0,
                 "new" => "1",
                 "visible_individually" => "1",
                 "status" => "1",

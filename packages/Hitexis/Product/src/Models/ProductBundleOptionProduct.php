@@ -1,0 +1,8 @@
+<?php
+namespace Hitexis\Product\Models;
+use Webkul\Product\Models\ProductBundleOptionProduct as WebkulProductBundleOptionProduct;
+use Hitexis\Product\Contracts\ProductBundleOptionProduct as ProductBundleOptionProductContract;
+
+class ProductBundleOptionProduct extends WebkulProductBundleOptionProduct implements ProductBundleOptionProductContract
+{
+}

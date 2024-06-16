@@ -3,12 +3,13 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Hitexis\Product\Repositories\HitexisProductRepository;
-use Hitexis\Product\Repositories\AttributeRepository;
+use Hitexis\Attribute\Repositories\AttributeRepository;
 use Webkul\Customer\Repositories\CustomerRepository;
 use Hitexis\Product\Repositories\SearchSynonymRepository;
 use Hitexis\Product\Repositories\ProductAttributeValueRepository;
 use Hitexis\Product\Repositories\ElasticSearchRepository;
-use Hitexis\Product\Repositories\AttributeOptionRepository;
+use Hitexis\Attribute\Repositories\AttributeOptionRepository;
+use Hitexis\Product\Repositories\SupplierRepository;
 use Illuminate\Container\Container;
 
 class AppServiceProvider extends ServiceProvider
@@ -32,15 +33,17 @@ class AppServiceProvider extends ServiceProvider
 
         // Bind the service
         $this->app->singleton(MidoceanApiService::class, function ($app) {
-            return new MidoceanApiService($app->make(HitexisProductRepository::class));
+            return new MidoceanApiService($app->make(HitexisProductRepository::class), $app->make(SupplierRepository::class));
         });
 
         $this->app->singleton(StrickerApiService::class, function ($app) {
-            return new StrickerApiService($app->make(HitexisProductRepository::class));
+            return new StrickerApiService($app->make(HitexisProductRepository::class), $app->make(SupplierRepository::class));
         });
 
         $this->app->singleton(XDConnectsApiService::class, function ($app) {
-            return new XDConnectsApiService($app->make(HitexisProductRepository::class));
+            return new XDConnectsApiService($app->make(HitexisProductRepository::class), $app->make(SupplierRepository::class));
         });
+
+        $this->app->bind(AttributeOption::class, AttributeOptionRepository::class);
     }
 }

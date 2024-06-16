@@ -1,0 +1,11 @@
+<?php
+
+namespace Hitexis\Product\Models;
+
+use Webkul\Product\Models\ProductDownloadableSampleTranslation as WebkulProductDownloadableSampleTranslation;
+use Hitexis\Product\Contracts\ProductDownloadableSampleTranslation as ProductDownloadableSampleTranslationContract;
+
+class ProductDownloadableSampleTranslation extends WebkulProductDownloadableSampleTranslation implements ProductDownloadableSampleTranslationContract
+{
+}
+

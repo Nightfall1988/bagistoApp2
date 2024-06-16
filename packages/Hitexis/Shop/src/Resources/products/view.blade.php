@@ -45,7 +45,6 @@
 
     <meta property="og:url" content="{{ route('shop.product_or_category.index', $product->url_key) }}" />
 @endPush
-
 <!-- Page Layout -->
 <x-shop::layouts>
     <!-- Page Title -->
@@ -67,8 +66,23 @@
     <v-product>
         <x-shop::shimmer.products.view />
     </v-product>
+    <!-- LogoTron -->
+    <div class="flex flex-row max-w-[700px] gap-4 mx-5" style="margin-left: 14rem; margin-top: 2rem;">
+        <div class="flex flex-row max-w-[670px] gap-4 mr-8 ml-8">
+            <button class="secondary-button w-full max-w-full" data-tl-action="OpenGallery">CHANGE LOGO</button>
+            <button class="secondary-button w-full max-w-full" data-tl-action="OpenUpload">UPLOAD OWN LOGO</button>
+            <button class="secondary-button w-full max-w-full" data-tl-action="OpenEditor"
+                data-tl-sid="{{ $product->supplier->supplier_code }}"
+                data-tl-spcode="{{ $product->sku }}">DESIGN PRINT MOTIVE
+            </button>
+            <button data-tl-action="OpenEditor" data-tl-sid="{{ $product->supplier->supplier_code }}"
+                data-tl-spcode="" data-tl-pcode="{{ $product->sku }}"
+                data-tl-pname="your-product-name">CREATE PRINT MOTIVE
+            </button>
+        </div>
+    </div>
 
-    <!-- Information Section -->
+<!-- Information Section -->
     <div class="1180:mt-20">
         <x-shop::tabs
             position="center"
@@ -275,7 +289,6 @@
                         name="is_buy_now"
                         v-model="is_buy_now"
                     >
-
                     <div class="container px-[60px] max-1180:px-0">
                         <div class="mt-12 flex gap-9 max-1180:flex-wrap max-lg:mt-0 max-sm:gap-y-6">
                             <!-- Gallery Blade Inclusion -->
