@@ -112,10 +112,10 @@ class MidoceanApiService {
         $productSku = $product->sku ?? '';
         $price = isset($priceList[$productSku]) ? $priceList[$productSku] : 0;
 
-        $search = ['.', '\'', ' ', '"'];
         $replace = '-';
-        $name = $product->ItemName;
-        $urlKey = strtolower(str_replace($search, $replace, $name));
+        $search = ['.', '\'', ' ', '"']; 
+        $urlKey = isset($apiProduct->product_name) ? $apiProduct->product_name  . '-' . $apiProduct->master_id : $apiProduct->master_id; 
+        $urlKey = strtolower(str_replace($search, $replace, $urlKey));        
         
         $mainProductImgs = $apiProduct->variants[0]->digital_assets;
         $images = [];
@@ -163,6 +163,3 @@ class MidoceanApiService {
         $this->productRepository->updateToShop($superAttributes, $product->id, $attribute = 'id');
     }
 }
-
-
-
