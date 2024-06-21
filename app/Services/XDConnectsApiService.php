@@ -7,7 +7,7 @@ use Hitexis\Product\Repositories\HitexisProductRepository;
 use Hitexis\Attribute\Repositories\AttributeRepository;
 use Hitexis\Attribute\Repositories\AttributeOptionRepository;
 use Hitexis\Product\Repositories\SupplierRepository;
-
+use Hitexis\Product\Repositories\ProductImageRepository;
 
 class XDConnectsApiService {
 
@@ -21,14 +21,15 @@ class XDConnectsApiService {
         HitexisProductRepository $productRepository,
         AttributeRepository $attributeRepository,
         AttributeOptionRepository $attributeOptionRepository,
-        SupplierRepository $supplierRepository
+        SupplierRepository $supplierRepository,
+        ProductImageRepository $productImageRepository
     ) {
         $this->productRepository = $productRepository;
         $this->attributeOptionRepository = $attributeOptionRepository;
         $this->attributeRepository = $attributeRepository;
         $this->supplierRepository = $supplierRepository;
+        $this->productImageRepository = $productImageRepository;
         $this->identifier = env('XDCONNECTS_IDENTIFIER');
-
     }
 
     public function getData()
@@ -56,7 +57,6 @@ class XDConnectsApiService {
 
         foreach ($xmlProductData->Product as $product) {
 
-
             $sku = (string)$product->ItemCode;
 
             $variants[$sku][] = [
@@ -77,6 +77,14 @@ class XDConnectsApiService {
                 'sku' => $sku,
                 "type" => "simple",
             ]);
+
+            $allImagesString = (string)$product->AllImages; // Convert the SimpleXMLElement to a string
+            $imageLinks = explode(', ', $allImagesString);
+
+            $imageData = $this->productImageRepository->uploadImportedImagesXDConnects($imageLinks, $productObj);
+            $images['files'] = $imageData['fileList'];
+            $tempPaths[] = $imageData['tempPaths'];
+
 
             $this->supplierRepository->create([
                 'product_id' => $productObj->id,
@@ -120,7 +128,8 @@ class XDConnectsApiService {
                 ],
                 'variants' => $variants,
                 'brand' => (string)$product->brand,
-                'categories' => [1]
+                'categories' => [1],
+                'images' =>  $images
             ];
 
             $this->productRepository->updateToShop($superAttributes, $productObj->id, 'id');

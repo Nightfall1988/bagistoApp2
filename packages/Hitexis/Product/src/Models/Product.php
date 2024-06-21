@@ -1,7 +1,7 @@
 <?php
 namespace Hitexis\Product\Models;
 
-use Webkul\Product\Models\Product as BaseProduct;
+use Illuminate\Database\Eloquent\Model as BaseProduct;
 use Hitexis\Wholesale\Models\WholesaleProxy;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Hitexis\Product\Contracts\Product as ProductContract;
@@ -17,14 +17,14 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Collection;
 use Shetabit\Visitor\Traits\Visitable;
 use Webkul\Attribute\Models\AttributeFamilyProxy;
-use Webkul\Attribute\Models\AttributeProxy;
-use Webkul\Attribute\Repositories\AttributeRepository;
+use Hitexis\Attribute\Models\AttributeProxy;
+use Hitexis\Attribute\Repositories\AttributeRepository;
 use Webkul\CatalogRule\Models\CatalogRuleProductPriceProxy;
 use Webkul\Category\Models\CategoryProxy;
-use Webkul\Inventory\Models\InventorySourceProxy;
+use Hitexis\Inventory\Models\InventorySourceProxy;
 use Webkul\Product\Database\Eloquent\Builder;
-use Webkul\Product\Database\Factories\ProductFactory;
-use Webkul\Product\Type\AbstractType;
+use Hitexis\Product\Database\Factories\ProductFactory;
+use Hitexis\Product\Type\AbstractType;
 
 class Product extends BaseProduct implements ProductContract
 {
@@ -352,11 +352,12 @@ class Product extends BaseProduct implements ProductContract
      */
     public function getTypeInstance(): AbstractType
     {
+        // dd($this);
         if ($this->typeInstance) {
             return $this->typeInstance;
         }
 
-        $this->typeInstance = app(config('product_types.'.$this->type.'.class'));
+        $this->typeInstance = app(config('hitexis_product_types.'.$this->type.'.class'));
 
         if (! $this->typeInstance instanceof AbstractType) {
             throw new Exception("Please ensure the product type '{$this->type}' is configured in your application.");

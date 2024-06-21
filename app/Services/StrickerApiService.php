@@ -8,6 +8,7 @@ use Hitexis\Product\Repositories\HitexisProductRepository;
 use Hitexis\Attribute\Repositories\AttributeRepository;
 use Hitexis\Attribute\Repositories\AttributeOptionRepository;
 use Hitexis\Product\Repositories\SupplierRepository;
+use Hitexis\Product\Repositories\ProductImageRepository;
 
 class StrickerApiService {
 
@@ -21,12 +22,14 @@ class StrickerApiService {
         HitexisProductRepository $productRepository,
         AttributeRepository $attributeRepository,
         AttributeOptionRepository $attributeOptionRepository,
-        SupplierRepository $supplierRepository
+        SupplierRepository $supplierRepository,
+        ProductImageRepository $productImageRepository
     ) {
         $this->productRepository = $productRepository;
         $this->attributeOptionRepository = $attributeOptionRepository;
         $this->attributeRepository = $attributeRepository;
         $this->supplierRepository = $supplierRepository;
+        $this->productImageRepository = $productImageRepository;
         $this->authUrl = env('STRICKER_AUTH_URL') . env('STRICKER_AUTH_TOKEN');
         $this->url = env('STRICKER_PRODUCTS_URL');
         $this->optionalsUrl = env('STRICKER_OPTIONALS_URL');
@@ -75,7 +78,6 @@ class StrickerApiService {
     public function getProducts($productsData)
     {
         $products = [];
-
         foreach ($productsData['Products'] as $product) {
             $products[$product['ProdReference']] = $product;
         }
@@ -85,6 +87,7 @@ class StrickerApiService {
 
     public function updateProducts($optionalsData, $products)
     {
+        $images = [];
         foreach ($optionalsData['OptionalsComplete'] as $optional) {
 
             $prodReference = $optional['ProdReference'];
@@ -100,6 +103,11 @@ class StrickerApiService {
                     "type" => "simple",
                 ]);
 
+               
+                // $imageName = str_replace('-', '_', $productObj->sku);
+                // $images['files'][] = $this->productImageRepository->assignImage($optional['OptionalImage1']);
+                
+
                 $this->supplierRepository->create([
                     'product_id' => $productObj->id,
                     'supplier_code' => $this->identifier
@@ -109,13 +117,12 @@ class StrickerApiService {
             $price = isset($optional['Price1']) ? $optional['Price1'] : 0;
             $yourPrice = isset($optional['YourPrice']) ? $optional['YourPrice'] : 0;
 
-            $search = ['.', '\'', ' ', '"'];
+            $search = ['.', '\'', ' ', '"', ','];
             $replace = '-';
             $name = $product['Name'];
             $urlKey = strtolower(str_replace($search, $replace, $name));
-
-            $images = [];
             
+
             $superAttributes = [
                 "channel" => "default",
                 "locale" => "en",
@@ -146,7 +153,8 @@ class StrickerApiService {
                 "inventories" => [
                     1 =>  $product['BoxQuantity'] ?? 0,
                 ],
-                'categories' => [1]
+                'categories' => [1],
+                'images' => $images
             ];
 
             $this->productRepository->updateToShop($superAttributes, $productObj->id, 'id');

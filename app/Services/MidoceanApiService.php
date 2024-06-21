@@ -1,12 +1,13 @@
 <?php
 namespace App\Services;
-
 use Hitexis\Product\Models\Product;
 use GuzzleHttp\Client as GuzzleClient;
 use Hitexis\Product\Repositories\HitexisProductRepository;
 use Hitexis\Attribute\Repositories\AttributeRepository;
 use Hitexis\Attribute\Repositories\AttributeOptionRepository;
 use Hitexis\Product\Repositories\SupplierRepository;
+use Hitexis\Product\Repositories\ProductImageRepository;
+use Hitexis\Product\Repositories\ProductAttributeValueRepository;
 
 class MidoceanApiService {
 
@@ -16,23 +17,33 @@ class MidoceanApiService {
 
     protected $productRepository;
 
+    protected array $productImages;
+
+    protected array $variantList;
+
     public function __construct(
         HitexisProductRepository $productRepository,
         AttributeRepository $attributeRepository,
         AttributeOptionRepository $attributeOptionRepository,
-        SupplierRepository $supplierRepository
+        SupplierRepository $supplierRepository,
+        ProductImageRepository $productImageRepository,
+        ProductAttributeValueRepository $productAttributeValueRepository
     ) {
         $this->productRepository = $productRepository;
         $this->attributeOptionRepository = $attributeOptionRepository;
         $this->attributeRepository = $attributeRepository;
         $this->supplierRepository = $supplierRepository;
+        $this->productImageRepository = $productImageRepository;
+        $this->productAttributeValueRepository = $productAttributeValueRepository;
         $this->url = env('MIDOECAN_PRODUCTS_URL');
         $this->pricesUrl = env('MIDOECAN_PRICES_URL');
         $this->identifier = env('MIDOECAN_IDENTIFIER');
+        $this->productImages = [];
     }
 
     public function getData()
     {
+
         $color = '';
         $headers = [
             'Content-Type' => 'application/json',
@@ -45,8 +56,9 @@ class MidoceanApiService {
 
         // GET PRODUCTS
         $request = $this->httpClient->get($this->url);
+
         $response = json_decode($request->getBody()->getContents());
-    
+
         // GET PRICES
         $priceRequest = $this->httpClient->get($this->pricesUrl);
         $priceData = json_decode($priceRequest->getBody()->getContents(), true);
@@ -61,53 +73,66 @@ class MidoceanApiService {
         // SAVE PRODUCTS AND VARIANTS
         foreach ($response as $apiProduct) {
 
-            $product = $this->productRepository->create([
-                'attribute_family_id' => '1',
-                'sku' => $apiProduct->variants[0]->sku,
-                "type" => "simple",
-            ]);
+            $type = '';
+            $mainVariant = $apiProduct->variants[0];
 
-            $this->supplierRepository->create([
-                'product_id' => $product->id,
-                'supplier_code' => $this->identifier
-            ]);
-
-            
-            if (isset($apiProduct->variants)) {
-
-                $this->setVariants($apiProduct, $product, $priceList);
+            if (sizeof($apiProduct->variants) == 1) {
+                $this->createSimpleProduct($mainVariant, $apiProduct, $priceList); 
             }
-        }
+
+            if (sizeof($apiProduct->variants) > 1) {
+                $variantList = array_slice($apiProduct->variants, 1);
+                $parentProduct = $this->createConfigurable($mainVariant,  $variantList, $apiProduct);
+                $this->createSimpleVariants($parentProduct,  $priceList, $apiProduct, $variantList);
+            }
+        }        
     }
 
+    public function createConfigurable($product, $variantList, $apiProduct)  {
+        $color = [];
+        $size = [];
+        foreach ($variantList as $variant) {
 
-    public function setVariants($apiProduct, $product, $priceList ) {
-        $variants = [];
-
-        for ($i=1; $i<sizeof($apiProduct->variants); $i++) {
-
-            if (isset($apiProduct->variants[$i]->color_description)) {
-                $result = $this->attributeOptionRepository->getOption($apiProduct->variants[$i]->color_description);
+            // GET VARIANT COLOR
+            if (isset($variant->color_group)) {
+                $result = $this->attributeOptionRepository->getOption($variant->color_group);
                 if ($result != 0) {
-                    $color = $result->id;
-                } else {
-                    $color = '';
+                    $color[] = $result->id;
                 }
             }
 
-            $variants[$product->id] = [
-                'sku' => $apiProduct->variants[$i]->sku,
-                'name' => $apiProduct->product_name ?? 'no name',
-                "url_key" => (!isset($apiProduct->product_name)) ? $apiProduct->variants[$i]->sku . '_' . 
-                            $apiProduct->variants[$i]->variant_id : $apiProduct->product_name . '_' . 
-                            $apiProduct->variants[$i]->variant_id,
-                'price' =>  isset($priceList[ $apiProduct->variants[$i]->sku]) ? $priceList[ $apiProduct->variants[$i]->sku] : 0, 
-                'weight' => $apiProduct->gross_weight,
-                "status" => "new",
-                "color" => isset($color) ? $color : '',
-                "size" => "6",
-            ];
+            // GET VARIANT SIZE
+            if (isset($variant->size)) {
+                $result = $this->attributeOptionRepository->getOption($variant->size);
+                if ($result != 0) {
+                    $size[] = $result->id;
+                }
+            }
         }
+
+
+        $attributes = [
+            'color' => $color,
+            'size' => $size
+        ];
+
+        $product = $this->productRepository->create([
+            'attribute_family_id' => '1',
+            'sku' => $product->sku,
+            "type" => 'configurable',
+            'super_attributes' => $attributes
+        ]);
+
+        return $product;
+    }
+
+    public function createSimpleProduct($mainVariant, $apiProduct, $priceList) {
+
+        $product = $this->productRepository->create([
+            'attribute_family_id' => '1',
+            'sku' => $mainVariant->sku,
+            "type" => 'simple',
+        ]);
 
         $productSku = $product->sku ?? '';
         $price = isset($priceList[$productSku]) ? $priceList[$productSku] : 0;
@@ -117,13 +142,10 @@ class MidoceanApiService {
         $urlKey = isset($apiProduct->product_name) ? $apiProduct->product_name  . '-' . $apiProduct->master_id : $apiProduct->master_id; 
         $urlKey = strtolower(str_replace($search, $replace, $urlKey));        
         
-        $mainProductImgs = $apiProduct->variants[0]->digital_assets;
         $images = [];
-        // if (isset($mainProductImgs)) {
-        //     for ($i=0; $i<count($mainProductImgs); $i++) {
-        //         $images = $mainProductImgs[$i]->url_highress;
-        //     }
-        // }
+        $imageData = $this->productImageRepository->uploadImportedImagesMidocean($mainVariant->digital_assets, $product);
+        $images['files'] = $imageData['fileList'];
+        $tempPaths[] = $imageData['tempPaths'];
 
         $superAttributes = [
             "channel" => "default",
@@ -155,11 +177,81 @@ class MidoceanApiService {
             "inventories" => [
                 1 => "100"
             ],
-            'variants' => $variants,
             'categories' => [1],
-            'images' =>  ['files' => $images]
+            'images' =>  $images
         ];
+
+        $this->supplierRepository->create([
+                'product_id' => $product->id,
+                'supplier_code' => $this->identifier
+            ]);
 
         $this->productRepository->updateToShop($superAttributes, $product->id, $attribute = 'id');
     }
-}
+    
+    public function createSimpleVariants($mainProduct, $priceList, $apiProduct, $variants) {
+
+        foreach ($variants as $variant) {
+                $product = $this->productRepository->create([
+                    'attribute_family_id' => '1',
+                    'sku' => $variant->sku,
+                    "type" => 'simple',
+                    'parent_id' => $mainProduct->id
+                ]);
+                
+                $imageData = $this->productImageRepository->uploadImportedImagesMidocean($variant->digital_assets, $mainProduct);
+                $images['files'] = $imageData['fileList'];
+                $tempPaths[] = $imageData['tempPaths'];
+                
+                $price = isset($priceList[$mainProduct->sku]) ? $priceList[$mainProduct->sku] : 0;
+                $productSku = $product->sku ?? '';
+                $replace = '-';
+                $search = ['.', '\'', ' ', '"']; 
+                $urlKey = isset($apiProduct->product_name) ? $apiProduct->product_name  . '-' . $productSku : $productSku; 
+                $urlKey = strtolower(str_replace($search, $replace, $urlKey));        
+                
+
+                $superAttributes = [
+                    "channel" => "default",
+                    "locale" => "en",
+                    'sku' => $productSku,
+                    "product_number" => $apiProduct->master_id,
+                    "name" => (!isset($apiProduct->product_name)) ? 'no name' : $apiProduct->product_name,
+                    "url_key" => (!isset($apiProduct->product_name)) ? '' : $urlKey,
+                    "short_description" => (isset($apiProduct->short_description)) ? '<p>' . $apiProduct->short_description . '</p>' : '',
+                    "description" => (isset($apiProduct->long_description)) ? '<p>' . $apiProduct->long_description . '</p>'  : '',
+                    "meta_title" => "",
+                    "meta_keywords" => "",
+                    "meta_description" => "",
+                    'price' => $price,
+                    'cost' => '',
+                    "special_price" => "",
+                    "special_price_from" => "",
+                    "special_price_to" => "",          
+                    "length" => $apiProduct->length ?? '',
+                    "width" => $apiProduct->width ?? '',
+                    "height" => $apiProduct->height ?? '',
+                    "weight" => $apiProduct->net_weight ?? 0,
+                    "new" => "1",
+                    "visible_individually" => "1",
+                    "status" => "1",
+                    "featured" => "1",
+                    "guest_checkout" => "1",
+                    "manage_stock" => "1",
+                    "inventories" => [
+                        1 => "100"
+                    ],
+                    'categories' => [1],
+                    'images' =>  $images
+                ];
+
+                
+            $this->supplierRepository->create([
+                'product_id' => $product->id,
+                'supplier_code' => $this->identifier
+            ]);
+
+                $this->productRepository->updateToShop($superAttributes, $product->id, $attribute = 'id');
+            }
+        }
+    }

@@ -9,7 +9,7 @@ use Webkul\Product\Facades\ProductImage as ProductImageFacade;
 use Webkul\Product\Facades\ProductVideo as ProductVideoFacade;
 use Hitexis\Product\Models\ProductProxy;
 use Webkul\Product\Observers\ProductObserver;
-use Webkul\Product\ProductImage;
+use Hitexis\Product\ProductImage;
 use Webkul\Product\ProductVideo;
 use Webkul\Product\Providers\EventServiceProvider;
 use Hitexis\Attribute\Contracts\Attribute as AttributeContract;
@@ -22,7 +22,7 @@ class ProductServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        include __DIR__.'/../../../../Webkul/Product/src/Http/helpers.php';
+        include __DIR__.'/../Http/helpers.php';
 
         $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
 
@@ -45,6 +45,7 @@ class ProductServiceProvider extends ServiceProvider
         $this->registerFacades();
 
         $this->app->bind(AttributeContract::class, Attribute::class);
+        
 
     }
 

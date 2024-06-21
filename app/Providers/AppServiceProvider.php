@@ -11,6 +11,8 @@ use Hitexis\Product\Repositories\ElasticSearchRepository;
 use Hitexis\Attribute\Repositories\AttributeOptionRepository;
 use Hitexis\Product\Repositories\SupplierRepository;
 use Illuminate\Container\Container;
+use Hitexis\Product\Repositories\ProductImageRepository;
+use Hitexis\Product\Models\ProductImage;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -32,8 +34,26 @@ class AppServiceProvider extends ServiceProvider
         });
 
         // Bind the service
+        $this->app->singleton(ProductImageRepository::class, function ($app) {
+            return new ProductImageRepository(
+                $app->make(HitexisProductRepository::class),
+                $app->make(Container::class) // Replace Container::class with the appropriate class if needed
+            );
+        });
+
+        $this->app->singleton(AttributeOptionRepository::class, function ($app) {
+            return new AttributeOptionRepository($app->make(Container::class));
+        });
+
+        $this->app->singleton(AttributeRepository::class, function ($app) {
+            return new AttributeRepository(
+                $app->make(AttributeOptionRepository::class),
+                $app->make(Container::class)
+            );
+        });
+
         $this->app->singleton(MidoceanApiService::class, function ($app) {
-            return new MidoceanApiService($app->make(HitexisProductRepository::class), $app->make(SupplierRepository::class));
+            return new MidoceanApiService($app->make(HitexisProductRepository::class), $app->make(SupplierRepository::class), $app->make(ProductImageRepository::class));
         });
 
         $this->app->singleton(StrickerApiService::class, function ($app) {
@@ -45,5 +65,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         $this->app->bind(AttributeOption::class, AttributeOptionRepository::class);
+
+
     }
 }

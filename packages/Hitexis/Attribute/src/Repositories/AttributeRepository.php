@@ -3,11 +3,11 @@
 namespace Hitexis\Attribute\Repositories;
 
 use Illuminate\Container\Container;
-use Webkul\Attribute\Repositories\AttributeRepository as WebkulRepository;
+use Webkul\Core\Eloquent\Repository;
 use Hitexis\Attribute\Repositories\AttributeOptionRepository;
 use Hitexis\Attribute\Contracts\Attribute;
 
-class AttributeRepository extends WebkulRepository
+class AttributeRepository extends Repository
 {
     protected $attributes = [];
 
@@ -21,7 +21,7 @@ class AttributeRepository extends WebkulRepository
         AttributeOptionRepository $attributeOptionRepository,
         Container $container
     ) {
-        parent::__construct($attributeOptionRepository, $container); // Pass dependencies to the parent constructor
+        parent::__construct($container); // Pass dependencies to the parent constructor
         $this->attributeOptionRepository = $attributeOptionRepository;
     }
     /**

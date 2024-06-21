@@ -3,7 +3,7 @@
 namespace Hitexis\Attribute\Repositories;
 
 use Illuminate\Http\UploadedFile;
-use Webkul\Attribute\Repositories\AttributeOptionRepository as Repository;
+use Webkul\Core\Eloquent\Repository;
 
 class AttributeOptionRepository extends Repository
 {
@@ -12,7 +12,7 @@ class AttributeOptionRepository extends Repository
      */
     public function model(): string
     {
-        return 'Hitexis\Attribute\Contracts\AttributeOption';
+        return 'Hitexis\Attribute\Models\AttributeOption';
     }
 
     /**

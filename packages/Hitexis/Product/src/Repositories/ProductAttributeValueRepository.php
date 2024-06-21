@@ -11,7 +11,7 @@ class ProductAttributeValueRepository extends Repository
      */
     public function model(): string
     {
-        return 'Webkul\Product\Contracts\ProductAttributeValue';
+        return 'Hitexis\Product\Contracts\ProductAttributeValue';
     }
 
     /**

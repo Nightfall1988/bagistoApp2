@@ -62,7 +62,7 @@ class HitexisProductRepository extends Repository
             throw new \InvalidArgumentException("Product type '{$data['type']}' not found in configuration.");
         }
         
-        $typeInstance = app(config('product_types.'.$data['type'].'.class'));
+        $typeInstance = app(config('hitexis_product_types.'.$data['type'].'.class'));
 
         $product = $typeInstance->create($data);
 
@@ -80,9 +80,7 @@ class HitexisProductRepository extends Repository
     {
         $product = $this->findOrFail($id);
         $product = $product->getTypeInstance()->update($data, $id, $attribute);
-
         $product->refresh();
-
         if (isset($data['channels'])) {
             $product['channels'] = $data['channels'];
         }
@@ -145,6 +143,8 @@ class HitexisProductRepository extends Repository
         $product = $this->update($data, $id);
 
         Event::dispatch('catalog.product.update.after', $product);
+
+        return $product;
     }
 
     /**

@@ -856,4 +856,11 @@ return [
         'route' => 'admin.configuration.index',
         'sort'  => 9,
     ],
+
+    [
+        'key'        => 'wholesale',
+        'name'       => 'admin::app.acl.wholesale',
+        'route'      => 'admin.wholesale.index',
+        'sort'       => 10,
+    ],
 ];

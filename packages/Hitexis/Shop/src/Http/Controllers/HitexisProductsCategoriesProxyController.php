@@ -82,7 +82,6 @@ class HitexisProductsCategoriesProxyController extends Controller
                 abort(404);
             }
 
-            // dd($product->supplier);
             visitor()->visit($product);
 
             return view('hitexis-shop::products.view', compact('product'));

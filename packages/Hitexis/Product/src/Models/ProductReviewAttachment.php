@@ -1,13 +1,13 @@
 <?php
 
-namespace Webkul\Product\Models;
+namespace Hitexis\Product\Models;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Storage;
-use Webkul\Product\Contracts\ProductReviewAttachment as ProductReviewAttachmentContract;
+use Hitexis\Product\Contracts\ProductReviewAttachment as ProductReviewAttachmentContract;
 use Webkul\Product\Database\Factories\ProductReviewAttachmentFactory;
 
 class ProductReviewAttachment extends Model implements ProductReviewAttachmentContract

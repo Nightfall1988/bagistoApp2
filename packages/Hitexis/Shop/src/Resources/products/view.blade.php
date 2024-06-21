@@ -75,10 +75,10 @@
                 data-tl-sid="{{ $product->supplier->supplier_code }}"
                 data-tl-spcode="{{ $product->sku }}">DESIGN PRINT MOTIVE
             </button>
-            <button data-tl-action="OpenEditor" data-tl-sid="{{ $product->supplier->supplier_code }}"
+            {{-- <button data-tl-action="OpenEditor" data-tl-sid="{{ $product->supplier->supplier_code }}"
                 data-tl-spcode="" data-tl-pcode="{{ $product->sku }}"
                 data-tl-pname="your-product-name">CREATE PRINT MOTIVE
-            </button>
+            </button> --}}
         </div>
     </div>
 
