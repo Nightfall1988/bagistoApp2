@@ -350,11 +350,11 @@ return [
     ],
 
 
-    // [
-    //     'key'        => 'wholesale',
-    //     'name'       => 'admin::app.components.layouts.sidebar.wholesale',
-    //     'route'      => 'admin.wholesale.index',
-    //     'sort'       => 9,
-    //     'icon'       => 'icon-configuration',
-    // ],
+    [
+        'key'        => 'wholesale',
+        'name'       => 'admin::app.components.layouts.sidebar.wholesale',
+        'route'      => 'admin.wholesale.index',
+        'sort'       => 9,
+        'icon'       => 'icon-configuration',
+    ],
 ];

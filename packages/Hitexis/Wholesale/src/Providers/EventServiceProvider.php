@@ -1,6 +1,6 @@
 <?php
 
-namespace Webkul\Wholesale\Providers;
+namespace Hitexis\Wholesale\Providers;
 
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 
@@ -12,8 +12,6 @@ class EventServiceProvider extends ServiceProvider
      * @var array
      */
     protected $listen = [
-        'promotions.catalog_rule.create.before'  => [
-            'Webkul\CatalogRule\Listeners\CatalogRule@afterUpdateCreate',
-        ],
+
     ];
 }

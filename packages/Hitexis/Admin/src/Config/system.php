@@ -1,6 +1,6 @@
 <?php
 
-use Webkul\Sales\Models\Order;
+// use Hitexis\Sales\Models\Order;
 
 return [
     /**
@@ -1153,16 +1153,16 @@ return [
                 'title'         => 'admin::app.configuration.index.sales.payment-methods.set-order-status',
                 'type'          => 'select',
                 'options'       => [
-                    [
-                        'title' => 'admin::app.configuration.index.sales.payment-methods.pending',
-                        'value' => Order::STATUS_PENDING,
-                    ], [
-                        'title' => 'admin::app.configuration.index.sales.payment-methods.pending-payment',
-                        'value' => Order::STATUS_PENDING_PAYMENT,
-                    ], [
-                        'title' => 'admin::app.configuration.index.sales.payment-methods.processing',
-                        'value' => Order::STATUS_PROCESSING,
-                    ],
+                    // [
+                    //     'title' => 'admin::app.configuration.index.sales.payment-methods.pending',
+                    //     'value' => Order::STATUS_PENDING,
+                    // ], [
+                    //     'title' => 'admin::app.configuration.index.sales.payment-methods.pending-payment',
+                    //     'value' => Order::STATUS_PENDING_PAYMENT,
+                    // ], [
+                    //     'title' => 'admin::app.configuration.index.sales.payment-methods.processing',
+                    //     'value' => Order::STATUS_PROCESSING,
+                    // ],
                 ],
                 'info'          => 'admin::app.configuration.index.sales.payment-methods.generate-invoice-applicable',
                 'channel_based' => true,

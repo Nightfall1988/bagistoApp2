@@ -9,7 +9,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
 use Hitexis\Wholesale\Http\Requests\WholesaleRequest;
 use Hitexis\Admin\DataGrids\Wholesale\WholesaleDataGrid;
-use Webkul\Admin\Serivices\StrickerProductService;
 use Hitexis\Product\Models\Product;
 
 class WholesaleController extends Controller
@@ -21,7 +20,7 @@ class WholesaleController extends Controller
      */
     public function __construct(protected WholesaleRepository $wholesaleRepository)
     {
-        dd('fasdafasf');
+        dd($wholesaleRepository);
     }
 
     /**
@@ -38,7 +37,6 @@ class WholesaleController extends Controller
         return view('admin::wholesale.index');
     }
 
-    
 
     /**
      * Show the form for creating a new resource.

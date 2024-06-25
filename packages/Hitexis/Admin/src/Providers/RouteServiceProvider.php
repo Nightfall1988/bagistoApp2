@@ -1,7 +1,7 @@
 <?php
 
-namespace Hitexis\Wholesale\Providers;
-use App\Providers\RouteServiceProvider as ServiceProvider;
+namespace Hitexis\Admin\Providers;
+use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Route;
 
 class RouteServiceProvider extends ServiceProvider
@@ -18,7 +18,9 @@ class RouteServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        parent::boot();
+        // parent::boot();
+        $this->mapAdminRoutes();
+
     }
 
     /**
@@ -26,7 +28,7 @@ class RouteServiceProvider extends ServiceProvider
      */
     public function map()
     {
-        $this->mapAdminRoutes();
+        // $this->mapAdminRoutes();
     }
 
     /**

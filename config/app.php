@@ -200,7 +200,7 @@ return [
         App\Providers\AuthServiceProvider::class,
         // App\Providers\BroadcastServiceProvider::class,
         App\Providers\EventServiceProvider::class,
-        Hitexis\Wholesale\Providers\RouteServiceProvider::class,
+        Hitexis\Admin\Providers\RouteServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
 
         /**
