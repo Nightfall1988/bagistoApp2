@@ -860,7 +860,7 @@ return [
     [
         'key'        => 'wholesale',
         'name'       => 'admin::app.acl.wholesale',
-        'route'      => 'admin.wholesale.index',
+        'route'      => 'wholesale.wholesale.index',
         'sort'       => 10,
     ],
 ];

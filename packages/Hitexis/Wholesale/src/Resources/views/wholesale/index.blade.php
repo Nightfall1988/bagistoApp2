@@ -11,7 +11,7 @@
         <div class="flex gap-x-2.5 items-center">
             @if (bouncer()->hasPermission('wholesale.create'))
                 <a 
-                    href="{{ route('admin.wholesale.create') }}"
+                    href="{{ route('wholesale.wholesale.create') }}"
                     class="primary-button"
                 >
                     @lang('admin::app.wholesale.create-btn')
@@ -20,6 +20,6 @@
         </div>
     </div>
 
-    <x-admin::datagrid src="{{ route('admin.wholesale.index') }}" />
+    <x-admin::datagrid src="{{ route('wholesale.wholesale.index') }}" />
 
 </x-admin::layouts>

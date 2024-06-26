@@ -10,7 +10,7 @@
     </div>
 
     <div class="mt-5">
-        <form method="POST" action="{{ route('admin.wholesale.store') }}">
+        <form method="POST" action="{{ route('wholesale.wholesale.store') }}">
             @csrf
 
             <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
@@ -54,7 +54,7 @@
             const query = this.value.trim();
 
             if (query !== '') {
-                fetch(`{{ route("admin.wholesale.product.search") }}?query=${query}`)
+                fetch(`{{ route("wholesale.wholesale.product.search") }}?query=${query}`)
                     .then(response => response.json())
                     .then(data => {
                         productSuggestions.innerHTML = '';

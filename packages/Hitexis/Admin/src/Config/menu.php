@@ -353,8 +353,8 @@ return [
     [
         'key'        => 'wholesale',
         'name'       => 'admin::app.components.layouts.sidebar.wholesale',
-        'route'      => 'admin.wholesale.index',
-        'sort'       => 9,
+        'route'      => 'wholesale.wholesale.index',
+        'sort'       => 10,
         'icon'       => 'icon-configuration',
     ],
 ];

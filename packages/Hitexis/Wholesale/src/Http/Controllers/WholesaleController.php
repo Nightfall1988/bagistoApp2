@@ -20,7 +20,6 @@ class WholesaleController extends Controller
      */
     public function __construct(protected WholesaleRepository $wholesaleRepository)
     {
-        dd($wholesaleRepository);
     }
 
     /**
@@ -34,7 +33,7 @@ class WholesaleController extends Controller
             return app(WholesaleDataGrid::class)->toJson();
         }
 
-        return view('admin::wholesale.index');
+        return view('wholesale::wholesale.index');
     }
 
 
@@ -64,7 +63,7 @@ class WholesaleController extends Controller
         ]);
 
         
-        return redirect()->route('admin.wholesale.index');
+        return redirect()->route('wholesale.wholesale.index');
     }
 
     public function search(Request $request) {

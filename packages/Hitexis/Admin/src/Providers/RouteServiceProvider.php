@@ -1,8 +1,8 @@
 <?php
 
 namespace Hitexis\Admin\Providers;
-use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 
 class RouteServiceProvider extends ServiceProvider
 {
@@ -11,7 +11,7 @@ class RouteServiceProvider extends ServiceProvider
      *
      * @var string
      */
-    protected $namespace = 'Hitexis\Wholesale\Http\Controllers';
+    protected $namespace = 'Hitexis\Admin\Http\Controllers';
 
     /**
      * Define your route model bindings, pattern filters, etc.

@@ -9,7 +9,7 @@ class ModuleServiceProvider extends CoreModuleServiceProvider
 {
     public function boot(): void
     {
-        $this->loadRoutesFrom(__DIR__ . '/../Http/wholesale-routes.php');
+        $this->loadRoutesFrom(__DIR__ . '/../Http/routes.php');
         
         $this->loadViewsFrom(__DIR__ . '/../Resources/views', 'wholesale');
         

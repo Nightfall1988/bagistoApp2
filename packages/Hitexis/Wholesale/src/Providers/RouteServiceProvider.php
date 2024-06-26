@@ -11,7 +11,7 @@ class RouteServiceProvider extends ServiceProvider
      *
      * @var string
      */
-    protected $namespace = 'Hitexis\Wholesale\Http\Controllers';
+    protected $namespace = 'Hitexis\Admin\Http\Controllers';
 
     /**
      * Define your route model bindings, pattern filters, etc.
@@ -36,6 +36,6 @@ class RouteServiceProvider extends ServiceProvider
     {
         Route::middleware('admin')
              ->namespace($this->namespace)
-             ->group(base_path('packages/Hitexis/Admin/src/Routes/wholesale-routes.php'));
+             ->group(base_path('packages/Hitexis/Admin/src/Routes/routes.php'));
     }
 }
