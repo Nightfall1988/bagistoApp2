@@ -12,6 +12,7 @@ use Illuminate\Support\ServiceProvider;
 use Webkul\Shop\Http\Middleware\Currency;
 use Webkul\Shop\Http\Middleware\Locale;
 use Webkul\Shop\Http\Middleware\Theme;
+use Hitexis\Shop\Http\View\Components\Layout;
 
 class ShopServiceProvider extends ServiceProvider
 {
@@ -28,7 +29,8 @@ class ShopServiceProvider extends ServiceProvider
 
         $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
         $this->loadTranslationsFrom(__DIR__.'/../Resources/lang', 'shop');
-        $this->loadViewsFrom(__DIR__.'/../Resources', 'hitexis-shop');
+        $this->loadViewsFrom(__DIR__.'/../Resources/views', 'hitexis-shop');
+        Blade::component('hitexis-shop::layout', Layout::class);
 
         /* aliases */
         $router->aliasMiddleware('currency', Currency::class);
@@ -47,12 +49,10 @@ class ShopServiceProvider extends ServiceProvider
         Paginator::defaultView('shop::partials.pagination');
         Paginator::defaultSimpleView('shop::partials.pagination');
 
-        Blade::anonymousComponentPath(__DIR__.'/../Resources/views/components', 'shop');
-
         /* Breadcrumbs */
         // require __DIR__.'/../../../../Webkul/Shop/src/Routes/breadcrumbs.php';
 
-        // $this->app->register(EventServiceProvider::class);
+        $this->app->register(EventServiceProvider::class);
     }
 
     /**

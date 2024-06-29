@@ -47,6 +47,8 @@
 @endPush
 <!-- Page Layout -->
 <x-shop::layouts>
+
+{{-- <x-hitexis-shop::layout />  // PROBLEM --}}
     <!-- Page Title -->
     <x-slot:title>
         {{ trim($product->meta_title) != "" ? $product->meta_title : $product->name }}
@@ -61,11 +63,11 @@
             :entity="$product"
         />
     </div>
-
     <!-- Product Information Vue Component -->
     <v-product>
         <x-shop::shimmer.products.view />
     </v-product>
+    
     <!-- LogoTron -->
     <div class="flex flex-row max-w-[700px] gap-4 mx-5" style="margin-left: 14rem; margin-top: 2rem;">
         <div class="flex flex-row max-w-[670px] gap-4 mr-8 ml-8">
@@ -79,6 +81,26 @@
                 data-tl-spcode="" data-tl-pcode="{{ $product->sku }}"
                 data-tl-pname="your-product-name">CREATE PRINT MOTIVE
             </button> --}}
+        </div>
+        <div>
+            @if (sizeof($product->wholesales)> 0)
+                <ul class="mt-5">
+                    @foreach ($product->wholesales as $wholesale)
+                        <li class="flex gap-2.5 items-center text-lg text-[#6E6E6E]">
+                            @lang('shop::app.products.view.for-a-batch-of')<b>{{ $wholesale->batch_amount }}</b>@lang('shop::app.products.view.receive')<b>{{ $wholesale->discount_percentage }}%</b> @lang('shop::app.products.view.discount')!
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
+            @if (count($product->getTypeInstance()->getCustomerGroupPricingOffers()))
+                <div class="grid gap-1.5 mt-2.5">
+                    @foreach ($product->getTypeInstance()->getCustomerGroupPricingOffers() as $offer)
+                        <p class="text-[#6E6E6E] [&>*]:text-black">
+                            {!! $offer !!}
+                        </p>
+                    @endforeach
+                </div>
+            @endif
         </div>
     </div>
 
@@ -484,6 +506,7 @@
 
                 methods: {
                     addToCart(params) {
+
                         const operation = this.is_buy_now ? 'buyNow' : 'addToCart';
 
                         this.isStoring[operation] = true;
@@ -497,6 +520,7 @@
                             })
                             .then(response => {
                                 if (response.data.message) {
+
                                     this.$emitter.emit('update-mini-cart', response.data.data);
 
                                     this.$emitter.emit('add-flash', { type: 'success', message: response.data.message });

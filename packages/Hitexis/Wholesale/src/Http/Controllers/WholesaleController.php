@@ -44,7 +44,7 @@ class WholesaleController extends Controller
      */
     public function create()
     {
-        return view('admin::wholesale.create');
+        return view('wholesale::wholesale.create');
     }
 
     /**

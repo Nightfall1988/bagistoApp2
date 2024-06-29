@@ -3,9 +3,9 @@
 namespace Hitexis\Product;
 
 use Hitexis\Product\Repositories\HitexisProductRepository as ProductRepository;
-use Webkul\Product\ProductImage as WebkulProductImage;
+use Illuminate\Support\Facades\Storage;
 
-class ProductImage extends WebkulProductImage
+class ProductImage 
 {
     /**
      * Create a new helper instance.

@@ -36,6 +36,6 @@ class RouteServiceProvider extends ServiceProvider
     {
         Route::middleware('admin')
              ->namespace($this->namespace)
-             ->group(base_path('packages/Hitexis/Admin/src/Routes/routes.php'));
+             ->group(base_path('packages/Hitexis/Wholesale/src/Http/routes.php'));
     }
 }

@@ -5,8 +5,8 @@ namespace Hitexis\Product\Type;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Hitexis\Attribute\Repositories\AttributeRepository;
-use Webkul\Checkout\Facades\Cart;
-use Webkul\Checkout\Models\CartItem;
+use Hitexis\Checkout\Facades\Cart;
+use Hitexis\Checkout\Models\CartItem;
 use Webkul\Customer\Repositories\CustomerRepository;
 use Webkul\Product\DataTypes\CartItemValidationResult;
 use Hitexis\Product\Facades\ProductImage;
@@ -556,7 +556,7 @@ abstract class AbstractType
     /**
      * Is item have quantity.
      *
-     * @param  \Webkul\Checkout\Contracts\CartItem  $cartItem
+     * @param  \Hitexis\Checkout\Contracts\CartItem  $cartItem
      * @return bool
      */
     public function isItemHaveQuantity($cartItem)
@@ -581,7 +581,7 @@ abstract class AbstractType
     /**
      * Return true if item can be moved to cart from wishlist.
      *
-     * @param  \Webkul\Checkout\Contracts\CartItem  $item
+     * @param  \Hitexis\Checkout\Contracts\CartItem  $item
      * @return bool
      */
     public function canBeMovedFromWishlistToCart($item)
@@ -933,8 +933,8 @@ abstract class AbstractType
     /**
      * Get actual ordered item.
      *
-     * @param  \Webkul\Checkout\Contracts\CartItem  $item
-     * @return \Webkul\Checkout\Contracts\CartItem|\Webkul\Sales\Contracts\OrderItem|\Webkul\Sales\Contracts\InvoiceItem|\Webkul\Sales\Contracts\ShipmentItem|\Webkul\Customer\Contracts\Wishlist
+     * @param  \Hitexis\Checkout\Contracts\CartItem  $item
+     * @return \Hitexis\Checkout\Contracts\CartItem|\Webkul\Sales\Contracts\OrderItem|\Webkul\Sales\Contracts\InvoiceItem|\Webkul\Sales\Contracts\ShipmentItem|\Webkul\Customer\Contracts\Wishlist
      */
     public function getOrderedItem($item)
     {
@@ -944,7 +944,7 @@ abstract class AbstractType
     /**
      * Get product base image.
      *
-     * @param  \Webkul\Customer\Contracts\CartItem|\Webkul\Checkout\Contracts\CartItem  $item
+     * @param  \Hitexis\Customer\Contracts\CartItem|\Hitexis\Checkout\Contracts\CartItem  $item
      * @return array
      */
     public function getBaseImage($item)
@@ -991,7 +991,7 @@ abstract class AbstractType
     /**
      * Returns true, if cart item is inactive.
      */
-    public function isCartItemInactive(\Webkul\Checkout\Contracts\CartItem $item): bool
+    public function isCartItemInactive(\Hitexis\Checkout\Contracts\CartItem $item): bool
     {
         if (! $item->product->status) {
             return true;

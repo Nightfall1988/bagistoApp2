@@ -2,7 +2,6 @@
 namespace Hitexis\Product\Models;
 
 use Illuminate\Database\Eloquent\Model as BaseProduct;
-use Hitexis\Wholesale\Models\WholesaleProxy;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Hitexis\Product\Contracts\Product as ProductContract;
 
@@ -25,6 +24,7 @@ use Hitexis\Inventory\Models\InventorySourceProxy;
 use Webkul\Product\Database\Eloquent\Builder;
 use Hitexis\Product\Database\Factories\ProductFactory;
 use Hitexis\Product\Type\AbstractType;
+use Hitexis\Wholesale\Models\WholesaleProxy;
 
 class Product extends BaseProduct implements ProductContract
 {
@@ -352,7 +352,6 @@ class Product extends BaseProduct implements ProductContract
      */
     public function getTypeInstance(): AbstractType
     {
-        // dd($this);
         if ($this->typeInstance) {
             return $this->typeInstance;
         }

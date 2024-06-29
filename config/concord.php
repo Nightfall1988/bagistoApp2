@@ -19,7 +19,9 @@ return [
         \Webkul\CartRule\Providers\ModuleServiceProvider::class,
         \Webkul\CatalogRule\Providers\ModuleServiceProvider::class,
         \Webkul\Category\Providers\ModuleServiceProvider::class,
-        \Webkul\Checkout\Providers\ModuleServiceProvider::class,
+        \Webkul\Checkout\Providers\ModuleServiceProvider::class,// WEBKUL
+        \Hitexis\Checkout\Providers\ModuleServiceProvider::class,// HITEXIS
+        \Hitexis\CartRule\Providers\ModuleServiceProvider::class,// HITEXIS
         // Add your custom module provider here
         \Hitexis\Product\Providers\ModuleServiceProvider::class,
 
@@ -55,5 +57,6 @@ return [
         \Webkul\User\Providers\ModuleServiceProvider::class,
         \Webkul\Sitemap\Providers\ModuleServiceProvider::class,
         \Hitexis\Wholesale\Providers\ModuleServiceProvider::class,
+        
     ],
 ];

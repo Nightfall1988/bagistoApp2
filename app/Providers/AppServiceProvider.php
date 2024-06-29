@@ -13,6 +13,8 @@ use Hitexis\Product\Repositories\SupplierRepository;
 use Illuminate\Container\Container;
 use Hitexis\Product\Repositories\ProductImageRepository;
 use Hitexis\Product\Models\ProductImage;
+use App\Observers\WholesaleObserver;
+use Hitexis\Wholesale\Models\Wholesale;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -65,7 +67,10 @@ class AppServiceProvider extends ServiceProvider
         });
 
         $this->app->bind(AttributeOption::class, AttributeOptionRepository::class);
-
-
+    }
+    
+    public function boot()
+    {
+        Wholesale::observe(WholesaleObserver::class);
     }
 }

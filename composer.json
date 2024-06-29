@@ -97,7 +97,9 @@
             "Webkul\\Tax\\": "packages/Webkul/Tax/src",
             "Webkul\\Theme\\": "packages/Webkul/Theme/src",
             "Webkul\\User\\": "packages/Webkul/User/src",
-            "Hitexis\\Wholesale\\": "packages/Hitexis/Wholesale/src"
+            "Hitexis\\Wholesale\\": "packages/Hitexis/Wholesale/src",
+            "Hitexis\\Checkout\\": "packages/Hitexis/Checkout/src",
+            "Hitexis\\CartRule\\": "packages/Hitexis/CartRule/src"
         }
     },
     "autoload-dev": {

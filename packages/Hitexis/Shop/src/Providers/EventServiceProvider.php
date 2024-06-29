@@ -1,6 +1,6 @@
 <?php
 
-namespace Webkul\Shop\Providers;
+namespace Hitexis\Shop\Providers;
 
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 
@@ -12,48 +12,48 @@ class EventServiceProvider extends ServiceProvider
      * @var array
      */
     protected $listen = [
-        'customer.registration.after' => [
-            'Webkul\Shop\Listeners\Customer@afterCreated',
-        ],
+        // 'customer.registration.after' => [
+        //     'Webkul\Shop\Listeners\Customer@afterCreated',
+        // ],
 
-        'customer.password.update.after' => [
-            'Webkul\Shop\Listeners\Customer@afterPasswordUpdated',
-        ],
+        // 'customer.password.update.after' => [
+        //     'Webkul\Shop\Listeners\Customer@afterPasswordUpdated',
+        // ],
 
-        'customer.subscription.after' => [
-            'Webkul\Shop\Listeners\Customer@afterSubscribed',
-        ],
+        // 'customer.subscription.after' => [
+        //     'Webkul\Shop\Listeners\Customer@afterSubscribed',
+        // ],
 
-        'customer.note.create.after' => [
-            'Webkul\Shop\Listeners\Customer@afterNoteCreated',
-        ],
+        // 'customer.note.create.after' => [
+        //     'Webkul\Shop\Listeners\Customer@afterNoteCreated',
+        // ],
 
-        'checkout.order.save.after' => [
-            'Webkul\Shop\Listeners\Order@afterCreated',
-        ],
+        // 'checkout.order.save.after' => [
+        //     'Webkul\Shop\Listeners\Order@afterCreated',
+        // ],
 
-        'sales.order.cancel.after' => [
-            'Webkul\Shop\Listeners\Order@afterCanceled',
-        ],
+        // 'sales.order.cancel.after' => [
+        //     'Webkul\Shop\Listeners\Order@afterCanceled',
+        // ],
 
-        'sales.order.comment.create.after' => [
-            'Webkul\Shop\Listeners\Order@afterCommented',
-        ],
+        // 'sales.order.comment.create.after' => [
+        //     'Webkul\Shop\Listeners\Order@afterCommented',
+        // ],
 
-        'sales.invoice.save.after' => [
-            'Webkul\Shop\Listeners\Invoice@afterCreated',
-        ],
+        // 'sales.invoice.save.after' => [
+        //     'Webkul\Shop\Listeners\Invoice@afterCreated',
+        // ],
 
-        'sales.invoice.send_duplicate_email' => [
-            'Webkul\Shop\Listeners\Invoice@afterCreated',
-        ],
+        // 'sales.invoice.send_duplicate_email' => [
+        //     'Webkul\Shop\Listeners\Invoice@afterCreated',
+        // ],
 
-        'sales.shipment.save.after' => [
-            'Webkul\Shop\Listeners\Shipment@afterCreated',
-        ],
+        // 'sales.shipment.save.after' => [
+        //     'Webkul\Shop\Listeners\Shipment@afterCreated',
+        // ],
 
-        'sales.refund.save.after' => [
-            'Webkul\Shop\Listeners\Refund@afterCreated',
-        ],
+        // 'checkout.cart.update.before' => [
+        //     'Hitexis\Shop\Listeners\Test@afterCreated',
+        // ],
     ];
 }

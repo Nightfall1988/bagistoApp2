@@ -1,16 +1,16 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Webkul\Shop\Http\Controllers\API\AddressController;
-use Webkul\Shop\Http\Controllers\API\CartController;
-use Webkul\Shop\Http\Controllers\API\CategoryController;
-use Webkul\Shop\Http\Controllers\API\CompareController;
-use Webkul\Shop\Http\Controllers\API\CoreController;
-use Webkul\Shop\Http\Controllers\API\CustomerController;
-use Webkul\Shop\Http\Controllers\API\OnepageController;
-use Webkul\Shop\Http\Controllers\API\ProductController;
-use Webkul\Shop\Http\Controllers\API\ReviewController;
-use Webkul\Shop\Http\Controllers\API\WishlistController;
+use Hitexis\Shop\Http\Controllers\API\AddressController;
+use Hitexis\Shop\Http\Controllers\API\CartController;
+use Hitexis\Shop\Http\Controllers\API\CategoryController;
+use Hitexis\Shop\Http\Controllers\API\CompareController;
+use Hitexis\Shop\Http\Controllers\API\CoreController;
+use Hitexis\Shop\Http\Controllers\API\CustomerController;
+use Hitexis\Shop\Http\Controllers\API\OnepageController;
+use Hitexis\Shop\Http\Controllers\API\ProductController;
+use Hitexis\Shop\Http\Controllers\API\ReviewController;
+use Hitexis\Shop\Http\Controllers\API\WishlistController;
 
 Route::group(['middleware' => ['locale', 'theme', 'currency'], 'prefix' => 'api'], function () {
     Route::controller(CoreController::class)->prefix('core')->group(function () {
