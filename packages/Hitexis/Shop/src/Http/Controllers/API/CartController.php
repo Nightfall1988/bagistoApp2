@@ -71,12 +71,22 @@ class CartController extends APIController
             }
 
             $cart = Cart::addProduct($product, request()->all());
-            // dd($cart);
-/////////////////////
+            $discountMessage = '';
+            foreach ($cart->items as $key => $item) {
+                $wholesales = $this->productRepository->find($item->product_id)->wholesales;
+                if ($wholesales) {
+                    foreach ($wholesales as $wholesale) {
+                        if($wholesale->batch_amount <= $item->quantity) {
+                            $discountMessage = trans('shop::app.checkout.cart.discount_applied');
+                        }
+                    }
+                }
+            }
 
             return new JsonResource(array_merge([
                 'data'    => new CartResource($cart),
                 'message' => trans('shop::app.checkout.cart.item-add-to-cart'),
+                'discount_message' => $discountMessage
             ], $response));
             
         } catch (\Exception $exception) {

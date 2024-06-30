@@ -20,7 +20,6 @@
                 alt="{{ config('app.name') }}"
             >
         </a>
- xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
         {!! view_render_event('bagisto.shop.components.layouts.header.desktop.bottom.logo.after') !!}
 
         {!! view_render_event('bagisto.shop.components.layouts.header.desktop.bottom.category.before') !!}
@@ -117,7 +116,7 @@
             {!! view_render_event('bagisto.shop.components.layouts.header.desktop.bottom.mini_cart.before') !!}
 
             <!-- Mini cart -->
-            @include('shop::checkout.cart.mini-cart') // 
+            @include('shop::checkout.cart.mini-cart')
 
             {!! view_render_event('bagisto.shop.components.layouts.header.desktop.bottom.mini_cart.after') !!}
 

@@ -252,11 +252,7 @@ class Cart
             $this->createCart([]);
         }
 
-       // dd($this->cart->items,  $data);
-       //  if ($this->cart->items ->product_id already has $data->product_id) add them up 
-
         $cartProducts = $product->getTypeInstance()->prepareForCart($data); // PROBLEM HERE
-
         if (is_string($cartProducts)) {
             if (! $this->cart->all_items->count()) {
                 $this->removeCart($this->cart);
@@ -278,11 +274,10 @@ class Cart
                 }
 
                 if (! $cartItem) {
-
                     $cartItem = $this->cartItemRepository->create(array_merge($cartProduct, ['cart_id' => $this->cart->id]));
 
                     if (sizeof($product->wholesales) > 0) {
-                        $wholesale = $this->getBestWholesalePromotion($cartItem, $product->wholesales );
+                        $wholesale = $this->getBestWholesalePromotion($cartItem, $product->wholesales);
                         if ($wholesale) {
                             $cartItem  = $this->transformCartItemByWholesale($cartItem, $wholesale);
                         }
@@ -293,7 +288,6 @@ class Cart
                         isset($cartProduct['parent_id'])
                         && $cartItem->parent_id !== $parentCartItem->id
                     ) {
-
                         $cartItem = $this->cartItemRepository->create(array_merge($cartProduct, [
                             'cart_id' => $this->cart->id,
                         ]));
@@ -301,6 +295,15 @@ class Cart
 
                         $cartItem = $this->cartItemRepository->update($cartProduct, $cartItem->id);
 
+                        if (sizeof($product->wholesales) > 0) {
+                            $wholesale = $this->getBestWholesalePromotion($cartItem, $product->wholesales);
+
+                            if ($wholesale) {
+                                $cartItem  = $this->transformCartItemByWholesale($cartItem, $wholesale);
+                                $cartProduct = $this->transformCartItemToCartProduct($cartProduct,$cartItem);
+                                $cartItem = $this->cartItemRepository->update($cartProduct, $cartItem->id);
+                            }
+                        }
                     }
                 }
 
@@ -310,8 +313,7 @@ class Cart
             }
         }
 
-        $this->collectTotals(); // NEEDS ADDING NEW FUNCTIONALITY, SO THAT it keeps discount
-
+        $this->collectTotals();
         Event::dispatch('checkout.cart.add.after', $this->cart);
 
         return $this->cart;
@@ -332,7 +334,6 @@ class Cart
 
     public function transformCartItemByWholesale($item, $wholesale) : ?Contracts\CartItem {
 
-        dd($item->quantity);
         $tempTotal = $item->price * $item->quantity;
 
         if (!$wholesale) {
@@ -359,7 +360,13 @@ class Cart
         return $item;
     }
 
-
+    public function transformCartItemToCartProduct($cartProduct, $cartItem): array {
+        $cartProduct['total'] = $cartItem->total;
+        $cartProduct['total_incl_tax'] = $cartItem->total_incl_tax;
+        $cartProduct['base_total'] = $cartItem->base_total;
+        $cartProduct['base_total_incl_tax'] = $cartItem->base_total_incl_tax;
+        return $cartProduct;
+    }
     /**
      * Remove the item from the cart.
      */
@@ -498,7 +505,9 @@ class Cart
                             $wholesales = $this->productRepository->find($item->product_id)->first()->wholesales;
                             $wholesale = $this->getBestWholesalePromotion($item, $wholesales);
                             $transformedItem  = $this->transformCartItemByWholesale($item, $wholesale);
-                            // ISSUE IN DOUBLING
+                            // IN ABSTRACT TYPE THIS ADDS ONE MORE:
+                            // getQtyRequest($data)
+
                             return $transformedItem;
                         }
                     }

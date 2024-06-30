@@ -174,6 +174,7 @@
                                     @change="updateItem($event, item)"
                                 />
 
+                                
                                 {!! view_render_event('bagisto.shop.checkout.mini-cart.drawer.content.quantity_changer.after') !!}
 
                                 {!! view_render_event('bagisto.shop.checkout.mini-cart.drawer.content.remove_button.before') !!}
