@@ -103,10 +103,15 @@ class StrickerApiService {
                     "type" => "simple",
                 ]);
 
-               
-                // $imageName = str_replace('-', '_', $productObj->sku);
-                // $images['files'][] = $this->productImageRepository->assignImage($optional['OptionalImage1']);
-                
+
+                $imageName = str_replace('-', '_', $productObj->sku);
+
+                if (isset($optional['OptionalImage1'])) {
+                    $imageList = $this->productImageRepository->assignImage($optional['OptionalImage1']);
+                    if ($imageList != 0) {
+                        $images['files'] = $imageList['files'];
+                    }
+                }
 
                 $this->supplierRepository->create([
                     'product_id' => $productObj->id,
@@ -121,7 +126,6 @@ class StrickerApiService {
             $replace = '-';
             $name = $product['Name'];
             $urlKey = strtolower(str_replace($search, $replace, $name));
-            
 
             $superAttributes = [
                 "channel" => "default",

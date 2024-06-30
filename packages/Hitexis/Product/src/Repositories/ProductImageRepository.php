@@ -132,30 +132,32 @@ class ProductImageRepository extends ProductMediaRepository
 
     public function assignImage($imageName) {
 
-        $folder = 'storage/app/public/product/stricker/';
-
-        $pathToFile = $folder . $imageName;
-        $searchPattern = $folder . $imageName . '*';
-        $matchingFiles = glob($searchPattern);
-        if ($matchingFiles === false) {
-            return 0;
-        } else {
-
+        if ($imageName != '') {
+            $folder = 'storage/app/public/product/stricker/';
+            $matchingFiles = [];
+            $pathToFile = $folder . $imageName;
+            $searchPattern = $folder . $imageName . '*';
+            $matchingFiles = glob($searchPattern);
+            
+            if (!empty($matchingFiles)) {
             foreach ($matchingFiles as $file) {
-                $mimeType = Storage::mimeType($file);
+                    $mimeType = Storage::mimeType($file);
 
-                $uploadedFile = new \Illuminate\Http\UploadedFile(
-                    $pathToFile,
-                    $imageName,
-                    $mimeType,
-                    null,
-                    true 
-                );
+                    $uploadedFile = new \Illuminate\Http\UploadedFile(
+                        $pathToFile,
+                        $imageName,
+                        $mimeType,
+                        null,
+                        true 
+                    );
 
-                $images[] = $uploadedFile;
+                    $images[] = $uploadedFile;
+                }
+            
+                return ['files' => $images, 'tempPath' => $pathToFile];
             }
-
-            return ['file' => $uploadedFile, 'tempPath' => $pathToFile];
+        } else {
+            return 0;
         }
     }
 
