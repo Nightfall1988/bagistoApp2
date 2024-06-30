@@ -362,7 +362,6 @@
                         .then(response => {
                             if (response.data.message) {
                                 this.cart = response.data.data;
-                                console.log( this.cart )
                                 for (let i=0; i<this.cart.items.length; i++ ) {
                                 }
 

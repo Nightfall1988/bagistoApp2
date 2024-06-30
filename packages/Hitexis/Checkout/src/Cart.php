@@ -280,6 +280,8 @@ class Cart
                         $wholesale = $this->getBestWholesalePromotion($cartItem, $product->wholesales);
                         if ($wholesale) {
                             $cartItem  = $this->transformCartItemByWholesale($cartItem, $wholesale);
+                            $cartProduct = $this->transformCartItemToCartProduct($cartProduct,$cartItem);
+                            $cartItem = $this->cartItemRepository->update($cartProduct, $cartItem->id);
                         }
                     }
 

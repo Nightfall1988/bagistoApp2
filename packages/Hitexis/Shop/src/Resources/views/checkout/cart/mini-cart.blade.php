@@ -347,6 +347,7 @@
                 getCart() {
                     this.$axios.get('{{ route('shop.api.checkout.cart.index') }}')
                         .then(response => {
+                            console.log(response.data.discount_message)
                             this.cart = response.data.data;
                         })
                         .catch(error => {});
