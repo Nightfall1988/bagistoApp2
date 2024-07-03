@@ -77,4 +77,20 @@ class ProductController extends APIController
 
         return ProductResource::collection($upSellProducts);
     }
+
+    public function getVariantSku($parentProdId, $attributeCode, $attributeName) {
+        $sku = '';
+        $product = $this->productRepository->findOrFail($parentProdId);
+
+        $variants = $this->productRepository->findWhere([
+            'parent_id' => $parentProdId,
+        ]);
+
+        foreach ($variants as $variant) {
+            if ($variant->$attributeCode == $attributeName) {
+                $sku = $variant->sku;
+            }
+        }
+        return json_encode(['sku' => $sku]);
+    }
 }

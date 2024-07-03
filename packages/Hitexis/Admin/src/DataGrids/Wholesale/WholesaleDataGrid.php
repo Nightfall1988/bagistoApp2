@@ -67,6 +67,8 @@ class WholesaleDataGrid extends DataGrid
             'filterable' => true,
             'sortable'   => true,
         ]);
+
+        
     }
 
     // /**
@@ -133,26 +135,26 @@ class WholesaleDataGrid extends DataGrid
      */
     public function prepareActions()
     {
-        // if (bouncer()->hasPermission('admin.wholesale.edit')) {
-        //     $this->addAction([
-        //         'icon'   => 'icon-edit',
-        //         'title'  => trans('shop::app.wholesale.index.datagrid.edit'),
-        //         'method' => 'GET',
-        //         'url'    => function ($row) {
-        //             return route('admin.wholesale.edit', $row->id);
-        //         },
-        //     ]);
-        // }
+        if (bouncer()->hasPermission('admin.wholesale.edit')) {
+            $this->addAction([
+                'icon'   => 'icon-edit',
+                'title'  => trans('shop::app.wholesale.index.datagrid.edit'),
+                'method' => 'GET',
+                'url'    => function ($row) {
+                    return route('wholesale.wholesale.edit', $row->id);
+                },
+            ]);
+        }
 
-        // if (bouncer()->hasPermission('admin.wholesale.delete')) {
-        //     $this->addAction([
-        //         'icon'   => 'icon-delete',
-        //         'title'  => trans('shop::app.wholesale.index.datagrid.delete'),
-        //         'method' => 'DELETE',
-        //         'url'    => function ($row) {
-        //             return route('admin.wholesale.delete', $row->id);
-        //         },
-        //     ]);
-        // }
+        if (bouncer()->hasPermission('admin.wholesale.delete')) {
+            $this->addAction([
+                'icon'   => 'icon-delete',
+                'title'  => trans('shop::app.wholesale.index.datagrid.delete'),
+                'method' => 'DELETE',
+                'url'    => function ($row) {
+                    return route('wholesale.wholesale.delete', $row->id);
+                },
+            ]);
+        }
     }
 }

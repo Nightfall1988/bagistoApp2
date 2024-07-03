@@ -53,7 +53,6 @@
     <x-slot:title>
         {{ trim($product->meta_title) != "" ? $product->meta_title : $product->name }}
     </x-slot>
-
     {!! view_render_event('bagisto.shop.products.view.before', ['product' => $product]) !!}
 
     <!-- Breadcrumbs -->
@@ -67,20 +66,25 @@
     <v-product>
         <x-shop::shimmer.products.view />
     </v-product>
-    
+
     <!-- LogoTron -->
     <div class="flex flex-row max-w-[700px] gap-4 mx-5" style="margin-left: 14rem; margin-top: 2rem;">
         <div class="flex flex-row max-w-[670px] gap-4 mr-8 ml-8">
             <button class="secondary-button w-full max-w-full" data-tl-action="OpenGallery">CHANGE LOGO</button>
             <button class="secondary-button w-full max-w-full" data-tl-action="OpenUpload">UPLOAD OWN LOGO</button>
-            <button class="secondary-button w-full max-w-full" data-tl-action="OpenEditor"
+
+            @if (isset($product->supplier))
+            <button id='design-print-motive' class="secondary-button w-full max-w-full" data-tl-action="OpenEditor"
                 data-tl-sid="{{ $product->supplier->supplier_code }}"
                 data-tl-spcode="{{ $product->sku }}">DESIGN PRINT MOTIVE
             </button>
-            {{-- <button data-tl-action="OpenEditor" data-tl-sid="{{ $product->supplier->supplier_code }}"
-                data-tl-spcode="" data-tl-pcode="{{ $product->sku }}"
-                data-tl-pname="your-product-name">CREATE PRINT MOTIVE
-            </button> --}}
+            
+            <button data-tl-action="OpenEditor"  id='create-print-motive'
+                data-tl-sid="{{ $product->supplier->supplier_code }}"
+                data-tl-spcode="{{ $product->sku }}">CREATE PRINT MOTIVE
+            </button>
+            @endif
+
         </div>
         <div>
             @if (sizeof($product->wholesales)> 0)
@@ -490,6 +494,8 @@
 
                 data() {
                     return {
+                        sku: '{{ $product->sku }}',
+                        supplierCode: '{{ $product->supplier->supplier_code }}',
                         isWishlist: Boolean("{{ (boolean) auth()->guard()->user()?->wishlist_items->where('channel_id', core()->getCurrentChannel()->id)->where('product_id', $product->id)->count() }}"),
 
                         isCustomer: '{{ auth()->guard('customer')->check() }}',
@@ -504,7 +510,25 @@
                     }
                 },
 
+                mounted() {
+                    this.updateButtonSku(this.sku);
+
+                    this.$emitter.on('configurable-variant-update-sku-event', (newSku) => {
+
+                        this.sku = newSku.sku;
+                        this.updateButtonSku(newSku);
+                    });
+                },
+
                 methods: {
+                    updateButtonSku(sku) {
+                        const button1 = document.getElementById('design-print-motive');
+                        const button2 = document.getElementById('create-print-motive');
+                        if (button1 && button2) {
+                            button1.setAttribute('data-tl-spcode', sku.sku);
+                            button2.setAttribute('data-tl-spcode', sku.sku);
+                        }
+                    },
                     addToCart(params) {
 
                         const operation = this.is_buy_now ? 'buyNow' : 'addToCart';

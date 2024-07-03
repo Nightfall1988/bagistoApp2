@@ -138,6 +138,7 @@ class HitexisProductRepository extends Repository
      */
     public function updateToShop($data, $id)
     {
+        // dd($data);
         Event::dispatch('catalog.product.update.before', $id);
 
         $product = $this->update($data, $id);
@@ -168,7 +169,6 @@ class HitexisProductRepository extends Repository
                 $filteredAttributeValues = $attributeValues
                     ->where('channel', core()->getRequestedChannelCode())
                     ->where('locale', core()->getRequestedLocaleCode());
-
                 if ($filteredAttributeValues->isEmpty()) {
                     $filteredAttributeValues = $attributeValues
                         ->where('channel', core()->getRequestedChannelCode())
@@ -193,8 +193,12 @@ class HitexisProductRepository extends Repository
         }
 
         $product = $filteredAttributeValues->first()?->product;
-        $product = new ProductAdapter($product);
-        $product = $product->getModel();
+
+        if (get_class($product) == "Webkul\Product\Models\Product") {
+            $product = new ProductAdapter($product);
+            $product = $product->getModel();
+        }
+
         return $product;
     }
     /**

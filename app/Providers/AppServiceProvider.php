@@ -14,7 +14,9 @@ use Illuminate\Container\Container;
 use Hitexis\Product\Repositories\ProductImageRepository;
 use Hitexis\Product\Models\ProductImage;
 use App\Observers\WholesaleObserver;
+use App\Service\CategoryImportService;
 use Hitexis\Wholesale\Models\Wholesale;
+use Webkul\Category\Repositories\CategoryRepository;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -65,6 +67,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(XDConnectsApiService::class, function ($app) {
             return new XDConnectsApiService($app->make(HitexisProductRepository::class), $app->make(SupplierRepository::class));
         });
+
+        $this->app->singleton(CategoryImportService::class, function ($app) {
+            return new CategoryImportService($app->make(CategoryRepository::class));
+        });
+
 
         $this->app->bind(AttributeOption::class, AttributeOptionRepository::class);
     }

@@ -1,4 +1,4 @@
-@if (Webkul\Product\Helpers\ProductType::hasVariants($product->type))
+@if (Hitexis\Product\Helpers\ProductType::hasVariants($product->type))
     {!! view_render_event('bagisto.shop.products.view.configurable-options.before', ['product' => $product]) !!}
 
     <v-product-configurable-options :errors="errors"></v-product-configurable-options>
@@ -200,7 +200,7 @@
 
                 data() {
                     return {
-                        config: @json(app('Webkul\Product\Helpers\ConfigurableOption')->getConfigurationConfig($product)),
+                        config: @json(app('Hitexis\Product\Helpers\ConfigurableOption')->getConfigurationConfig($product)),
 
                         childAttributes: [],
 
@@ -263,6 +263,8 @@
 
                             this.resetChildAttributes(attribute);
                         }
+
+                        this.getSku(@json($product->id), attribute);
 
                         this.reloadPrice();
                         
@@ -379,6 +381,17 @@
                         }
 
                         this.$emitter.emit('configurable-variant-update-images-event', galleryImages);
+                    },
+
+
+                    getSku (id, attribute) {
+
+                        this.$axios.get("{{ route('shop.api.products.get-sku', [':prodId', ':attrCode', ':attrName']) }}".replace(':prodId',id).replace(':attrCode', attribute.code).replace(':attrName', attribute.selectedValue))
+                        .then(response => {
+                            console.log(response.data)
+                            this.$emitter.emit('configurable-variant-update-sku-event', response.data);
+                        })
+                        .catch(error => {});
                     },
                 }
             });

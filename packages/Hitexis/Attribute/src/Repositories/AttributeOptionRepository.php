@@ -62,9 +62,10 @@ class AttributeOptionRepository extends Repository
     public function getOption($name)
     {
         $result = $this->model->where('admin_name', $name)->first();
-
         if ($result === null) {
-            return 0;
+            return null;
+        } else {
+            return $result;
         }
     }
 }

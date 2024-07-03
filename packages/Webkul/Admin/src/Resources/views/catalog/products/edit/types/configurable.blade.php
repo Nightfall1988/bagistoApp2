@@ -1096,6 +1096,7 @@
 
             methods: {
                 addVariant(params, { resetForm }) {
+                    
                     let filteredVariants = this.variants.filter((variant) => {
                         let matchCount = 0;
 

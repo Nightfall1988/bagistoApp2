@@ -4,7 +4,7 @@ namespace Hitexis\Product\Type;
 
 use Illuminate\Support\Str;
 use Webkul\Admin\Validations\ConfigurableUniqueSku;
-use Webkul\Checkout\Models\CartItem as CartItemModel;
+use Hitexis\Checkout\Models\CartItem as CartItemModel;
 use Webkul\Product\DataTypes\CartItemValidationResult;
 use Hitexis\Product\Facades\ProductImage;
 use Hitexis\Product\Helpers\Indexers\Price\Configurable as ConfigurableIndexer;
@@ -649,7 +649,7 @@ class Configurable extends AbstractType
     /**
      * Validate cart item product price.
      *
-     * @param  \Webkul\Product\Type\CartItem  $item
+     * @param  \Hitexis\Product\Type\CartItem  $item
      */
     public function validateCartItem(CartItemModel $item): CartItemValidationResult
     {

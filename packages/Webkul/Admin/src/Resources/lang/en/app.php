@@ -132,6 +132,9 @@ return [
     ],
     'wholesale' => [
         'create-btn'                    => 'Create new batch rule',
+        'edit-btn'                      => 'Edit batch rule',
+        'delete-success'                => 'Wholesale successfully deleted',
+        'update-success'                => 'Wholesale updated successfully',
         'index' => [
             'title'                     => 'Wholesale management',
             'add-option'                => 'Add Option',

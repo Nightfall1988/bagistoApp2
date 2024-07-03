@@ -53,8 +53,8 @@ class ProductImageRepository extends ProductMediaRepository
      * @param  array  $data
      * @param  \Hitexis\Product\Models\Product  $product
      */
-    public function uploadImportedImagesMidocean($data, $product) {
-        return $this->uploadDigitalAssets($data, $product);
+    public function uploadImportedImagesMidocean($data) {
+        return $this->uploadDigitalAssets($data);
     }
     /**
      * Upload images products imported from Stricker  .
@@ -75,7 +75,7 @@ class ProductImageRepository extends ProductMediaRepository
     public function uploadImportedImagesXDConnects($data, $product) {
         foreach ($data as $imgUrl) {
             if (filter_var($imgUrl, FILTER_VALIDATE_URL)) {
-                $data = $this->downloadAndUploadImage($imgUrl, $product);
+                $data = $this->downloadAndUploadImage($imgUrl);
                 $list[] = $data['file'];
                 $tempPaths[] = $data['tempPath'];
             }
@@ -90,14 +90,14 @@ class ProductImageRepository extends ProductMediaRepository
      * @param  array  $digitalAssets
      * @param  \Hitexis\Product\Models\Product  $product
      */
-    public function uploadDigitalAssets($digitalAssets, $product)
+    public function uploadDigitalAssets($digitalAssets)
     {
         $list = [];
 
         $tempPaths = [];
         foreach ($digitalAssets as $asset) {
             if (isset($asset->url) && filter_var($asset->url, FILTER_VALIDATE_URL)) {
-                $data = $this->downloadAndUploadImage($asset->url, $product);
+                $data = $this->downloadAndUploadImage($asset->url);
                 $list[] = $data['file'];
                 $tempPaths[] = $data['tempPath'];
             }
@@ -106,7 +106,7 @@ class ProductImageRepository extends ProductMediaRepository
         return ['fileList' => $list, 'tempPaths' => $tempPaths];
     }
 
-    private function downloadAndUploadImage($url, $product)
+    private function downloadAndUploadImage($url)
     {
         $client = new \GuzzleHttp\Client();
         $response = $client->get($url);

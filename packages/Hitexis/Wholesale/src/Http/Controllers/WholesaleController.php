@@ -70,4 +70,39 @@ class WholesaleController extends Controller
         $this->wholesaleRepository->search();
     }
 
+    public function edit($id)
+    {
+        $wholesale = $this->wholesaleRepository->findOrFail($id);
+        return view('wholesale::wholesale.edit', compact('wholesale'));
+    }
+
+    
+    public function update(Request $request, $id)
+    {
+        $wholesale = $this->wholesaleRepository->update(request()->all(), $id);
+        session()->flash('success', trans('admin::app.wholesale.update-success'));
+
+        return redirect()->route('wholesale.wholesale.index');
+    }
+
+    public function destroy(int $id): JsonResponse
+    {
+        try {
+            // Event::dispatch('marketing.campaigns.delete.before', $id);
+
+            $this->wholesaleRepository->delete($id);
+
+            // Event::dispatch('marketing.campaigns.delete.after', $id);
+
+            return new JsonResponse([
+                'message' => trans('admin::app.wholesale.delete-success'),
+            ]);
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'message' => $e->message,
+            ]);
+        }
+    }
+
+
 }

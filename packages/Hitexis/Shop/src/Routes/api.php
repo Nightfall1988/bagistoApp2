@@ -35,6 +35,9 @@ Route::group(['middleware' => ['locale', 'theme', 'currency'], 'prefix' => 'api'
         Route::get('{id}/related', 'relatedProducts')->name('shop.api.products.related.index');
 
         Route::get('{id}/up-sell', 'upSellProducts')->name('shop.api.products.up-sell.index');
+
+        Route::get('/get-variant-sku/{parentProductId}/{attributeId}/{adminName}', 'getVariantSku')->name('shop.api.products.get-sku');
+
     });
 
     Route::controller(ReviewController::class)->prefix('product/{id}')->group(function () {

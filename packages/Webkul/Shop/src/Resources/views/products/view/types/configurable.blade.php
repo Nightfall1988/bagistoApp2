@@ -263,7 +263,7 @@
 
                             this.resetChildAttributes(attribute);
                         }
-
+                        
                         this.reloadPrice();
                         
                         this.reloadImages();
