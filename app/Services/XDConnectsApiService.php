@@ -24,13 +24,18 @@ class XDConnectsApiService {
         AttributeRepository $attributeRepository,
         AttributeOptionRepository $attributeOptionRepository,
         SupplierRepository $supplierRepository,
-        ProductImageRepository $productImageRepository
+        ProductImageRepository $productImageRepository,
+        CategoryMapper $categoryMapper,
+        CategoryImportService $categoryImportService
     ) {
         $this->productRepository = $productRepository;
         $this->attributeOptionRepository = $attributeOptionRepository;
         $this->attributeRepository = $attributeRepository;
         $this->supplierRepository = $supplierRepository;
         $this->productImageRepository = $productImageRepository;
+        $this->categoryMapper = $categoryMapper;
+        $this->categoryImportService = $categoryImportService;
+
         $this->identifier = env('XDCONNECTS_IDENTIFIER');
     }
 
@@ -54,7 +59,6 @@ class XDConnectsApiService {
             $priceDataList[ $itemCode] = $priceElement;
         }
 
-
         $productModelCodes = [];
         $groupedProducts = [];
         foreach ($xmlProductData->Product as $product) {
@@ -63,22 +67,19 @@ class XDConnectsApiService {
             if (!array_key_exists($configProductModelCode, $groupedProducts)) {
                 $groupedProducts[$configProductModelCode] = [];
             }
-            
             $groupedProducts[$configProductModelCode][] = $product;
         }
 
-        $this->createConfigurable($groupedProducts, $priceDataList);
+        if (sizeof($groupedProducts[$configProductModelCode]) == 1) {
+            $this->createSimple($groupedProducts[$configProductModelCode], $priceDataList);
+        } else {
+            $this->createConfigurable($groupedProducts, $priceDataList);
+        }
+        
     }
 
     public function createConfigurable($groupedProducts, $priceDataList) {
-
-
-
         foreach ($groupedProducts as $modelCode => $products) {
-
-            if (sizeof($groupedProducts) == 1) {
-                $this->createSimple($groupedProducts[$modelCode]);
-            }
 
             $colorList = [];
             $sizeList = [];
@@ -152,6 +153,12 @@ class XDConnectsApiService {
                     }
                 }
 
+                if(isset($variant->MainCategory) && (string)$variant->MainCategory != '') {
+                    if (array_key_exists((string)$variant->MainCategory, $this->categoryMapper->midocean_to_xdconnects_category)) {
+                        $categories = $this->categoryImportService->importXDConnectsCategories($variant, $this->categoryMapper->midocean_to_xdconnects_category, $this->categoryMapper->midocean_to_xdconnects_subcategory);
+                    }
+                }
+
                 $allImagesString = (string)$variant->AllImages; // Convert the SimpleXMLElement to a string
 
                 $imageLinks = explode(', ', $allImagesString);
@@ -185,6 +192,7 @@ class XDConnectsApiService {
                     "inventories" => [
                       1 => "10"
                     ],
+                    'categories' => $categories,
                     'images' => $images
                 ];
                 
@@ -239,7 +247,7 @@ class XDConnectsApiService {
                     "width" => (string)$product->ItemBoxWidthCM ?? '',
                     "height" => (string)$product->ItemBoxHeightCM ?? '',
                     "weight" => (string)$product->ItemWeightNetGr * 1000 ?? 0,
-                    // 'categories' => [2],// $categories,
+                    'categories' => $categories,
                     'images' =>  $images,
                 ];
                 if ($colorId != '') {
@@ -285,7 +293,7 @@ class XDConnectsApiService {
                 ],
                 'variants' => $variants,
                 'brand' => (string)$mainProduct->brand,
-                // 'categories' => [2],//$categories,
+                'categories' => $categories,
                 'images' =>  $images
             ];
 
@@ -298,8 +306,98 @@ class XDConnectsApiService {
         }
     }
 
-    public function createSimple($product) {
-        dd($product);
+    public function createSimple($product, $priceDataList) {
+
+        $product = $product[0];
+        $colorId= '';
+        $sizeId= '';
+        if (isset($product->Color) && (string)$product->Color > 0) {
+            $result = $this->attributeOptionRepository->getOption(ucfirst((string)$product->Color));
+            if ($result != null && !in_array($result->id, $colorList)) {
+                $colorId = $result->id;
+            }
+        }
+
+        if (isset($product->Size)) {
+            $result = $this->attributeOptionRepository->getOption(ucfirst((string)$product->Size));
+            if ($result != null && !in_array($result->id, $sizeList)) {
+                $sizeId = $result->id;
+            }
+        }
+
+        if(isset($product->MainCategory) && (string)$product->MainCategory != '') {
+            if (array_key_exists((string)$product->MainCategory, $this->categoryMapper->midocean_to_xdconnects_category)) {
+                $categories = $this->categoryImportService->importXDConnectsCategories($product, $this->categoryMapper->midocean_to_xdconnects_category, $this->categoryMapper->midocean_to_xdconnects_subcategory);
+            }
+        }
+
+        $productVariant = $this->productRepository->create([
+            'attribute_family_id' => '1',
+            'sku' => (string)$product->ItemCode,
+            "type" => 'simple',
+        ]);
+
+        $this->supplierRepository->create([
+            'product_id' => $productVariant->id,
+            'supplier_code' => $this->identifier
+        ]);
+
+        $allImagesString = (string)$product->AllImages; // Convert the SimpleXMLElement to a string
+        $imageLinks = explode(', ', $allImagesString);
+        $imageData = $this->productImageRepository->uploadImportedImagesXDConnects($imageLinks, $productVariant);
+        $images['files'] = $imageData['fileList'];
+        $tempPaths[] = $imageData['tempPaths'];
+
+        $urlKey = strtolower((string)$product->ItemName . '-' . (string)$product->ItemCode);
+        $search = ['.', '\'', ' ', '"', ','];
+        $replace = '-';
+        $urlKey = strtolower(str_replace($search, $replace, $urlKey));
+        $price = (string)$priceDataList[(string)$product->ItemCode]->ItemPriceNet_Qty1 ?? '';
+        
+        $superAttributes = [
+            '_method' => 'PUT',
+            "channel" => "default",
+            "locale" => "en",
+            'sku' => (string)$product->ItemCode,
+            "product_number" => (string)$product->ModelCode . '-' . (string)$product->ItemCode,
+            "name" => (!isset($product->ItemName)) ? 'no name' : (string)$product->ItemName,
+            "url_key" => $urlKey,                    
+            'price' => (string)$priceDataList[(string)$product->ItemCode]->ItemPriceNet_Qty1 ?? '',
+            "weight" => (string)$product->ItemWeightNetGr * 1000 ?? 0,
+            "short_description" => '<p>' . (string)$product->ShortDescription . '</p>' ?? '',
+            "description" => '<p>' . (string)$product->LongDescription . '</p>' ?? '',
+            "meta_title" => "",
+            "meta_keywords" => "",
+            "meta_description" => "",
+            "meta_description" => "",
+            "meta_description" => "",       
+            'price' => $price,
+            'cost' => '',
+            "special_price" => "",
+            "special_price_from" => "",
+            "special_price_to" => "",
+            "new" => "1",
+            "visible_individually" => "1",
+            "status" => "1",
+            "featured" => "1",
+            "guest_checkout" => "1",
+            "manage_stock" => "1",       
+            "length" => (string)$product->ItemBoxLengthCM ?? '',
+            "width" => (string)$product->ItemBoxWidthCM ?? '',
+            "height" => (string)$product->ItemBoxHeightCM ?? '',
+            "weight" => (string)$product->ItemWeightNetGr * 1000 ?? 0,
+            'categories' => $categories,
+            'images' =>  $images,
+        ];
+        if ($colorId != '') {
+            $superAttributes['color'] = $colorId;
+        }
+
+        if ($sizeId != '') {
+            $superAttributes['size'] = $sizeId;
+        }
+
+        $this->productRepository->updateToShop($superAttributes, $productVariant->id, 'id');
     }
 }
 
