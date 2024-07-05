@@ -8,6 +8,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
 use Hitexis\Wholesale\Http\Requests\WholesaleRequest;
+use Hitexis\Product\Repositories\HitexisProductRepository as ProductRepository;
 use Hitexis\Admin\DataGrids\Wholesale\WholesaleDataGrid;
 use Hitexis\Product\Models\Product;
 
@@ -18,8 +19,13 @@ class WholesaleController extends Controller
      *
      * @return void
      */
-    public function __construct(protected WholesaleRepository $wholesaleRepository)
+    public function __construct(
+        WholesaleRepository $wholesaleRepository,
+        ProductRepository $productRepository
+        )
     {
+        $this->wholesaleRepository = $wholesaleRepository;
+        $this->productRepository = $productRepository;
     }
 
     /**
@@ -79,7 +85,13 @@ class WholesaleController extends Controller
     
     public function update(Request $request, $id)
     {
+        $product = $this->productRepository->findByAttributeCode('name', $request->product_name);
+
         $wholesale = $this->wholesaleRepository->update(request()->all(), $id);
+        if ($product) {
+            $product->wholesales()->attach($wholesale->id);
+        }
+
         session()->flash('success', trans('admin::app.wholesale.update-success'));
 
         return redirect()->route('wholesale.wholesale.index');
