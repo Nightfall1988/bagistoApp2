@@ -181,7 +181,7 @@ class MidoceanApiService {
             $variants[$productVariant->id] = [
                 "sku" => $apiProduct->variants[$i]->sku,
                 "name" => $apiProduct->product_name,
-                "price" => $priceList[$apiProduct->variants[$i]->sku],
+                "price" => $priceList[$apiProduct->variants[$i]->sku] ?? '0',
                 "weight" => $apiProduct->net_weight ?? 0,
                 "status" => "1",
                 "new" => "1",
