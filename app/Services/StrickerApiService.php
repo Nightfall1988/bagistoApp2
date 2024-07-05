@@ -65,19 +65,19 @@ class StrickerApiService {
         $this->url = $this->url . $authToken . '&lang=en';
         $this->optionalsUrl = $this->optionalsUrl . $authToken . '&lang=en';
 
-        // // GET PRODUCTS
-        // $request = $this->httpClient->get($this->url);
-        // $productsData = json_decode($request->getBody()->getContents(), true);
+        // GET PRODUCTS
+        $request = $this->httpClient->get($this->url);
+        $productsData = json_decode($request->getBody()->getContents(), true);
 
-        // // GET OPTIONALS
-        // $optionalsData = $this->httpClient->get($this->optionalsUrl);
-        // $optionalsData = json_decode($optionalsData->getBody()->getContents(), true);
+        // GET OPTIONALS
+        $optionalsData = $this->httpClient->get($this->optionalsUrl);
+        $optionalsData = json_decode($optionalsData->getBody()->getContents(), true);
 
         // TESTING DATA - RESPONSE FROM JSON FILED
-        $jsonP = file_get_contents('storage\app\private\productstest.json');
-        $productsData = json_decode($jsonP, true);
-        $jsonO = file_get_contents('storage\app\private\optionalstest.json');
-        $optionalsData = json_decode($jsonO, true);
+        // $jsonP = file_get_contents('storage\app\private\productstest.json');
+        // $productsData = json_decode($jsonP, true);
+        // $jsonO = file_get_contents('storage\app\private\optionalstest.json');
+        // $optionalsData = json_decode($jsonO, true);
 
         $products = $this->getProducts($productsData, $optionalsData);
         $this->updateProducts($products);
