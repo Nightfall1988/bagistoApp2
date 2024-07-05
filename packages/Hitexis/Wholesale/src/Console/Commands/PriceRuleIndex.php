@@ -1,6 +1,6 @@
 <?php
 
-namespace Webkul\CatalogRule\Console\Commands;
+namespace Hitexis\CatalogRule\Console\Commands;
 
 use Illuminate\Console\Command;
 use Webkul\CatalogRule\Helpers\CatalogRuleIndex;

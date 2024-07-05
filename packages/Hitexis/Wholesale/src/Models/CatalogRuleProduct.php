@@ -1,6 +1,6 @@
 <?php
 
-namespace Webkul\CatalogRule\Models;
+namespace Hitexis\CatalogRule\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Webkul\CatalogRule\Contracts\CatalogRuleProduct as CatalogRuleProductContract;

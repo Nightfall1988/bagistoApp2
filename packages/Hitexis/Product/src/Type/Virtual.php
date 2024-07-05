@@ -1,6 +1,6 @@
 <?php
 
-namespace Webkul\Product\Type;
+namespace Hitexis\Product\Type;
 
 use Webkul\Product\Helpers\Indexers\Price\Virtual as VirtualIndexer;
 

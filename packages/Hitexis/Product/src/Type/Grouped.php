@@ -1,6 +1,6 @@
 <?php
 
-namespace Webkul\Product\Type;
+namespace Hitexis\Product\Type;
 
 use Webkul\Attribute\Repositories\AttributeRepository;
 use Webkul\Customer\Repositories\CustomerRepository;

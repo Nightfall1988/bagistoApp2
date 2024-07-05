@@ -1,6 +1,6 @@
 <?php
 
-namespace Webkul\CatalogRule\Listeners;
+namespace Hitexis\CatalogRule\Listeners;
 
 use Webkul\CatalogRule\Jobs\UpdateCreateProductIndex as UpdateCreateProductIndexJob;
 

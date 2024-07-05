@@ -53,8 +53,8 @@ class ProductServiceProvider extends ServiceProvider
      * Register configuration.
      */
     public function registerConfig(): void
-    {        
-        $this->mergeConfigFrom('D:\xampp\htdocs\bag\packages\Webkul\Product\src\Config\product_types.php', 'product_types');
+    {
+        $this->mergeConfigFrom(dirname(__DIR__).'/Config/hitexis_product_types.php', 'product_types');
     }
 
     /**

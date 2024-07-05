@@ -1,6 +1,6 @@
 <?php
 
-namespace Webkul\CatalogRule\Models;
+namespace Hitexis\CatalogRule\Models;
 
 use Konekt\Concord\Proxies\ModelProxy;
 

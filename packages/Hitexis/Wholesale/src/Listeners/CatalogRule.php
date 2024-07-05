@@ -1,6 +1,6 @@
 <?php
 
-namespace Webkul\CatalogRule\Listeners;
+namespace Hitexis\CatalogRule\Listeners;
 
 use Webkul\CatalogRule\Jobs\DeleteCatalogRuleIndex as DeleteCatalogRuleIndexJob;
 use Webkul\CatalogRule\Jobs\UpdateCreateCatalogRuleIndex as UpdateCreateCatalogRuleIndexJob;
