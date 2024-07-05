@@ -63,9 +63,36 @@ class HitexisProductRepository extends Repository
         }
         
         $typeInstance = app(config('hitexis_product_types.'.$data['type'].'.class'));
-
         $product = $typeInstance->create($data);
 
+        return $product;
+    }
+
+    /**
+     * Create product.
+     *
+     * @return \Hitexis\Product\Contracts\Product
+     */
+    public function upsert(array $data)
+    {
+        $typeClass = config('product_types.' . $data['type'] . '.class');
+    
+        if (!$typeClass) {
+            throw new \InvalidArgumentException("Product type '{$data['type']}' not found in configuration.");
+        }
+        
+        $typeInstance = app(config('hitexis_product_types.' . $data['type'] . '.class'));
+    
+        $existingProduct = $this->findOneByField('sku', $data['sku']);
+
+        if ($existingProduct) {
+            $product = $this->findOneByField('sku', $existingProduct->sku);
+            $product = $typeInstance->update($data,$existingProduct->id);
+
+        } else {
+            $product = $typeInstance->create($data);
+        }
+    
         return $product;
     }
 

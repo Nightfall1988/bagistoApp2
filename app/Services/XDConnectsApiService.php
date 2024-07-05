@@ -113,7 +113,8 @@ class XDConnectsApiService {
                 $attributes['color'] = $colorList;
             }
 
-            $productObj = $this->productRepository->create([
+            $productObj = $this->productRepository->upsert([
+                'channel' => 'default',
                 'attribute_family_id' => '1',
                 'sku' => (string)$mainProduct->ItemCode,
                 "type" => 'configurable',
@@ -127,7 +128,8 @@ class XDConnectsApiService {
 
                 $tempAttributes = [];
 
-                $productVariant = $this->productRepository->create([
+                $productVariant = $this->productRepository->upsert([
+                    'channel' => 'default',
                     'attribute_family_id' => '1',
                     'sku' => (string)$variant->ItemCode,
                     "type" => 'simple',
@@ -331,7 +333,8 @@ class XDConnectsApiService {
             }
         }
 
-        $productVariant = $this->productRepository->create([
+        $productVariant = $this->productRepository->upsert([
+            'channel' => 'default',
             'attribute_family_id' => '1',
             'sku' => (string)$product->ItemCode,
             "type" => 'simple',

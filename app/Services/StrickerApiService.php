@@ -152,7 +152,8 @@ class StrickerApiService {
                 $attributes['color'] = $colorIds;
             }
 
-            $productObj = $this->productRepository->create([
+            $productObj = $this->productRepository->upsert([
+                'channel' => 'default',
                 'attribute_family_id' => '1',
                 'sku' => $mainProductOptionals['Sku'],
                 "type" => 'configurable',
@@ -166,7 +167,8 @@ class StrickerApiService {
 
                 $tempAttributes = [];
 
-                $productVariant = $this->productRepository->create([
+                $productVariant = $this->productRepository->upsert([
+                    'channel' => 'default',
                     'attribute_family_id' => '1',
                     'sku' =>  $variant['Sku'],
                     "type" => 'simple',
@@ -361,7 +363,8 @@ class StrickerApiService {
     }
 
     public function createSimple($productData) {
-            $productObj = $this->productRepository->create([
+            $productObj = $this->productRepository->upsert([
+                'channel' => 'default',
                 'attribute_family_id' => '1',
                 'sku' =>  $productData['optionals'][0]['Sku'],
                 "type" => 'simple',

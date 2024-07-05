@@ -46,8 +46,6 @@ class MidoceanApiService {
 
     public function getData()
     {
-
-        $color = '';
         $headers = [
             'Content-Type' => 'application/json',
             'x-Gateway-APIKey' => env('MIDOECAN_API_KEY'),
@@ -65,7 +63,7 @@ class MidoceanApiService {
         // GET PRICES
         $priceRequest = $this->httpClient->get($this->pricesUrl);
         $priceData = json_decode($priceRequest->getBody()->getContents(), true);
-    
+
         $priceList = [];
         foreach ($priceData['price'] as $priceItem) {
             $sku = $priceItem['sku'];
@@ -129,8 +127,7 @@ class MidoceanApiService {
             $attributes['color'] = $color;
         }
 
-        
-        $product = $this->productRepository->create([
+        $product = $this->productRepository->upsert([
             'attribute_family_id' => '1',
             'sku' => $apiProduct->master_code,
             "type" => 'configurable',
@@ -138,12 +135,13 @@ class MidoceanApiService {
         ]);
 
         for ($i=0; $i<sizeof($apiProduct->variants); $i++) {
-            $productVariant = $this->productRepository->create([
+            $productVariant = $this->productRepository->upsert([
                 'attribute_family_id' => '1',
                 'sku' => $apiProduct->variants[$i]->sku,
                 "type" => 'simple',
                 'parent_id' => $product->id
             ]);
+
             $sizeId = '';
             $colorId = '';
             // GET PRODUCT VARIANT COLOR AND SIZE
@@ -305,11 +303,6 @@ class MidoceanApiService {
             'images' =>  $images,
             'variants' => $variants
         ];
-
-        // if (sizeof($apiProduct->variants) > 1) {
-        //     dd($product);
-        // }
-
         $product = $this->productRepository->updateToShop($superAttributes, $product->id, $attribute = 'id');
 
         return $product;
@@ -317,7 +310,7 @@ class MidoceanApiService {
 
     public function createSimpleProduct($mainVariant, $apiProduct, $priceList, $categories) {
 
-        $product = $this->productRepository->create([
+        $product = $this->productRepository->upsert([
             'attribute_family_id' => '1',
             'sku' => $mainVariant->sku,
             "type" => 'simple',
