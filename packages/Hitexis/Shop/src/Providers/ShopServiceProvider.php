@@ -31,6 +31,7 @@ class ShopServiceProvider extends ServiceProvider
         $this->loadTranslationsFrom(__DIR__.'/../Resources/lang', 'shop');
         $this->loadViewsFrom(__DIR__.'/../Resources/views', 'hitexis-shop');
         Blade::component('hitexis-shop::layout', Layout::class);
+        Blade::anonymousComponentPath(__DIR__.'/../Resources/views/components', 'hitexis-shop');
 
         /* aliases */
         $router->aliasMiddleware('currency', Currency::class);
