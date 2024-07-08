@@ -202,6 +202,7 @@ class StrickerApiService {
         // CREATE VARIANTS
         foreach ($variantsList as $variant) {
 
+            $categories = [];
             $tempAttributes = [];
 
             $productVariant = $this->productRepository->upsert([
