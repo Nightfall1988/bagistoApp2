@@ -121,7 +121,6 @@ class CategoryMapper {
         'Unisex Fleece Jackets' => 'Textile',
         'Ponchos' => 'Textile',
         'Mugs and Tumblers' => 'Drinkware',
-        
     ];
     
     public array $midocean_to_stricker_category = [

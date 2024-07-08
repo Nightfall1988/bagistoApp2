@@ -8,6 +8,7 @@ use Hitexis\Attribute\Repositories\AttributeRepository;
 use Hitexis\Attribute\Repositories\AttributeOptionRepository;
 use Hitexis\Product\Repositories\SupplierRepository;
 use Hitexis\Product\Repositories\ProductImageRepository;
+use Symfony\Component\Console\Helper\ProgressBar;
 
 class XDConnectsApiService {
 
@@ -18,6 +19,8 @@ class XDConnectsApiService {
     protected $configurableProduct;
 
     protected $productRepository;
+
+    protected ProgressBar $tracker;
 
     public function __construct(
         HitexisProductRepository $productRepository,
@@ -41,8 +44,6 @@ class XDConnectsApiService {
 
     public function getData()
     {
-        ini_set('memory_limit', '512M');
-
         $xmlProductData = simplexml_load_file('storage\app\private\Xindao.V4.ProductData-en-gb-C36797.xml');
         $xmlPriceData = simplexml_load_file('storage\app\private\Xindao.V2.ProductPrices-en-gb-C36797.xml');
         $xmlPrintData = simplexml_load_file('storage\app\private\Xindao.V2.PrintData-en-gb-C36797.xml');
@@ -56,11 +57,13 @@ class XDConnectsApiService {
 
         foreach ($xmlPriceData->Product as $priceElement) {
             $itemCode = (string)$priceElement->ItemCode;            
-            $priceDataList[ $itemCode] = $priceElement;
+            $priceDataList[$itemCode] = $priceElement;
         }
 
         $productModelCodes = [];
         $groupedProducts = [];
+
+
         foreach ($xmlProductData->Product as $product) {
             $configProductModelCode = (string) $product->ModelCode;
         
@@ -70,41 +73,72 @@ class XDConnectsApiService {
             $groupedProducts[$configProductModelCode][] = $product;
         }
 
+        $this->tracker = new ProgressBar($this->output, count($groupedProducts));
+        $this->tracker->start();
+
         if (sizeof($groupedProducts[$configProductModelCode]) == 1) {
             $this->createSimple($groupedProducts[$configProductModelCode], $priceDataList);
         } else {
             $this->createConfigurable($groupedProducts, $priceDataList);
         }
+
+        $this->tracker->finish();
+        $this->output->writeln("\nXDConnects product import finished");
         
     }
 
     public function createConfigurable($groupedProducts, $priceDataList) {
         foreach ($groupedProducts as $modelCode => $products) {
+            $mainProduct = $groupedProducts[$modelCode][0];
 
             $colorList = [];
             $sizeList = [];
+            $categories = [];
+            $attributes = [];
 
-            $mainProduct = $products[0];
-
+            // GET ALL COLORS AND SIZES FOR PRODUCT
             foreach ($products as $product) {
 
-
-                if (isset($product->Color)) {
+                if (isset($product->Color) && (string)$product->Color != '') {
                     $result = $this->attributeOptionRepository->getOption(ucfirst((string)$product->Color));
                     if ($result != null && !in_array($result->id, $colorList)) {
                         $colorList[] = $result->id;
                     }
+
+                    if ($result == null) {
+                        {
+                            $color = $this->attributeOptionRepository->create([
+                                'admin_name' => ucfirst((string)$product->Color),
+                                'attribute_id' => 23,
+                            ]);
+        
+                            $colorId = $color->id;
+                            $colorList[] = $colorId;
+                        }
+                    }
                 }
 
-                if (isset($product->Size)) {
+                if (isset($product->Size) && (string)$product->Size != '') {
                     $result = $this->attributeOptionRepository->getOption(ucfirst((string)$product->Size));
                     if ($result != null && !in_array($result->id, $sizeList)) {
                         $sizeList[] = $result->id;
                     }
+
+                    if ($result == null) {
+                        {
+                            $size = $this->attributeOptionRepository->create([
+                                'admin_name' => ucfirst((string)$product->Size),
+                                'attribute_id' => 24,
+                            ]);
+        
+                            $sizeId = $size->id;
+                            $sizeList[] = $sizeId;
+                        }
+                    }
                 }
             }
 
-            $attributes = [];
+            //////////
             if (sizeof($sizeList) > 0) {
                 $attributes['size'] = $sizeList;
             }
@@ -113,21 +147,19 @@ class XDConnectsApiService {
                 $attributes['color'] = $colorList;
             }
 
+            // GET ALL COLORS AND SIZES FOR PRODUCT
             $productObj = $this->productRepository->upsert([
                 'channel' => 'default',
                 'attribute_family_id' => '1',
-                'sku' => (string)$mainProduct->ItemCode,
+                'sku' => (string)$mainProduct->ModelCode,
                 "type" => 'configurable',
                 'super_attributes' => $attributes
             ]);
 
             // VARIANT GATHERING
-            $variantsList = array_slice($products, 1);
-
-            foreach ($variantsList as $variant) {
+            foreach ($products as $variant) {
 
                 $tempAttributes = [];
-
                 $productVariant = $this->productRepository->upsert([
                     'channel' => 'default',
                     'attribute_family_id' => '1',
@@ -139,19 +171,44 @@ class XDConnectsApiService {
                 $sizeId = '';
                 $colorId = '';
 
-                if (isset($variant->Color)) {
+                if (isset($variant->Color) && (string)$variant->Color != '') {
                     $colorObj = $this->attributeOptionRepository->getOption((string)$variant->Color);
                     if ($colorObj && !in_array($colorObj->id,$tempAttributes)) {
                         $colorId = $colorObj->id;
                         $tempAttributes[] = $colorId;
                     }
+
+                    if ($colorObj == null) {
+                        {
+                            $color = $this->attributeOptionRepository->upsert([
+                                'admin_name' => ucfirst((string)$variant->Color),
+                                'attribute_id' => 23,
+                            ]);
+        
+                            $colorId = $color->id;
+                            $tempAttributes[] = $colorId;
+                        }
+                    }
+                    
                 }
 
-                if (isset($variant->Size)) {
+                if (isset($variant->Size) && (string)$variant->Size != '') {
                     $sizeObj = $this->attributeOptionRepository->getOption((string)$variant->Size);
                     if ($sizeObj && !in_array($sizeObj->id,$tempAttributes)) {
                         $sizeId = $sizeObj->id;
                         $tempAttributes[] = $sizeId;
+                    }
+
+                    if ($sizeObj == null) {
+                        {
+                            $size = $this->attributeOptionRepository->upsert([
+                                'admin_name' => ucfirst((string)$variant->Size),
+                                'attribute_id' => 24,
+                            ]);
+        
+                            $sizeId = $size->id;
+                            $tempAttributes[] = $sizeId;
+                        }
                     }
                 }
 
@@ -161,7 +218,7 @@ class XDConnectsApiService {
                     }
                 }
 
-                $allImagesString = (string)$variant->AllImages; // Convert the SimpleXMLElement to a string
+                $allImagesString = (string)$variant->AllImages;
 
                 $imageLinks = explode(', ', $allImagesString);
                 
@@ -170,11 +227,9 @@ class XDConnectsApiService {
                 $tempPaths[] = $imageData['tempPaths'];
 
                 $urlKey = strtolower((string)$variant->ItemName . '-' . (string)$variant->ItemCode);
-                $search = ['.', '\'', ' ', '"', ','];
-                $replace = '-';
-                $urlKey = strtolower(str_replace($search, $replace, $urlKey));
+                $urlKey = preg_replace('/[^a-z0-9]+/', '-', $urlKey);
+                $urlKey = trim($urlKey, '-');
 
-                
                 $variants[$productVariant->id] = [
                     "sku" => (string)$variant->ItemCode,
                     "name" => (!isset($variant->ItemName)) ? 'no name' : (string)$variant->ItemName,
@@ -211,12 +266,11 @@ class XDConnectsApiService {
                     'supplier_code' => $this->identifier
                 ]);
 
-                $urlKey = strtolower((string)$mainProduct->ItemName . '-' . (string)$mainProduct->ItemCode);
-                $search = ['.', '\'', ' ', '"', ','];
-                $replace = '-';
-                $urlKey = strtolower(str_replace($search, $replace, $urlKey));
-                $price = (string)$priceDataList[(string)$product->ItemCode]->ItemPriceNet_Qty1 ?? '';
-                
+                $urlKey = strtolower((string)$variant->ItemName . '-' . (string)$variant->ItemCode);
+                $urlKey = preg_replace('/[^a-z0-9]+/', '-', $urlKey);
+                $urlKey = trim($urlKey, '-');    
+                $price = (string)$priceDataList[(string)$variant->ItemCode]->ItemPriceNet_Qty1 ?? '';
+
                 $superAttributes = [
                     '_method' => 'PUT',
                     "channel" => "default",
@@ -245,13 +299,17 @@ class XDConnectsApiService {
                     "featured" => "1",
                     "guest_checkout" => "1",
                     "manage_stock" => "1",       
-                    "length" => (string)$product->ItemBoxLengthCM ?? '',
-                    "width" => (string)$product->ItemBoxWidthCM ?? '',
-                    "height" => (string)$product->ItemBoxHeightCM ?? '',
-                    "weight" => (string)$product->ItemWeightNetGr * 1000 ?? 0,
+                    "length" => (string)$variant->ItemBoxLengthCM ?? '',
+                    "width" => (string)$variant->ItemBoxWidthCM ?? '',
+                    "height" => (string)$variant->ItemBoxHeightCM ?? '',
+                    "weight" => (string)$variant->ItemWeightNetGr * 1000 ?? 0,
+                    "inventories" => [
+                        1 => "10"
+                      ],
                     'categories' => $categories,
                     'images' =>  $images,
                 ];
+
                 if ($colorId != '') {
                     $superAttributes['color'] = $colorId;
                 }
@@ -261,50 +319,63 @@ class XDConnectsApiService {
                 }
 
                 $this->productRepository->updateToShop($superAttributes, $productVariant->id, 'id');
+                $this->tracker->advance();
             }
 
+            $urlKey = strtolower((string)$mainProduct->ItemName . '-' . (string)$mainProduct->ModelCode) . '-main';
+            $urlKey = preg_replace('/[^a-z0-9]+/', '-', $urlKey);
+            $urlKey = trim($urlKey, '-');    
+            $price = (string)$priceDataList[(string)$mainProduct->ItemCode]->ItemPriceNet_Qty1 ?? '';
+            
             $superAttributes = [
+                '_method' => 'PUT',
                 "channel" => "default",
                 "locale" => "en",
-                'sku' => $productObj->sku,
-                "product_number" =>  (string)$mainProduct->ModelCode,
+                'sku' => (string)$productObj->sku,
+                "product_number" => (string)$mainProduct->ModelCode . '-' . (string)$productObj->sku,
                 "name" => (!isset($mainProduct->ItemName)) ? 'no name' : (string)$mainProduct->ItemName,
-                "url_key" => $urlKey ?? '',
-                "short_description" => '<p>' . (string)$mainProduct->ShortDescription . '</p>' ?? (string)$mainProduct->ItemName,
-                "description" => '<p>' . (string)$mainProduct->LongDescription . '</p>' ?? '',
+                "url_key" => $urlKey,                    
+                'price' => (string)$priceDataList[(string)$mainProduct->ItemCode]->ItemPriceNet_Qty1 ?? '',
+                "weight" => (string)$mainProduct->ItemWeightNetGr * 1000 ?? 0,
+                "short_description" => '<p>' . (string)$mainProduct->ShortDescription . '</p>' ?? 'no description provided',
+                "description" => '<p>' . (string)$mainProduct->LongDescription . '</p>' ?? 'no description provided',
                 "meta_title" => "",
                 "meta_keywords" => "",
                 "meta_description" => "",
-                'price' => (string)$priceDataList[(string)$mainProduct->ItemCode]->ItemPriceNet_Qty1 ?? '',
+                "meta_description" => "",
+                "meta_description" => "",       
+                'price' => $price,
                 'cost' => '',
                 "special_price" => "",
                 "special_price_from" => "",
-                "special_price_to" => "",          
-                "length" => (string)$mainProduct->ItemBoxLengthCM ?? '',
-                "width" => (string)$mainProduct->ItemBoxWidthCM ?? '',
-                "height" => (string)$mainProduct->ItemBoxHeightCM ?? '',
-                "weight" => (string)$mainProduct->ItemWeightNetGr * 1000 ?? 0,
+                "special_price_to" => "",
                 "new" => "1",
                 "visible_individually" => "1",
                 "status" => "1",
                 "featured" => "1",
                 "guest_checkout" => "1",
-                "manage_stock" => "1",
+                "manage_stock" => "1",       
+                "length" => (string)$mainProduct->ItemBoxLengthCM ?? '',
+                "width" => (string)$mainProduct->ItemBoxWidthCM ?? '',
+                "height" => (string)$mainProduct->ItemBoxHeightCM ?? '',
+                "weight" => (string)$mainProduct->ItemWeightNetGr * 1000 ?? 0,
                 "inventories" => [
-                    1 =>  (string)$mainProduct->Qty1
+                    1 => "10"
                 ],
-                'variants' => $variants,
-                'brand' => (string)$mainProduct->brand,
                 'categories' => $categories,
-                'images' =>  $images
+                'variants' => $variants,
+                'images' =>  $images,
             ];
+
+            $this->productRepository->updateToShop($superAttributes, $productObj->id, 'id');
 
             $this->supplierRepository->create([
                 'product_id' => $productObj->id,
                 'supplier_code' => $this->identifier
             ]);
 
-            $this->productRepository->updateToShop($superAttributes, $productObj->id, 'id');
+            $this->tracker->advance();
+
         }
     }
 
@@ -313,17 +384,44 @@ class XDConnectsApiService {
         $product = $product[0];
         $colorId= '';
         $sizeId= '';
-        if (isset($product->Color) && (string)$product->Color > 0) {
+
+        if (isset($product->Color) && (string)$product->Color != '') {
             $result = $this->attributeOptionRepository->getOption(ucfirst((string)$product->Color));
             if ($result != null && !in_array($result->id, $colorList)) {
                 $colorId = $result->id;
+                $colorList[] = $colorId;
+            }
+
+            if ($result == null) {
+                {
+                    $color = $this->attributeOptionRepository->create([
+                        'admin_name' => ucfirst((string)$product->Color),
+                        'attribute_id' => 23,
+                    ]);
+
+                    $colorId = $color->id;
+                    $colorList[] = $colorId;
+                }
             }
         }
 
-        if (isset($product->Size)) {
+        if (isset($product->Size) && (string)$product->Size != '') {
             $result = $this->attributeOptionRepository->getOption(ucfirst((string)$product->Size));
             if ($result != null && !in_array($result->id, $sizeList)) {
                 $sizeId = $result->id;
+                $sizeList[] = $sizeId;
+            }
+
+            if ($result == null) {
+                {
+                    $size = $this->attributeOptionRepository->create([
+                        'admin_name' => ucfirst((string)$product->Size),
+                        'attribute_id' => 24,
+                    ]);
+
+                    $sizeId = $size->id;
+                    $sizeList[] = $sizeId;
+                }
             }
         }
 
@@ -345,7 +443,7 @@ class XDConnectsApiService {
             'supplier_code' => $this->identifier
         ]);
 
-        $allImagesString = (string)$product->AllImages; // Convert the SimpleXMLElement to a string
+        $allImagesString = (string)$product->AllImages;
         $imageLinks = explode(', ', $allImagesString);
         $imageData = $this->productImageRepository->uploadImportedImagesXDConnects($imageLinks, $productVariant);
         $images['files'] = $imageData['fileList'];
@@ -389,6 +487,9 @@ class XDConnectsApiService {
             "width" => (string)$product->ItemBoxWidthCM ?? '',
             "height" => (string)$product->ItemBoxHeightCM ?? '',
             "weight" => (string)$product->ItemWeightNetGr * 1000 ?? 0,
+            "inventories" => [
+                1 => "10"
+            ],
             'categories' => $categories,
             'images' =>  $images,
         ];
@@ -401,6 +502,12 @@ class XDConnectsApiService {
         }
 
         $this->productRepository->updateToShop($superAttributes, $productVariant->id, 'id');
+        $this->tracker->advance();
+    }
+
+    public function setOutput($output)
+    {
+        $this->output = $output;
     }
 }
 

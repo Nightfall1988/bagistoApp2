@@ -515,7 +515,6 @@
                     this.$emitter.on('configurable-variant-update-sku-event', (newSku) => {
 
                         this.sku = newSku.sku;
-                        console.log(newSku.sku)
                         this.updateButtonSku(newSku);
                     });
                 },

@@ -32,6 +32,11 @@ class StrickerProductImport extends Command
      */
     public function handle()
     {
-       $this->service->getData();
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 60);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 60);
+        ini_set('memory_limit', '512M');
+        $this->service->setOutput($this->output);
+        $this->service->getData();
     }
 }

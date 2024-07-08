@@ -165,7 +165,6 @@ class HitexisProductRepository extends Repository
      */
     public function updateToShop($data, $id)
     {
-        // dd($data);
         Event::dispatch('catalog.product.update.before', $id);
 
         $product = $this->update($data, $id);

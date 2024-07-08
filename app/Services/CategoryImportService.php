@@ -139,39 +139,42 @@ class CategoryImportService {
 
         $categoryList = [];
         $slug1 = $this->normalizeSlug($midocean_to_stricker_category[$optional['Type']]);
-        $category1 = $this->categoryRepository->findBySlug($slug1);
-        
+
         if (isset($optional['Type']) && $optional['Type'] != '') {
+
             if (array_key_exists($optional['Type'], $midocean_to_stricker_category)) {
+
                 $slug1 = $this->normalizeSlug($midocean_to_stricker_category[$optional['Type']]);
                 $category1 = $this->categoryRepository->findBySlug($slug1);
-                if ($category1) {
+
+                if ($category1 != null) {
                     $this->category1 = $category1;
                     $categoryList[] = $this->category1->id;
+                } else {
+                    $slug1 = $this->normalizeSlug($optional['Type']);
+                    $data = [
+                        "locale" => "all",
+                        "name" => $optional['Type'],
+                        "description" => $optional['Type'],
+                        "slug" => $slug1,
+                        "meta_title" => "",
+                        "meta_keywords" => "",
+                        "meta_description" => "",
+                        "status" => "1",
+                        "position" => "1",
+                        "display_mode" => "products_and_description",
+                        "attributes" => [
+                            0 => "11",
+                            1 => "23",
+                            2 => "24",
+                            3 => "25"
+                        ]
+                    ];
+        
+                    $this->category1 = $this->categoryRepository->upsert($data,  uniqueBy: ['departure']);
+                    $categoryList[] = $this->category1->id;
                 }
-            } else {
-                $slug1 = $this->normalizeSlug($optional['Type']);
-                $data = [
-                    "locale" => "all",
-                    "name" => $optional['Type'],
-                    "description" => $optional['Type'],
-                    "slug" => $slug1,
-                    "meta_title" => "",
-                    "meta_keywords" => "",
-                    "meta_description" => "",
-                    "status" => "1",
-                    "position" => "1",
-                    "display_mode" => "products_and_description",
-                    "attributes" => [
-                        0 => "11",
-                        1 => "23",
-                        2 => "24",
-                        3 => "25"
-                    ]
-                ];
-    
-                $this->category1 = $this->categoryRepository->create($data);
-                $categoryList[] = $this->category1->id;
+
             }
         }
 
@@ -205,7 +208,7 @@ class CategoryImportService {
                     ]
                 ];
     
-                $this->category2 = $this->categoryRepository->create($data);
+                $this->category2 = $this->categoryRepository->upsert($data);
                 $categoryList[] = $this->category2->id;
                 }
             }

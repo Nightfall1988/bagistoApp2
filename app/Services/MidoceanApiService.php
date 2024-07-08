@@ -9,6 +9,8 @@ use Hitexis\Product\Repositories\SupplierRepository;
 use Hitexis\Product\Repositories\ProductImageRepository;
 use Hitexis\Product\Repositories\ProductAttributeValueRepository;
 use App\Services\CategoryImportService;
+use Symfony\Component\Console\Helper\ProgressBar;
+
 class MidoceanApiService {
 
     protected $url;
@@ -71,6 +73,9 @@ class MidoceanApiService {
             $priceList[$sku] = $price;
         }
 
+        $tracker = new ProgressBar($this->output, count($response));
+        $tracker->start();
+
         // SAVE PRODUCTS AND VARIANTS
         foreach ($response as $apiProduct) {
 
@@ -84,13 +89,18 @@ class MidoceanApiService {
             }
 
             if (sizeof($apiProduct->variants) == 1) {
-                $this->createSimpleProduct($mainVariant, $apiProduct, $priceList, $categories); 
+                $this->createSimpleProduct($mainVariant, $apiProduct, $priceList, $categories);
+                $tracker->advance();
             }
 
             elseif (sizeof($apiProduct->variants) > 1) {
                 $this->createConfigurable($apiProduct->variants, $apiProduct, $priceList,  $categories);
+                $tracker->advance();
             }
-        }        
+        }
+        
+        $tracker->finish();
+        $this->output->writeln("\nMidocean product Import finished");
     }
 
     public function createConfigurable($variantList, $apiProduct, $priceList,  $categories)  {
@@ -128,6 +138,7 @@ class MidoceanApiService {
         }
 
         $product = $this->productRepository->upsert([
+            "channel" => "default",
             'attribute_family_id' => '1',
             'sku' => $apiProduct->master_code,
             "type" => 'configurable',
@@ -136,6 +147,7 @@ class MidoceanApiService {
 
         for ($i=0; $i<sizeof($apiProduct->variants); $i++) {
             $productVariant = $this->productRepository->upsert([
+                "channel" => "default",
                 'attribute_family_id' => '1',
                 'sku' => $apiProduct->variants[$i]->sku,
                 "type" => 'simple',
@@ -152,9 +164,18 @@ class MidoceanApiService {
                     $tempAttributes[] = $colorId;
                 }
 
+                if ($color == null) {
+                    {
+                        $color = $this->attributeOptionRepository->create([
+                            'admin_name' => $apiProduct->variants[$i]->color_group,
+                            'attribute_id' => 23,
+                        ]);
+
+                        $colorId = $color->id;
+                        $tempAttributes[] = $colorId;
+                    }
+                }
             }
-
-
 
             if (isset($apiProduct->variants[$i]->size)) {
                 $size = $this->attributeOptionRepository->getOption($apiProduct->variants[$i]->size);
@@ -162,19 +183,32 @@ class MidoceanApiService {
                     $sizeId = $size->id;
                     $tempAttributes[] = $sizeId;
                 }
+
+                if ($size == null) {
+                    {
+                        $size = $this->attributeOptionRepository->create([
+                            'admin_name' => $apiProduct->variants[$i]->size,
+                            'attribute_id' => 24,
+                        ]);
+
+                        $sizeId = $size->id;
+                        $tempAttributes[] = $sizeId;
+                    }
+                }
             }
 
             $images = [];
-            $imageData = $this->productImageRepository->uploadImportedImagesMidocean($apiProduct->variants[$i]->digital_assets);
-            $images['files'] = $imageData['fileList'];
-            $tempPaths[] = $imageData['tempPaths'];
-
-            $urlKey = strtolower($apiProduct->product_name . '-' . $product->sku);
-            $search = ['.', '\'', ' ', '"', ','];
-            $replace = '-';
-            $name = $product['Name'];
-            $urlKey = strtolower(str_replace($search, $replace, $name));
+            if (isset($apiProduct->variants[$i]->digital_assets)) {
+                $imageData = $this->productImageRepository->uploadImportedImagesMidocean($apiProduct->variants[$i]->digital_assets);
+                $images['files'] = $imageData['fileList'];
+                $tempPaths[] = $imageData['tempPaths'];
+            }
             $urlKey = strtolower($apiProduct->product_name . '-' . $apiProduct->variants[$i]->sku);
+            $urlKey = preg_replace('/[^a-z0-9]+/', '-', $urlKey);
+            $urlKey = trim($urlKey, '-');
+            $urlKey = strtolower($urlKey);
+            $name = $product['Name'];
+
             $price = $priceList[$apiProduct->variants[$i]->sku] ?? 0;
 
             $variants[$productVariant->id] = [
@@ -188,7 +222,7 @@ class MidoceanApiService {
                 "status" => "1",
                 "featured" => "1",
                 "guest_checkout" => "1",
-                "product_number" => $apiProduct->master_id,
+                "product_number" => $apiProduct->master_id . '-' . $apiProduct->variants[$i]->sku,
                 "url_key" => $urlKey,
                 "short_description" => (isset($apiProduct->short_description)) ? '<p>' . $apiProduct->short_description . '</p>' : '',
                 "description" => (isset($apiProduct->long_description)) ? '<p>' . $apiProduct->long_description . '</p>'  : '',
@@ -214,18 +248,17 @@ class MidoceanApiService {
 
             $price = $priceList[$apiProduct->variants[$i]->sku] ?? 0;
 
-            $urlKey = strtolower($apiProduct->product_name . '-' . $product->sku);
-            $search = ['.', '\'', ' ', '"', ','];
-            $replace = '-';
-            $name = $product['Name'];
-            $urlKey = strtolower(str_replace($search, $replace, $name));
+            $urlKey = strtolower($apiProduct->product_name . '-' . $apiProduct->variants[$i]->sku);
+            $urlKey = preg_replace('/[^a-z0-9]+/', '-', $urlKey);
+            $urlKey = trim($urlKey, '-');
+            $urlKey = strtolower($urlKey);
 
             $superAttributes = [
                 '_method' => 'PUT',
                 "channel" => "default",
                 "locale" => "en",
                 'sku' => $apiProduct->variants[$i]->sku,
-                "product_number" => $apiProduct->master_id, //
+                "product_number" => $apiProduct->master_id . '-' . $apiProduct->variants[$i]->sku, //
                 "name" => (!isset($apiProduct->product_name)) ? 'no name' : $apiProduct->product_name,
                 "url_key" => $urlKey,
                 "short_description" => (isset($apiProduct->short_description)) ? '<p>' . $apiProduct->short_description . '</p>' : '',
@@ -256,19 +289,22 @@ class MidoceanApiService {
             ];
 
         
-        if ($colorId != '') {
-            $superAttributes['color'] = $colorId;
-        }
+            if ($colorId != '') {
+                $superAttributes['color'] = $colorId;
+            }
 
-        if ($sizeId != '') {
-            $superAttributes['size'] = $sizeId;
-        }
+            if ($sizeId != '') {
+                $superAttributes['size'] = $sizeId;
+            }
 
-        $productVariant = $this->productRepository->updateToShop($superAttributes, $productVariant->id, $attribute = 'id');
+            $productVariant = $this->productRepository->updateToShop($superAttributes, $productVariant->id, $attribute = 'id');
 
         }
 
         $urlKey = strtolower($apiProduct->product_name . '-' . $product->sku);
+        $urlKey = preg_replace('/[^a-z0-9]+/', '-', $urlKey);
+        $urlKey = trim($urlKey, '-');
+        $urlKey = strtolower($urlKey);
 
         $superAttributes = [
             "channel" => "default",
@@ -303,6 +339,7 @@ class MidoceanApiService {
             'images' =>  $images,
             'variants' => $variants
         ];
+
         $product = $this->productRepository->updateToShop($superAttributes, $product->id, $attribute = 'id');
 
         return $product;
@@ -311,6 +348,7 @@ class MidoceanApiService {
     public function createSimpleProduct($mainVariant, $apiProduct, $priceList, $categories) {
 
         $product = $this->productRepository->upsert([
+            'channel' => 'default',
             'attribute_family_id' => '1',
             'sku' => $mainVariant->sku,
             "type" => 'simple',
@@ -319,15 +357,18 @@ class MidoceanApiService {
         $productSku = $product->sku ?? '';
         $price = isset($priceList[$productSku]) ? $priceList[$productSku] : 0;
 
-        $replace = '-';
-        $search = ['.', '\'', ' ', '"']; 
+
         $urlKey = isset($apiProduct->product_name) ? $apiProduct->product_name  . '-' . $apiProduct->master_id : $apiProduct->master_id; 
-        $urlKey = strtolower(str_replace($search, $replace, $urlKey));        
-        
+        $urlKey = preg_replace('/[^a-z0-9]+/', '-', $urlKey);
+        $urlKey = trim($urlKey, '-');
+        $urlKey = strtolower($urlKey);
+
         $images = [];
-        $imageData = $this->productImageRepository->uploadImportedImagesMidocean($mainVariant->digital_assets, $product);
-        $images['files'] = $imageData['fileList'];
-        $tempPaths[] = $imageData['tempPaths'];
+        if (isset($mainVariant->digital_assets)) {
+            $imageData = $this->productImageRepository->uploadImportedImagesMidocean($mainVariant->digital_assets, $product);
+            $images['files'] = $imageData['fileList'];
+            $tempPaths[] = $imageData['tempPaths'];
+        }
 
         $superAttributes = [
             "channel" => "default",
@@ -369,5 +410,10 @@ class MidoceanApiService {
             ]);
 
         $this->productRepository->updateToShop($superAttributes, $product->id, $attribute = 'id');
+    }
+
+    public function setOutput($output)
+    {
+        $this->output = $output;
     }
 }

@@ -11,6 +11,7 @@ use Hitexis\Product\Repositories\SupplierRepository;
 use Hitexis\Product\Repositories\ProductImageRepository;
 use App\Services\CategoryImportService;
 use App\Services\CategoryMapper;
+use Symfony\Component\Console\Helper\ProgressBar;
 
 require 'CategoryMapper.php';
 
@@ -86,6 +87,7 @@ class StrickerApiService {
     public function getProducts($productsData, $optionalsData)
     {
         $products = [];
+
         foreach ($productsData['Products'] as $product) {
             $products[$product['ProdReference']]['product'] = $product;
         }
@@ -101,7 +103,10 @@ class StrickerApiService {
     }
 
     public function updateProducts($products)
-    {            
+    {   
+        $tracker = new ProgressBar($this->output, count($products));
+        $tracker->start();
+        
         $productReferences = [];
         $groupedOptionals = [];
         $images = [];
@@ -109,325 +114,221 @@ class StrickerApiService {
         foreach ($products as $prodReference => $value) {
             if (isset($value['optionals']) && sizeof($value['optionals']) > 1) {
                 $this->createConfigurable($value);
+                $tracker->advance();
             } else {
                 $this->createSimple($value);
+                $tracker->advance();
             }
+
         }
+
+        $tracker->finish();
+        $this->output->writeln("\nStricker product import finished");
     }
 
     public function createConfigurable($productData) {
 
-        $colorList = [];
-        $sizeList = [];
+        // $colorList = [];
+        // $sizeList = [];
         $colorIds = [];
         $sizeIds = [];
 
         $mainProductOptionals = $productData['optionals'][0];
 
-            if ($productData['product']['HasColors']) {
-                $colorNameList = explode(', ', $productData['product']['Colors']);
-                foreach ( $colorNameList as $colorName) {
-                    $colorObj = $this->attributeOptionRepository->getOption(ucfirst(trim($colorName)));
-                    if ( $colorObj) {
-                        $colorIds[] = $colorObj->id;
-                    }
+        if ($productData['product']['HasColors']) {
+            $colorNameList = explode(', ', $productData['product']['Colors']);
+            foreach ( $colorNameList as $colorName) {
+                $colorObj = $this->attributeOptionRepository->getOption(ucfirst(trim($colorName)));
+                
+                if ( $colorObj) {
+                    $colorIds[] = $colorObj->id;
                 }
-            }
 
-            if ($productData['product']['HasSizes']) {
-                $sizeNameList = explode(', ', $productData['product']['Sizes']);
-                foreach ( $sizeNameList as $sizeName) {
-                    $sizeObj = $this->attributeOptionRepository->getOption(ucfirst(trim($sizeName)));
-                    if ($sizeObj) {
-                        $sizeIds[] = $sizeObj->id;
-                    }
-                }
-            }
-
-            if (sizeof($sizeIds) > 0) {
-                $attributes['size'] = $sizeIds;
-            }
-
-            if (sizeof($colorIds) > 0) {
-                $attributes['color'] = $colorIds;
-            }
-
-            $productObj = $this->productRepository->upsert([
-                'channel' => 'default',
-                'attribute_family_id' => '1',
-                'sku' => $mainProductOptionals['Sku'],
-                "type" => 'configurable',
-                'super_attributes' => $attributes
-            ]);
-
-            $variantsList = array_slice($productData['optionals'], 1);
-
-            // CREATE VARIANTS
-            foreach ($variantsList as $variant) {
-
-                $tempAttributes = [];
-
-                $productVariant = $this->productRepository->upsert([
-                    'channel' => 'default',
-                    'attribute_family_id' => '1',
-                    'sku' =>  $variant['Sku'],
-                    "type" => 'simple',
-                    'parent_id' => $productObj->id
-                ]);
-
-                $sizeId = '';
-                $colorId = '';
-                $images = [];
-                if (isset($variant['ColorDesc1'])) {
-                    $colorObj = $this->attributeOptionRepository->getOption($variant['ColorDesc1']);
-                    if ($colorObj && !in_array($colorObj->id,$tempAttributes)) {
+                if (!$colorObj) {
+                    {
+                        $colorObj = $this->attributeOptionRepository->create([
+                            'admin_name' => ucfirst(trim($colorName)),
+                            'attribute_id' => 23,
+                        ]);
+    
                         $colorId = $colorObj->id;
-                        $tempAttributes[] = $colorId;
+                        $colorIds[] = $colorId;
                     }
                 }
-
-                if (isset($variant['Size'])) {
-                    $sizeObj = $this->attributeOptionRepository->getOption((string)$variant['Size']);
-
-                    if ($sizeObj && !in_array($sizeObj->id,$tempAttributes)) {
-                        $sizeId = $sizeObj->id;
-                        $tempAttributes[] = $sizeId;
-                    }
-                }
-                
-                if (isset($variant['OptionalImage1'])) {
-                    $imageList = $this->productImageRepository->assignImage($variant['OptionalImage1']);
-                    if ($imageList != 0) {
-                        $images['files'] = $imageList['files'];
-                    }
-                }
-
-                if(isset($variant['Type']) && $variant['Type'] != '') {
-                    if (array_key_exists($variant['Type'], $this->categoryMapper->midocean_to_stricker_category)) {
-                        $categories = $this->categoryImportService->importStrickerCategories($variant, $this->categoryMapper->midocean_to_stricker_category, $this->categoryMapper->midocean_to_stricker_subcategory);
-                    }
-                }
-
-                $urlKey = strtolower($variant['Name'] . '-' . $variant['Sku']);
-                $search = ['.', '\'', ' ', '"', ','];
-                $replace = '-';
-                $urlKey = strtolower(str_replace($search, $replace, $urlKey));
-
-                $price = isset($variant['Price1']) ? $variant['Price1'] : 0;
-                if ($variant['HasColors'] != false) {
-                    $colorObj = $this->attributeOptionRepository->getOption($variant['ColorDesc1']);
-                    if ($colorObj) {
-                        $variants[$productVariant->id]['color'] = $colorObj->id;
-                    }
-                }
-        
-                if ($variant['HasSizes'] != false) {
-                    $sizeObj = $this->attributeOptionRepository->getOption($variant['Size']);
-                    if ($sizeObj) {
-                        $variants[$productVariant->id]['size'] = $sizeObj->id;
-                    }
-                }
-                $variants[$productVariant->id] = [
-                    "sku" => $variant['Sku'],
-                    "name" => $variant['Name'],
-                    'price' => $price,
-                    "weight" => $variant['Weight'] ?? 0,
-                    "status" => "1",
-                    "new" => "1",
-                    "visible_individually" => "1",
-                    "featured" => "1",
-                    "guest_checkout" => "1",
-                    "product_number" =>  $variant['ProdReference'] . '-' . $variant['Sku'],
-                    "url_key" => $urlKey,
-                    "short_description" =>(!isset($variant['ShortDescription'])) ? 'no description provided' : '<p>' . $variant['ShortDescription'] . '</p>',
-                    "description" => (!isset($variant['Description'])) ? 'no description provided' : '<p>' . $variant['Description'] . '</p>',
-                    "manage_stock" => "1",
-                    "inventories" => [
-                        1 =>  $variant['BoxQuantity'] ?? 0,
-                    ],
-                    'images' => $images
-                ];
-                
-                $this->supplierRepository->create([
-                    'product_id' => $productVariant->id,
-                    'supplier_code' => $this->identifier
-                ]);
-
-                
-                $superAttributes = [
-                    '_method' => 'PUT',
-                    "channel" => "default",
-                    "locale" => "en",
-                    'sku' => $variant['Sku'],
-                    "product_number" =>  $variant['ProdReference'] . '-' . $variant['Sku'],
-                    "name" =>  $variant['Name'],
-                    "url_key" => $urlKey,                    
-                    'price' => $price ?? '0',
-                    "weight" => $variant['Weight'] ?? 0,
-                    "short_description" =>(isset($variant['ShortDescription'])) ? 'no description provided' : '<p>' . $variant['ShortDescription'] . '</p>',
-                    "description" => (isset($variant['Description'])) ? 'no description provided' : '<p>' . $variant['Description'] . '</p>',
-                    "meta_title" => "",
-                    "meta_keywords" => "",
-                    "meta_description" => "",
-                    "meta_description" => "",
-                    "meta_description" => "",       
-                    'price' => $price,
-                    'cost' => '',
-                    "special_price" => "",
-                    "special_price_from" => "",
-                    "special_price_to" => "",
-                    "new" => "1",
-                    "visible_individually" => "1",
-                    "status" => "1",
-                    "featured" => "1",
-                    "guest_checkout" => "1",
-                    "manage_stock" => "1",       
-                    "length" => $variant['BoxLengthMM'] / 10 ?? '',
-                    "width" => $variant['BoxWidthMM'] / 10 ?? '',
-                    "height" => $variant['BoxHeightMM'] / 10 ?? '',
-                    "weight" => $variant['Weight'],
-                    'categories' => $categories,// $categories,
-                    'images' =>  $images,
-                    'variants' => $variants
-                ];
-
-                if ($variant['HasColors'] != false) {
-                    $colorObj = $this->attributeOptionRepository->getOption($variant['ColorDesc1']);
-                    if ($colorObj) {
-                        $superAttributes['color'] = $colorObj->id;
-                    }
-                }
-        
-                if ($variant['HasSizes'] != false) {
-                    $sizeObj = $this->attributeOptionRepository->getOption($variant['Size']);
-                    if ($sizeObj) {
-                        $superAttributes['size'] = $sizeObj->id;
-                    }
-                }
-
-
-                $this->productRepository->updateToShop($superAttributes, $productVariant->id, 'id');
             }
+        }
 
-            $price = isset($mainProductOptionals['Price1']) ? $mainProductOptionals['Price1'] : 0;
-            $yourPrice = isset($mainProductOptionals['YourPrice']) ? $mainProductOptionals['YourPrice'] : 0;
+        if ($productData['product']['HasSizes']) {
+            $sizeNameList = explode(', ', $productData['product']['Sizes']);
+            foreach ( $sizeNameList as $sizeName) {
+                $sizeObj = $this->attributeOptionRepository->getOption(ucfirst(trim($sizeName)));
+                // maybe map?
+                if ($sizeObj) {
+                    $sizeIds[] = $sizeObj->id;
+                }
 
-            $urlKey = strtolower($mainProductOptionals['Name'] . '-' . $mainProductOptionals['Sku']);
-            $search = ['.', '\'', ' ', '"', ','];
-            $replace = '-';
-            $urlKey = strtolower(str_replace($search, $replace, $urlKey));
+                if (!$sizeObj) {
+                    {
+                        $sizeObj = $this->attributeOptionRepository->create([
+                            'admin_name' => ucfirst(trim($sizeName)),
+                            'attribute_id' => 24,
+                        ]);
+    
+                        $sizeId = $sizeObj->id;
+                        $sizeIds[] = $sizeId;
+                    }
+                }
+            }
+        }
 
-            $superAttributes = [
-                "channel" => "default",
-                "locale" => "en",
-                'sku' => $mainProductOptionals['Sku'],
-                "product_number" => $mainProductOptionals['ProdReference'] . '-' . $mainProductOptionals['Sku'],
-                "name" => (!isset($mainProductOptionals['Name'])) ? 'no name' : $mainProductOptionals['Name'],
-                "url_key" => $urlKey ?? '',
-                "product_number" => $mainProductOptionals['ProdReference'],
-                "short_description" =>(!isset($mainProductOptionals['ShortDescription'])) ? 'no description provided' : '<p>' . $mainProductOptionals['ShortDescription'] . '</p>',
-                "description" => (!isset($mainProductOptionals['Description'])) ? 'no description provided' : '<p>' . $mainProductOptionals['Description'] . '</p>',
-                "meta_title" => "",
-                "meta_keywords" => "",
-                "meta_description" => "",
-                'price' => $price,
-                'cost' => '',
-                "special_price" => "",
-                "special_price_from" => "",
-                "special_price_to" => "",          
-                "length" => $mainProductOptionals['BoxLengthMM'] / 10 ?? '',
-                "width" => $mainProductOptionals['BoxWidthMM'] / 10 ?? '',
-                "height" => $mainProductOptionals['BoxHeightMM'] / 10 ?? '',
-                "weight" => $mainProductOptionals['Weight'],
-                "new" => "1",
-                "visible_individually" => "1",
-                "status" => "1",
-                "featured" => "1",
-                "guest_checkout" => "1",
-                "manage_stock" => "1",
-                "inventories" => [
-                    1 =>  $mainProductOptionals['BoxQuantity'] ?? 0,
-                ],
-                'categories' => $categories,
-                'variants' => $variants,        
-                'images' =>  $images
-            ];
+        if (sizeof($sizeIds) > 0) {
+            $attributes['size'] = $sizeIds;
+        }
 
-            $this->supplierRepository->create([
-                'product_id' => $productObj->id,
-                'supplier_code' => $this->identifier
-            ]);
+        if (sizeof($colorIds) > 0) {
+            $attributes['color'] = $colorIds;
+        }
 
-            $this->productRepository->updateToShop($superAttributes, $productObj->id, 'id');
+        $productObj = $this->productRepository->upsert([
+            'channel' => 'default',
+            'attribute_family_id' => '1',
+            'sku' => $mainProductOptionals['Sku'],
+            "type" => 'configurable',
+            'super_attributes' => $attributes
+        ]);
 
-    }
+        $variantsList = array_slice($productData['optionals'], 1);
 
-    public function createSimple($productData) {
-            $productObj = $this->productRepository->upsert([
+        // CREATE VARIANTS
+        foreach ($variantsList as $variant) {
+
+            $tempAttributes = [];
+
+            $productVariant = $this->productRepository->upsert([
                 'channel' => 'default',
                 'attribute_family_id' => '1',
-                'sku' =>  $productData['optionals'][0]['Sku'],
+                'sku' =>  $variant['Sku'],
                 "type" => 'simple',
+                'parent_id' => $productObj->id
             ]);
 
             $sizeId = '';
             $colorId = '';
             $images = [];
-            $categories = [];
-            $tempAttributes = [];
-            if (isset($productData['optionals'][0]['ColorDesc1']) && $productData['optionals'][0]['ColorDesc1'] != '') {
-                $colorObj = $this->attributeOptionRepository->getOption($productData['optionals'][0]['ColorDesc1']);
+            if (isset($variant['ColorDesc1'])) {
+                $colorObj = $this->attributeOptionRepository->getOption($variant['ColorDesc1']);
                 if ($colorObj && !in_array($colorObj->id,$tempAttributes)) {
                     $colorId = $colorObj->id;
-                    $tempAttributes[] = $colorObj->id;
+                    $tempAttributes[] = $colorId;
+                }
+
+                if (!$colorObj) {
+                    {
+                        $colorObj = $this->attributeOptionRepository->create([
+                            'admin_name' => ucfirst(trim($variant['ColorDesc1'])),
+                            'attribute_id' => 24,
+                        ]);
+    
+                        $colorId = $colorObj->id;
+                        $colorIds[] = $colorId;
+                        $tempAttributes[] = $colorId;
+                    }
                 }
             }
 
-            if (isset($productData['optionals'][0]['Size']) && $productData['optionals'][0]['Size'] != '') {
-                $sizeObj = $this->attributeOptionRepository->getOption($productData['optionals'][0]['Size']);
+            if (isset($variant['Size'])) {
+                $sizeObj = $this->attributeOptionRepository->getOption((string)$variant['Size']);
+
                 if ($sizeObj && !in_array($sizeObj->id,$tempAttributes)) {
                     $sizeId = $sizeObj->id;
-                    $tempAttributes[] = $sizeObj->id;
+                    $tempAttributes[] = $sizeId;
+                }
+
+                if (!$sizeObj) {
+                    {
+                        $sizeObj = $this->attributeOptionRepository->create([
+                            'admin_name' => ucfirst(trim($variant['Size'])),
+                            'attribute_id' => 24,
+                        ]);
+    
+                        $sizeId = $sizeObj->id;
+                        $sizeIds[] = $sizeId;
+                        $tempAttributes[] = $sizeId;
+                    }
                 }
             }
             
             if (isset($variant['OptionalImage1'])) {
-                $imageList = $this->productImageRepository->assignImage($productData['optionals'][0]['OptionalImage1']);
+                $imageList = $this->productImageRepository->assignImage($variant['OptionalImage1']);
                 if ($imageList != 0) {
                     $images['files'] = $imageList['files'];
                 }
             }
 
-            $urlKey = strtolower($productData['optionals'][0]['Name'] . '-' . $productData['optionals'][0]['Sku']);
-            $search = ['.', '\'', ' ', '"', ','];
-            $replace = '-';
-            $urlKey = strtolower(str_replace($search, $replace, $urlKey));
-
-            $price = isset($productData['optionals'][0]['Price1']) ? $productData['optionals'][0]['Price1'] : 0;
-            
-            $this->supplierRepository->create([
-                'product_id' => $productObj->id,
-                'supplier_code' => $this->identifier
-            ]);
-
-            if(isset($productData['optionals'][0]['Type']) &&$productData['optionals'][0]['Type'] != '') {
-                if (array_key_exists($productData['optionals'][0]['Type'], $this->categoryMapper->midocean_to_stricker_category)) {
-                    $categories = $this->categoryImportService->importStrickerCategories($productData['optionals'][0], $this->categoryMapper->midocean_to_stricker_category, $this->categoryMapper->midocean_to_stricker_subcategory);
+            // CATEGORIES
+            if(isset($variant['Type']) && $variant['Type'] != '') {
+                if (array_key_exists($variant['Type'], $this->categoryMapper->midocean_to_stricker_category)) {
+                    $categories = $this->categoryImportService->importStrickerCategories($variant, $this->categoryMapper->midocean_to_stricker_category, $this->categoryMapper->midocean_to_stricker_subcategory);
                 }
             }
 
+            $urlKey = strtolower($variant['Name'] . '-' . $variant['Sku']);
+            $urlKey = preg_replace('/[^a-z0-9]+/', '-', $urlKey);
+            $urlKey = trim($urlKey, '-');
+
+            $price = isset($variant['Price1']) ? $variant['Price1'] : 0;
+            if ($variant['HasColors'] != false) {
+                $colorObj = $this->attributeOptionRepository->getOption($variant['ColorDesc1']);
+                if ($colorObj) {
+                    $variants[$productVariant->id]['color'] = $colorObj->id;
+                }
+            }
+    
+            if ($variant['HasSizes'] != false) {
+                $sizeObj = $this->attributeOptionRepository->getOption($variant['Size']);
+                if ($sizeObj) {
+                    $variants[$productVariant->id]['size'] = $sizeObj->id;
+                }
+            }
+            $variants[$productVariant->id] = [
+                "sku" => $variant['Sku'],
+                "name" => $variant['Name'],
+                'price' => $price,
+                "weight" => $variant['Weight'] ?? 0,
+                "status" => "1",
+                "new" => "1",
+                "visible_individually" => "1",
+                "featured" => "1",
+                "guest_checkout" => "1",
+                "product_number" =>  $variant['ProdReference'] . '-' . $variant['Sku'],
+                "url_key" => $urlKey,
+                "short_description" =>(!isset($variant['ShortDescription'])) ? 'no description provided' : '<p>' . $variant['ShortDescription'] . '</p>',
+                "description" => (!isset($variant['Description'])) ? 'no description provided' : '<p>' . $variant['Description'] . '</p>',
+                "manage_stock" => "1",
+                "inventories" => [
+                    1 =>  $variant['BoxQuantity'] ?? 0,
+                ],
+                'images' => $images
+            ];
+            
+            $this->supplierRepository->create([
+                'product_id' => $productVariant->id,
+                'supplier_code' => $this->identifier
+            ]);
+
+            
             $superAttributes = [
                 '_method' => 'PUT',
                 "channel" => "default",
                 "locale" => "en",
-                'sku' => $productObj->sku,
-                "product_number" =>  $productData['optionals'][0]['ProdReference'] . '-' . $productObj->sku,
-                "name" =>  $productData['optionals'][0]['Name'],
+                'sku' => $variant['Sku'],
+                "product_number" =>  $variant['ProdReference'] . '-' . $variant['Sku'],
+                "name" =>  $variant['Name'],
                 "url_key" => $urlKey,                    
                 'price' => $price ?? '0',
-                "weight" => $productData['optionals'][0]['Weight'] ?? 0,
-                "short_description" =>(!isset($productData['optionals'][0]['ShortDescription'])) ? 'no description provided' : '<p>' . $productData['optionals'][0]['ShortDescription'] . '</p>',
-                "description" => (!isset($productData['optionals'][0]['Description'])) ? 'no description provided' : '<p>' . $productData['optionals'][0]['Description'] . '</p>',
+                "weight" => $variant['Weight'] ?? 0,
+                "short_description" =>(isset($variant['ShortDescription'])) ? 'no description provided' : '<p>' . $variant['ShortDescription'] . '</p>',
+                "description" => (isset($variant['Description'])) ? 'no description provided' : '<p>' . $variant['Description'] . '</p>',
                 "meta_title" => "",
                 "meta_keywords" => "",
                 "meta_description" => "",
@@ -444,21 +345,185 @@ class StrickerApiService {
                 "featured" => "1",
                 "guest_checkout" => "1",
                 "manage_stock" => "1",       
-                "length" =>$productData['optionals'][0]['BoxLengthMM'] / 10 ?? '',
-                "width" =>$productData['optionals'][0]['BoxWidthMM'] / 10 ?? '',
-                "height" => $productData['optionals'][0]['BoxHeightMM'] / 10 ?? '',
-                "weight" => $productData['optionals'][0]['Weight'],
-                'categories' => $categories,
+                "length" => $variant['BoxLengthMM'] / 10 ?? '',
+                "width" => $variant['BoxWidthMM'] / 10 ?? '',
+                "height" => $variant['BoxHeightMM'] / 10 ?? '',
+                "weight" => $variant['Weight'],
+                'categories' => $categories,// $categories,
                 'images' =>  $images,
+                'variants' => $variants
             ];
-            if ($colorId != '') {
-                $superAttributes['color'] = $colorId;
+
+            if ($variant['HasColors'] != false) {
+                $colorObj = $this->attributeOptionRepository->getOption($variant['ColorDesc1']);
+                if ($colorObj) {
+                    $superAttributes['color'] = $colorObj->id;
+                }
             }
     
-            if ($sizeId != '') {
-                $superAttributes['size'] = $sizeId;
+            if ($variant['HasSizes'] != false) {
+                $sizeObj = $this->attributeOptionRepository->getOption($variant['Size']);
+                if ($sizeObj) {
+                    $superAttributes['size'] = $sizeObj->id;
+                }
             }
 
-            $this->productRepository->updateToShop($superAttributes, $productObj->id, 'id');
+
+            $this->productRepository->updateToShop($superAttributes, $productVariant->id, 'id');
         }
+
+        $price = isset($mainProductOptionals['Price1']) ? $mainProductOptionals['Price1'] : 0;
+        $yourPrice = isset($mainProductOptionals['YourPrice']) ? $mainProductOptionals['YourPrice'] : 0;
+
+        $urlKey = strtolower($mainProductOptionals['Name'] . '-' . $mainProductOptionals['Sku']);
+        $urlKey = preg_replace('/[^a-z0-9]+/', '-', $urlKey);
+        $urlKey = trim($urlKey, '-');
+
+        $superAttributes = [
+            "channel" => "default",
+            "locale" => "en",
+            'sku' => $mainProductOptionals['Sku'],
+            "product_number" => $mainProductOptionals['ProdReference'] . '-' . $mainProductOptionals['Sku'],
+            "name" => (!isset($mainProductOptionals['Name'])) ? 'no name' : $mainProductOptionals['Name'],
+            "url_key" => $urlKey ?? '',
+            "product_number" => $mainProductOptionals['ProdReference'],
+            "short_description" =>(!isset($mainProductOptionals['ShortDescription'])) ? 'no description provided' : '<p>' . $mainProductOptionals['ShortDescription'] . '</p>',
+            "description" => (!isset($mainProductOptionals['Description'])) ? 'no description provided' : '<p>' . $mainProductOptionals['Description'] . '</p>',
+            "meta_title" => "",
+            "meta_keywords" => "",
+            "meta_description" => "",
+            'price' => $price,
+            'cost' => '',
+            "special_price" => "",
+            "special_price_from" => "",
+            "special_price_to" => "",          
+            "length" => $mainProductOptionals['BoxLengthMM'] / 10 ?? '',
+            "width" => $mainProductOptionals['BoxWidthMM'] / 10 ?? '',
+            "height" => $mainProductOptionals['BoxHeightMM'] / 10 ?? '',
+            "weight" => $mainProductOptionals['Weight'],
+            "new" => "1",
+            "visible_individually" => "1",
+            "status" => "1",
+            "featured" => "1",
+            "guest_checkout" => "1",
+            "manage_stock" => "1",
+            "inventories" => [
+                1 =>  $mainProductOptionals['BoxQuantity'] ?? 0,
+            ],
+            'categories' => $categories,
+            'variants' => $variants,        
+            'images' =>  $images
+        ];
+
+        $this->supplierRepository->create([
+            'product_id' => $productObj->id,
+            'supplier_code' => $this->identifier
+        ]);
+
+        $this->productRepository->updateToShop($superAttributes, $productObj->id, 'id');
+
     }
+
+    public function createSimple($productData) {
+        $productObj = $this->productRepository->upsert([
+            'channel' => 'default',
+            'attribute_family_id' => '1',
+            'sku' =>  $productData['optionals'][0]['Sku'],
+            "type" => 'simple',
+        ]);
+
+        $sizeId = '';
+        $colorId = '';
+        $images = [];
+        $tempAttributes = [];
+        if (isset($productData['optionals'][0]['ColorDesc1']) && $productData['optionals'][0]['ColorDesc1'] != '') {
+            $colorObj = $this->attributeOptionRepository->getOption($productData['optionals'][0]['ColorDesc1']);
+            if ($colorObj && !in_array($colorObj->id,$tempAttributes)) {
+                $colorId = $colorObj->id;
+                $tempAttributes[] = $colorObj->id;
+            }
+        }
+
+        if (isset($productData['optionals'][0]['Size']) && $productData['optionals'][0]['Size'] != '') {
+            $sizeObj = $this->attributeOptionRepository->getOption($productData['optionals'][0]['Size']);
+            if ($sizeObj && !in_array($sizeObj->id,$tempAttributes)) {
+                $sizeId = $sizeObj->id;
+                $tempAttributes[] = $sizeObj->id;
+            }
+        }
+        
+        if (isset($variant['OptionalImage1'])) {
+            $imageList = $this->productImageRepository->assignImage($productData['optionals'][0]['OptionalImage1']);
+            if ($imageList != 0) {
+                $images['files'] = $imageList['files'];
+            }
+        }
+
+        $urlKey = strtolower($productData['optionals'][0]['Name'] . '-' . $productData['optionals'][0]['Sku']);
+        $urlKey = preg_replace('/[^a-z0-9]+/', '-', $urlKey);
+        $urlKey = trim($urlKey, '-');
+
+        $price = isset($productData['optionals'][0]['Price1']) ? $productData['optionals'][0]['Price1'] : 0;
+        
+        $this->supplierRepository->create([
+            'product_id' => $productObj->id,
+            'supplier_code' => $this->identifier
+        ]);
+
+        if(isset($productData['optionals'][0]['Type']) &&$productData['optionals'][0]['Type'] != '') {
+            if (array_key_exists($productData['optionals'][0]['Type'], $this->categoryMapper->midocean_to_stricker_category)) {
+                $categories = $this->categoryImportService->importStrickerCategories($productData['optionals'][0], $this->categoryMapper->midocean_to_stricker_category, $this->categoryMapper->midocean_to_stricker_subcategory);
+            }
+        }
+
+        $superAttributes = [
+            '_method' => 'PUT',
+            "channel" => "default",
+            "locale" => "en",
+            'sku' => $productObj->sku,
+            "product_number" =>  $productData['optionals'][0]['ProdReference'] . '-' . $productObj->sku,
+            "name" =>  $productData['optionals'][0]['Name'],
+            "url_key" => $urlKey,                    
+            'price' => $price ?? '0',
+            "weight" => $productData['optionals'][0]['Weight'] ?? 0,
+            "short_description" =>(!isset($productData['optionals'][0]['ShortDescription'])) ? 'no description provided' : '<p>' . $productData['optionals'][0]['ShortDescription'] . '</p>',
+            "description" => (!isset($productData['optionals'][0]['Description'])) ? 'no description provided' : '<p>' . $productData['optionals'][0]['Description'] . '</p>',
+            "meta_title" => "",
+            "meta_keywords" => "",
+            "meta_description" => "",
+            "meta_description" => "",
+            "meta_description" => "",       
+            'price' => $price,
+            'cost' => '',
+            "special_price" => "",
+            "special_price_from" => "",
+            "special_price_to" => "",
+            "new" => "1",
+            "visible_individually" => "1",
+            "status" => "1",
+            "featured" => "1",
+            "guest_checkout" => "1",
+            "manage_stock" => "1",       
+            "length" =>$productData['optionals'][0]['BoxLengthMM'] / 10 ?? '',
+            "width" =>$productData['optionals'][0]['BoxWidthMM'] / 10 ?? '',
+            "height" => $productData['optionals'][0]['BoxHeightMM'] / 10 ?? '',
+            "weight" => $productData['optionals'][0]['Weight'],
+            'categories' => $categories,
+            'images' =>  $images,
+        ];
+        if ($colorId != '') {
+            $superAttributes['color'] = $colorId;
+        }
+
+        if ($sizeId != '') {
+            $superAttributes['size'] = $sizeId;
+        }
+        echo $productObj->name;
+        $this->productRepository->updateToShop($superAttributes, $productObj->id, 'id');
+    }
+
+        public function setOutput($output)
+        {
+            $this->output = $output;
+        }
+}
