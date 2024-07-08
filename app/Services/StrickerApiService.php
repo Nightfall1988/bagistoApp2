@@ -436,6 +436,8 @@ class StrickerApiService {
         $colorId = '';
         $images = [];
         $tempAttributes = [];
+        $categories = [];
+
         if (isset($productData['optionals'][0]['ColorDesc1']) && $productData['optionals'][0]['ColorDesc1'] != '') {
             $colorObj = $this->attributeOptionRepository->getOption($productData['optionals'][0]['ColorDesc1']);
             if ($colorObj && !in_array($colorObj->id,$tempAttributes)) {
