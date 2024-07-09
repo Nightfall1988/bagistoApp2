@@ -59,8 +59,17 @@ class AttributeOptionRepository extends Repository
         }
     }
 
+    function matchesPattern($name) {
+        $pattern = '/^\d+ - [a-zA-Z]+$/';
+        return preg_match($pattern, $name) === 1;
+    }
+
     public function getOption($name)
     {
+        if ($this->matchesPattern($name)) {
+            $name = explode(' - ', $name);
+        }
+
         $result = $this->model->where('admin_name', $name)->first();
         if ($result === null) {
             return null;
