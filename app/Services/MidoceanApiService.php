@@ -137,7 +137,7 @@ class MidoceanApiService {
             $attributes['color'] = $color;
         }
 
-        $product = $this->productRepository->upsert([
+        $product = $this->productRepository->upserts([
             "channel" => "default",
             'attribute_family_id' => '1',
             'sku' => $apiProduct->master_code,
@@ -146,7 +146,7 @@ class MidoceanApiService {
         ]);
 
         for ($i=0; $i<sizeof($apiProduct->variants); $i++) {
-            $productVariant = $this->productRepository->upsert([
+            $productVariant = $this->productRepository->upserts([
                 "channel" => "default",
                 'attribute_family_id' => '1',
                 'sku' => $apiProduct->variants[$i]->sku,
@@ -347,7 +347,7 @@ class MidoceanApiService {
 
     public function createSimpleProduct($mainVariant, $apiProduct, $priceList, $categories) {
 
-        $product = $this->productRepository->upsert([
+        $product = $this->productRepository->upserts([
             'channel' => 'default',
             'attribute_family_id' => '1',
             'sku' => $mainVariant->sku,
