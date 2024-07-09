@@ -171,7 +171,7 @@ class CategoryImportService {
                         ]
                     ];
         
-                    $this->category1 = $this->categoryRepository->upsert($data,  uniqueBy: ['departure']);
+                    $this->category1 = $this->categoryRepository->create($data);
                     $categoryList[] = $this->category1->id;
                 }
 
@@ -181,6 +181,7 @@ class CategoryImportService {
         if (isset($optional['SubType']) && $optional['SubType'] != '') {
             if (array_key_exists($optional['SubType'], $midocean_to_stricker_subcategory)) {
                 $slug2 = $this->normalizeSlug($midocean_to_stricker_subcategory[$optional['SubType']]);
+
                 $category2 = $this->categoryRepository->findBySlug($slug2);
                 if ($category2) {
                     $this->category2 = $category2;
@@ -207,8 +208,16 @@ class CategoryImportService {
                         3 => "25"
                     ]
                 ];
-    
-                $this->category2 = $this->categoryRepository->upsert($data);
+
+                if (!empty($categoryList)) {
+                    $data['parent_id'] = $categoryList[0];
+                }
+
+                // $category2 = $this->categoryRepository->findBySlug($slug2)
+                // if ()
+                // FIND THIS CATEGORY SLUG, IF EXISTS UPDATE CATEGORY IF NOT, CREATE NEW ONE
+                
+                $this->category2 = $this->categoryRepository->create($data);
                 $categoryList[] = $this->category2->id;
                 }
             }

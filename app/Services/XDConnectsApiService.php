@@ -237,7 +237,7 @@ class XDConnectsApiService {
                     "weight" => (string)$variant->ItemWeightNetGr * 1000 ?? 0,
                     "status" => "1",
                     "new" => "1",
-                    "visible_individually" => "1",
+                    "visible_individually" => "0",
                     "status" => "1",
                     "featured" => "1",
                     "guest_checkout" => "1",

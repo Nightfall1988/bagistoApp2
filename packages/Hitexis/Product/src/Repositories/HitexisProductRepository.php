@@ -73,7 +73,7 @@ class HitexisProductRepository extends Repository
      *
      * @return \Hitexis\Product\Contracts\Product
      */
-    public function upsert(array $data)
+    public function upserts(array $data)
     {
         $typeClass = config('product_types.' . $data['type'] . '.class');
     
