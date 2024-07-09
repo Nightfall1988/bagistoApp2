@@ -44,9 +44,11 @@ class XDConnectsApiService {
 
     public function getData()
     {
-        $xmlProductData = simplexml_load_file('storage\app\private\Xindao.V4.ProductData-en-gb-C36797.xml');
-        $xmlPriceData = simplexml_load_file('storage\app\private\Xindao.V2.ProductPrices-en-gb-C36797.xml');
-        $xmlPrintData = simplexml_load_file('storage\app\private\Xindao.V2.PrintData-en-gb-C36797.xml');
+        $path = 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'private' . DIRECTORY_SEPARATOR;
+
+        $xmlProductData = simplexml_load_file($path . 'Xindao.V4.ProductData-en-gb-C36797.xml');
+        $xmlPriceData = simplexml_load_file($path . 'Xindao.V2.ProductPrices-en-gb-C36797.xml');
+        $xmlPrintData = simplexml_load_file($path . 'Xindao.V2.PrintData-en-gb-C36797.xml');
 
         if ($xmlProductData === false || $xmlPriceData === false || $xmlProductData === false) {
             echo "Failed to load XML file.";
