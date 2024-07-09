@@ -497,6 +497,11 @@ return [
             'discount'                     => 'Discount',
             'receive'                      => 'receive',
             'for-a-batch-of'               => 'For a batch of',
+            'create-print-motive'          => "CREATE PRINT MOTIVE",
+            'design-print-motive'          => "DESIGN PRINT MOTIVE",
+            'upload-own-logo'              => "UPLOAD OWN LOGO",
+            'change-logo'                  => "CHANGE LOGO",
+            
             
             'type' => [
                 'configurable' => [

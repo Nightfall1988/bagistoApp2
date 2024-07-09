@@ -70,18 +70,18 @@
     <!-- LogoTron -->
     <div class="flex flex-row max-w-[700px] gap-4 mx-5" style="margin-left: 14rem; margin-top: 2rem;">
         <div class="flex flex-row max-w-[670px] gap-4 mr-8 ml-8">
-            <button class="secondary-button w-full max-w-full" data-tl-action="OpenGallery">CHANGE LOGO</button>
-            <button class="secondary-button w-full max-w-full" data-tl-action="OpenUpload">UPLOAD OWN LOGO</button>
+            <button class="secondary-button w-full max-w-full" data-tl-action="OpenGallery">@lang('shop::app.products.view.change-logo')</button>
+            <button class="secondary-button w-full max-w-full" data-tl-action="OpenUpload">@lang('shop::app.products.view.upload-own-logo')</button>
 
             @if (isset($product->supplier))
             <button id='design-print-motive' class="secondary-button w-full max-w-full" data-tl-action="OpenEditor"
                 data-tl-sid="{{ $product->supplier->supplier_code }}"
-                data-tl-spcode="{{ $product->sku }}">DESIGN PRINT MOTIVE
+                data-tl-spcode="{{ $product->sku }}">@lang('shop::app.products.view.design-print-motive')
             </button>
             
             <button data-tl-action="OpenEditor"  id='create-print-motive'
                 data-tl-sid="{{ $product->supplier->supplier_code }}"
-                data-tl-spcode="{{ $product->sku }}">CREATE PRINT MOTIVE
+                data-tl-spcode="{{ $product->sku }}">@lang('shop::app.products.view.create-print-motive')
             </button>
             @endif
 
