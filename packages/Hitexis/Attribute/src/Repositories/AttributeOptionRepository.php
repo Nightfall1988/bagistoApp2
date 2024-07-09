@@ -67,7 +67,7 @@ class AttributeOptionRepository extends Repository
     public function getOption($name)
     {
         if ($this->matchesPattern($name)) {
-            $name = explode(' - ', $name);
+            $name = explode(' - ', $name)[1];
         }
 
         $result = $this->model->where('admin_name', $name)->first();
