@@ -212,10 +212,6 @@ class CategoryImportService {
                 if (!empty($categoryList)) {
                     $data['parent_id'] = $categoryList[0];
                 }
-
-                // $category2 = $this->categoryRepository->findBySlug($slug2)
-                // if ()
-                // FIND THIS CATEGORY SLUG, IF EXISTS UPDATE CATEGORY IF NOT, CREATE NEW ONE
                 
                 $this->category2 = $this->categoryRepository->create($data);
                 $categoryList[] = $this->category2->id;
@@ -255,8 +251,14 @@ class CategoryImportService {
                     ]
                 ];
     
-                $this->category1 = $this->categoryRepository->create($data);
-                $categoryList[] = $this->category1->id;
+                $category1 = $this->categoryRepository->findBySlug($slug1);
+                if ($category1) {
+                    $categoryList[] = $this->category1->id;
+                } else {
+                    $this->category1 = $this->categoryRepository->create($data);
+                    $categoryList[] = $this->category1->id;  
+                }
+
             }
         }
 
@@ -289,9 +291,14 @@ class CategoryImportService {
                         3 => "25"
                     ]
                 ];
-    
-                $this->category2 = $this->categoryRepository->create($data);
-                $categoryList[] = $this->category2->id;
+
+                $category2 = $this->categoryRepository->findBySlug($slug2);
+                if ($category2) {
+                    $categoryList[] = $this->category2->id;
+                } else {
+                    $this->category2 = $this->categoryRepository->create($data);
+                    $categoryList[] = $this->category2->id;  
+                }
             }
         }
             return $categoryList;
