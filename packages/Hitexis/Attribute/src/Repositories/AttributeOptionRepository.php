@@ -68,4 +68,24 @@ class AttributeOptionRepository extends Repository
             return $result;
         }
     }
+
+        /**
+     * Create product.
+     *
+     * @return \Hitexis\Product\Contracts\Product
+     */
+    public function upserts(array $data)
+    {                
+        $existingOption = $this->findOneByField('admin_name', $data['admin_name']);
+
+        if ($existingOption) {
+            $option = $this->findOneByField('admin_name', $existingOption->admin_name);
+            $option = $this->update($data,$existingOption->id);
+
+        } else {
+            $option = $this->create($data);
+        }
+    
+        return $option;
+    }
 }

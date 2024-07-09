@@ -148,7 +148,7 @@ class XDConnectsApiService {
             }
 
             // GET ALL COLORS AND SIZES FOR PRODUCT
-            $productObj = $this->productRepository->upsert([
+            $productObj = $this->productRepository->upserts([
                 'channel' => 'default',
                 'attribute_family_id' => '1',
                 'sku' => (string)$mainProduct->ModelCode,
@@ -160,7 +160,7 @@ class XDConnectsApiService {
             foreach ($products as $variant) {
 
                 $tempAttributes = [];
-                $productVariant = $this->productRepository->upsert([
+                $productVariant = $this->productRepository->upserts([
                     'channel' => 'default',
                     'attribute_family_id' => '1',
                     'sku' => (string)$variant->ItemCode,
@@ -180,7 +180,7 @@ class XDConnectsApiService {
 
                     if ($colorObj == null) {
                         {
-                            $color = $this->attributeOptionRepository->upsert([
+                            $color = $this->attributeOptionRepository->upserts([
                                 'admin_name' => ucfirst((string)$variant->Color),
                                 'attribute_id' => 23,
                             ]);
@@ -201,7 +201,7 @@ class XDConnectsApiService {
 
                     if ($sizeObj == null) {
                         {
-                            $size = $this->attributeOptionRepository->upsert([
+                            $size = $this->attributeOptionRepository->upserts([
                                 'admin_name' => ucfirst((string)$variant->Size),
                                 'attribute_id' => 24,
                             ]);
@@ -431,7 +431,7 @@ class XDConnectsApiService {
             }
         }
 
-        $productVariant = $this->productRepository->upsert([
+        $productVariant = $this->productRepository->upserts([
             'channel' => 'default',
             'attribute_family_id' => '1',
             'sku' => (string)$product->ItemCode,
