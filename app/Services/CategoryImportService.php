@@ -7,9 +7,9 @@ class CategoryImportService {
 
     protected $categoryRepository;
 
-    protected Category $category1; 
-    protected Category $category2; 
-    protected Category $category3; 
+    protected $category1; 
+    protected $category2; 
+    protected $category3; 
 
 
     public function __construct(
