@@ -4,7 +4,7 @@ namespace App\Services;
 class CategoryMapper {
     public array $midocean_to_xdconnects_category = [
         "Drinkware" => 'Eating & Drinking',
-        "Home & Living" => 'Apparel & Accessories',
+        "Home & Living" => 'Home & Living',
         "Car & Safety" => 'Technology & Accessories',
         "Bags & Travel" => 'Bags & Travel',
         "Outdoor" => 'Sports & Recreation',

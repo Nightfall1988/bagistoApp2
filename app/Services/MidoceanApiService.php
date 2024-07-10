@@ -104,8 +104,8 @@ class MidoceanApiService {
     }
 
     public function createConfigurable($variantList, $apiProduct, $priceList,  $categories)  {
-        $color = [];
-        $size = [];
+        $colorList = [];
+        $sizeList = [];
         $variants = [];
         $tempAttributes = [];
         $attributes = [];
@@ -113,28 +113,54 @@ class MidoceanApiService {
         foreach ($apiProduct->variants as $variant) {
 
             // GET VARIANT COLOR
-            if (isset($variant->color_group)) {
-                $result = $this->attributeOptionRepository->getOption($variant->color_group);
-                if ($result != null && !in_array($result->id, $color)) {
-                    $color[] = $result->id;
+            if (isset($variant->color_description)) {
+                $result = $this->attributeOptionRepository->getOption($variant->color_description);
+
+                if ($result != null && !in_array($result->id, $colorList)) {
+                    $colorList[] = $result->id;
+                }
+
+                if ($result == null) {
+                    {
+                        $color = $this->attributeOptionRepository->create([
+                            'admin_name' => ucfirst((string)$variant->color_description),
+                            'attribute_id' => 23,
+                        ]);
+    
+                        $colorId = $color->id;
+                        $colorList[] = $colorId;
+                    }
                 }
             }
 
             // GET VARIANT SIZE
             if (isset($variant->size)) {
                 $result = $this->attributeOptionRepository->getOption($variant->size);
-                if ($result != null && !in_array($result->id, $size)) {
-                    $size[] = $result->id;
+
+                if ($result != null && !in_array($result->id, $sizeList)) {
+                    $sizeList[] = $result->id;
+                }
+
+                if ($result == null) {
+                    {
+                        $size = $this->attributeOptionRepository->create([
+                            'admin_name' => ucfirst($variant->size),
+                            'attribute_id' => 24,
+                        ]);
+    
+                        $sizeId = $size->id;
+                        $sizeList[] = $sizeId;
+                    }
                 }
             }
         }
 
-        if (sizeof($size) > 0) {
-            $attributes['size'] = $size;
+        if (sizeof($sizeList) > 0) {
+            $attributes['size'] = $sizeList;
         }
 
-        if (sizeof($color) > 0) {
-            $attributes['color'] = $color;
+        if (sizeof($colorList) > 0) {
+            $attributes['color'] = $colorList;
         }
 
         $product = $this->productRepository->upserts([
@@ -157,17 +183,17 @@ class MidoceanApiService {
             $sizeId = '';
             $colorId = '';
             // GET PRODUCT VARIANT COLOR AND SIZE
-            if (isset($apiProduct->variants[$i]->color_group)) {
-                $color = $this->attributeOptionRepository->getOption($apiProduct->variants[$i]->color_group);
-                if ($color && !in_array($color->id,$tempAttributes)) {
-                    $colorId = $color->id;
+            if (isset($apiProduct->variants[$i]->color_description)) {
+                $result = $this->attributeOptionRepository->getOption($apiProduct->variants[$i]->color_description);
+                if ($result != null && !in_array($result->id,$tempAttributes)) {
+                    $colorId = $result->id;
                     $tempAttributes[] = $colorId;
                 }
 
-                if ($color == null) {
+                if ($result == null) {
                     {
                         $color = $this->attributeOptionRepository->create([
-                            'admin_name' => $apiProduct->variants[$i]->color_group,
+                            'admin_name' => ucfirst($apiProduct->variants[$i]->color_description),
                             'attribute_id' => 23,
                         ]);
 
@@ -178,21 +204,22 @@ class MidoceanApiService {
             }
 
             if (isset($apiProduct->variants[$i]->size)) {
-                $size = $this->attributeOptionRepository->getOption($apiProduct->variants[$i]->size);
-                if ($size && !in_array($size->id,$tempAttributes)) {
-                    $sizeId = $size->id;
+                $result = $this->attributeOptionRepository->getOption($apiProduct->variants[$i]->size);
+
+                if ($result != null && !in_array($result->id, $tempAttributes)) {
+                    $sizeId = $result->id;
                     $tempAttributes[] = $sizeId;
                 }
 
-                if ($size == null) {
+                if ($result == null) {
                     {
                         $size = $this->attributeOptionRepository->create([
-                            'admin_name' => $apiProduct->variants[$i]->size,
+                            'admin_name' => ucfirst($apiProduct->variants[$i]->size),
                             'attribute_id' => 24,
                         ]);
-
+    
                         $sizeId = $size->id;
-                        $tempAttributes[] = $sizeId;
+                        $sizeList[] = $sizeId;
                     }
                 }
             }
@@ -218,7 +245,7 @@ class MidoceanApiService {
                 "weight" => $apiProduct->net_weight ?? 0,
                 "status" => "1",
                 "new" => "1",
-                "visible_individually" => "1",
+                "visible_individually" => "0",
                 "status" => "1",
                 "featured" => "1",
                 "guest_checkout" => "1",
@@ -233,11 +260,11 @@ class MidoceanApiService {
                 'images' => $images
             ];
 
-            if ($color != []) {
+            if ($colorList != []) {
                 $variants[$productVariant->id]['color'] = $colorId;
             }
 
-            if ($size != []) {
+            if ($sizeList != []) {
                 $variants[$productVariant->id]['size'] = $sizeId;
             }
 
@@ -274,7 +301,7 @@ class MidoceanApiService {
                 "special_price_from" => "",
                 "special_price_to" => "",
                 "new" => "1",
-                "visible_individually" => "1",
+                "visible_individually" => "0",
                 "status" => "1",
                 "featured" => "1",
                 "guest_checkout" => "1",
@@ -285,7 +312,6 @@ class MidoceanApiService {
                 "weight" => $apiProduct->net_weight ?? 0,
                 'categories' => $categories,
                 'images' =>  $images,
-                'variants' => $variants
             ];
 
         

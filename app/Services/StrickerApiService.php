@@ -187,7 +187,6 @@ class StrickerApiService {
             $attributes['color'] = $colorIds;
         }
 
-        echo "\n" . 'upsert: ' . $mainProductOptionals['Sku'] . ' configurable';
         $productObj = $this->productRepository->upserts([
             'channel' => 'default',
             'attribute_family_id' => '1',
@@ -203,8 +202,6 @@ class StrickerApiService {
 
             $categories = [];
             $tempAttributes = [];
-
-            echo "\n" . 'upsert: ' . $variant['Sku'] . ' simple';
 
             $productVariant = $this->productRepository->upserts([
                 'channel' => 'default',
@@ -299,7 +296,7 @@ class StrickerApiService {
                 "weight" => $variant['Weight'] ?? 0,
                 "status" => "1",
                 "new" => "1",
-                "visible_individually" => "1",
+                "visible_individually" => "0",
                 "featured" => "1",
                 "guest_checkout" => "1",
                 "product_number" =>  $variant['ProdReference'] . '-' . $variant['Sku'],
@@ -342,7 +339,7 @@ class StrickerApiService {
                 "special_price_from" => "",
                 "special_price_to" => "",
                 "new" => "1",
-                "visible_individually" => "1",
+                "visible_individually" => "0",
                 "status" => "1",
                 "featured" => "1",
                 "guest_checkout" => "1",
@@ -370,9 +367,7 @@ class StrickerApiService {
                 }
             }
 
-
             $this->productRepository->updateToShop($superAttributes, $productVariant->id, 'id');
-            echo ("\n" . 'update ' . $productVariant->name . ' variant simple');
         }
 
         $price = isset($mainProductOptionals['Price1']) ? $mainProductOptionals['Price1'] : 0;
@@ -429,7 +424,6 @@ class StrickerApiService {
 
     public function createSimple($productData) {
         
-        echo ("\n" . 'update ' . $productData['optionals'][0]['Sku'] . ' variant simple');
         $productObj = $this->productRepository->upserts([
             'channel' => 'default',
             'attribute_family_id' => '1',
@@ -506,7 +500,7 @@ class StrickerApiService {
             "special_price_from" => "",
             "special_price_to" => "",
             "new" => "1",
-            "visible_individually" => "0",
+            "visible_individually" => "1",
             "status" => "1",
             "featured" => "1",
             "guest_checkout" => "1",
@@ -525,7 +519,6 @@ class StrickerApiService {
         if ($sizeId != '') {
             $superAttributes['size'] = $sizeId;
         }
-        echo "\n" . 'upsert: ' . $productObj->name;
         $this->productRepository->updateToShop($superAttributes, $productObj->id, 'id');
     }
         public function setOutput($output)

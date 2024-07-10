@@ -140,7 +140,6 @@ class XDConnectsApiService {
                 }
             }
 
-            //////////
             if (sizeof($sizeList) > 0) {
                 $attributes['size'] = $sizeList;
             }
@@ -296,7 +295,7 @@ class XDConnectsApiService {
                     "special_price_from" => "",
                     "special_price_to" => "",
                     "new" => "1",
-                    "visible_individually" => "1",
+                    "visible_individually" => "0",
                     "status" => "1",
                     "featured" => "1",
                     "guest_checkout" => "1",
@@ -512,6 +511,3 @@ class XDConnectsApiService {
         $this->output = $output;
     }
 }
-
-
-
