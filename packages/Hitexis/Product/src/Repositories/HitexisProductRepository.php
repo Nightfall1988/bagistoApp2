@@ -463,6 +463,42 @@ class HitexisProductRepository extends Repository
         return $query->paginate($limit);
     }
 
+    
+        /**
+     * Create product.
+     *
+     * @return \Hitexis\Product\Contracts\Product
+     */
+    public function upsertsStricker(array $data)
+    {
+        $typeClass = config('hitexis_product_types.' . $data['type'] . '.class');
+
+        if (!$typeClass) {
+            throw new \InvalidArgumentException("Product type '{$data['type']}' not found in configuration.");
+        }
+        
+        $typeInstance = app(config('hitexis_product_types.' . $data['type'] . '.class'));
+
+        $existingProduct = $this->findOneByField('sku',  $data['sku']);
+
+        if ($existingProduct) {
+            $product = $typeInstance->update($data,$existingProduct->id);
+            return $product;
+        } else {
+
+            if ($data['type'] == 'configurable') {
+                $product = $this->create($data);
+                return $product;
+            }
+
+            elseif ($data['type'] == 'simple') {
+                $product = $this->create($data);
+                return $product;
+            }
+        }
+    }
+
+
     /**
      * Search product from elastic search.
      *

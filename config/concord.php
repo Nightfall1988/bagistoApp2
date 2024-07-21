@@ -2,9 +2,7 @@
 
 return [
 
-    'conventions' => [
-        'Webkul\Core\CoreConvention'
-    ],
+    'convention' => Webkul\Core\CoreConvention::class,
 
     'modules' => [
 
@@ -24,9 +22,6 @@ return [
         \Hitexis\CartRule\Providers\ModuleServiceProvider::class,// HITEXIS
         // Add your custom module provider here
         \Hitexis\Product\Providers\ModuleServiceProvider::class,
-
-
-
         \Webkul\Admin\Providers\ModuleServiceProvider::class,
         \Hitexis\Admin\Providers\ModuleServiceProvider::class,
         \Webkul\Attribute\Providers\ModuleServiceProvider::class,  // WEBKUL

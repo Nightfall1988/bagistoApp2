@@ -24,16 +24,19 @@ return [
                 'package_assets_directory' => 'src/Resources/assets',
             ],
         ],
-    ],
+        
+        'hitexis' => [
+            'name'        => 'Hitexis Theme',
+            'assets_path' => 'public/themes/shop/hitexis',
+            'views_path'  => 'resources/themes/hitexis/views',
 
-    /*
-    |--------------------------------------------------------------------------
-    | Admin Theme Configuration
-    |--------------------------------------------------------------------------
-    |
-    | All the configurations are related to the admin themes.
-    |
-    */
+            'vite'        => [
+                'hot_file'                 => 'shop-hitexis-vite.hot',
+                'build_directory'          => 'themes/shop/hitexis/build',
+                'package_assets_directory' => 'src/Resources/assets',
+            ],
+        ],
+    ],
 
     'admin-default' => 'default',
 

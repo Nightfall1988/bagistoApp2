@@ -152,6 +152,28 @@ class MidoceanApiService {
                         $sizeList[] = $sizeId;
                     }
                 }
+            } elseif (sizeof(explode('-', $variant->sku)) == 3) {
+                $sizes = ['L', 'S', 'M', 'XS', 'XL', 'XXS', 'XXL', '3XS', '3XL', 'XXXS', 'XXXL'];
+                $sizeName = explode('-',$variant->sku)[2];
+                if (in_array($sizeName, $sizes)) {
+                    $result = $this->attributeOptionRepository->getOption($sizeName);
+
+                    if ($result != null && !in_array($result->id, $sizeList)) {
+                        $sizeList[] = $result->id;
+                    }
+
+                    if ($result == null) {
+                        {
+                            $size = $this->attributeOptionRepository->create([
+                                'admin_name' => ucfirst($sizeName),
+                                'attribute_id' => 24,
+                            ]);
+        
+                            $sizeId = $size->id;
+                            $sizeList[] = $sizeId;
+                        }   
+                    }
+                }
             }
         }
 
