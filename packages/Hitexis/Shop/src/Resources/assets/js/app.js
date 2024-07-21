@@ -57,7 +57,7 @@ import Emitter from "./plugins/emitter";
 import Shop from "./plugins/shop";
 import VeeValidate from "./plugins/vee-validate";
 import Flatpickr from "./plugins/flatpickr";
-
+console.log('ggggg');
 [
     Axios,
     Emitter,

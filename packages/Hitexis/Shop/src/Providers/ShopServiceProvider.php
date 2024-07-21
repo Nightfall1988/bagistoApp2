@@ -40,9 +40,12 @@ class ShopServiceProvider extends ServiceProvider
         $router->aliasMiddleware('theme', Theme::class);
 
         $this->publishes([
-            dirname(__DIR__).'/Config/imagecache.php' => config_path('imagecache.php'),
+            dirname(__DIR__).'../../../../../Config/imagecache.php' => config_path('imagecache.php'),
         ]);
 
+        $this->publishes([
+            'packages/Hitexis/Shop/src/Resources/views' => resource_path('themes/hitexis/views'),
+        ]);
         /* View Composers */
         $this->composeView();
 

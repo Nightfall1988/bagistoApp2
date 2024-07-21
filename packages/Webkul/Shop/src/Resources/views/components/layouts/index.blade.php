@@ -86,12 +86,6 @@
     <body>
         {!! view_render_event('bagisto.shop.layout.body.before') !!}
 
-        <a
-            href="#main"
-            class="skip-to-main-content-link"
-        >
-            Skip to main content
-        </a>
         <div id="app">
             <!-- Flash Message Blade Component -->
             <x-shop::flash-group />
