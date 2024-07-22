@@ -1,5 +1,5 @@
 <v-media {{ $attributes }} >
-    <x-shop::media.images.lazy
+    <x-hitexis-shop::media.images.lazy
         class="mb-4 h-[284px] w-[284px] rounded-xl"
     />
 </v-media>

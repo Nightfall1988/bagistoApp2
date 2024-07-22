@@ -46,7 +46,7 @@
     <meta property="og:url" content="{{ route('shop.product_or_category.index', $product->url_key) }}" />
 @endPush
 <!-- Page Layout -->
-<x-shop::layouts>
+<x-hitexis-shop::layouts>
 
 {{-- <x-hitexis-shop::layout />  // PROBLEM --}}
     <!-- Page Title -->
@@ -57,7 +57,7 @@
 
     <!-- Breadcrumbs -->
     <div class="flex justify-center max-lg:hidden">
-        <x-shop::breadcrumbs
+        <x-hitexis-shop::breadcrumbs
             name="product"
             :entity="$product"
         />
@@ -66,47 +66,8 @@
     <v-product>
         <x-shop::shimmer.products.view />
     </v-product>
+                    
 
-    <!-- LogoTron -->
-    <div class="flex flex-row max-w-[700px] gap-4 mx-5" style="margin-left: 14rem; margin-top: 2rem;">
-        <div class="flex flex-row max-w-[670px] gap-4 mr-8 ml-8">
-            <button class="secondary-button w-full max-w-full" data-tl-action="OpenGallery">@lang('shop::app.products.view.change-logo')</button>
-            <button class="secondary-button w-full max-w-full" data-tl-action="OpenUpload">@lang('shop::app.products.view.upload-own-logo')</button>
-
-            @if (isset($product->supplier))
-            <button id='design-print-motive' class="secondary-button w-full max-w-full" data-tl-action="OpenEditor"
-                data-tl-sid="{{ $product->supplier->supplier_code }}"
-                data-tl-spcode="{{ $product->sku }}">@lang('shop::app.products.view.design-print-motive')
-            </button>
-            
-            <button data-tl-action="OpenEditor"  id='create-print-motive'
-                data-tl-sid="{{ $product->supplier->supplier_code }}"
-                data-tl-spcode="{{ $product->sku }}">@lang('shop::app.products.view.create-print-motive')
-            </button>
-            @endif
-
-        </div>
-        <div>
-            @if (sizeof($product->wholesales)> 0)
-                <ul class="mt-5">
-                    @foreach ($product->wholesales as $wholesale)
-                        <li class="flex gap-2.5 items-center text-lg text-[#6E6E6E]">
-                            @lang('shop::app.products.view.for-a-batch-of')<b>{{ $wholesale->batch_amount }}</b>@lang('shop::app.products.view.receive')<b>{{ $wholesale->discount_percentage }}%</b> @lang('shop::app.products.view.discount')!
-                        </li>
-                    @endforeach
-                </ul>
-            @endif
-            @if (count($product->getTypeInstance()->getCustomerGroupPricingOffers()))
-                <div class="grid gap-1.5 mt-2.5">
-                    @foreach ($product->getTypeInstance()->getCustomerGroupPricingOffers() as $offer)
-                        <p class="text-[#6E6E6E] [&>*]:text-black">
-                            {!! $offer !!}
-                        </p>
-                    @endforeach
-                </div>
-            @endif
-        </div>
-    </div>
 
 <!-- Information Section -->
     <div class="1180:mt-20">
@@ -340,6 +301,9 @@
                                         >
                                         </div>
                                     @endif
+                                    
+                                    <!-- LogoTron -->
+
                                 </div>
 
                                 {!! view_render_event('bagisto.shop.products.name.after', ['product' => $product]) !!}
@@ -362,6 +326,8 @@
                                         />
                                     </div>
                                 @endif
+
+                                
 
                                 {!! view_render_event('bagisto.shop.products.rating.after', ['product' => $product]) !!}
 
@@ -482,6 +448,45 @@
 
                                 {!! view_render_event('bagisto.shop.products.view.additional_actions.after', ['product' => $product]) !!}
                             </div>
+                        </div>
+                        <div class="container mt-[60px] max-1180:px-5">
+                                <div class="flex flex-row max-w-[670px] gap-4 mr-8 ml-8">
+                                    <button class="secondary-button w-full max-w-full" data-tl-action="OpenGallery">@lang('shop::app.products.view.change-logo')</button>
+                                    <button class="secondary-button w-full max-w-full" data-tl-action="OpenUpload">@lang('shop::app.products.view.upload-own-logo')</button>
+        
+                                    @if (isset($product->supplier))
+                                    <button id='design-print-motive' class="secondary-button w-full max-w-full" data-tl-action="OpenEditor"
+                                        data-tl-sid="{{ $product->supplier->supplier_code }}"
+                                        data-tl-spcode="{{ $product->sku }}">@lang('shop::app.products.view.design-print-motive')
+                                    </button>
+                                    
+                                    <button data-tl-action="OpenEditor"  id='create-print-motive'
+                                        data-tl-sid="{{ $product->supplier->supplier_code }}"
+                                        data-tl-spcode="{{ $product->sku }}">@lang('shop::app.products.view.create-print-motive')
+                                    </button>
+                                    @endif
+        
+                                </div>
+                                <div>
+                                    @if (sizeof($product->wholesales)> 0)
+                                        <ul class="mt-5">
+                                            @foreach ($product->wholesales as $wholesale)
+                                                <li class="flex gap-2.5 items-center text-lg text-[#6E6E6E]">
+                                                    @lang('shop::app.products.view.for-a-batch-of')<b>{{ $wholesale->batch_amount }}</b>@lang('shop::app.products.view.receive')<b>{{ $wholesale->discount_percentage }}%</b> @lang('shop::app.products.view.discount')!
+                                                </li>
+                                            @endforeach
+                                        </ul>
+                                    @endif
+                                    @if (count($product->getTypeInstance()->getCustomerGroupPricingOffers()))
+                                        <div class="grid gap-1.5 mt-2.5">
+                                            @foreach ($product->getTypeInstance()->getCustomerGroupPricingOffers() as $offer)
+                                                <p class="text-[#6E6E6E] [&>*]:text-black">
+                                                    {!! $offer !!}
+                                                </p>
+                                            @endforeach
+                                        </div>
+                                    @endif
+                                </div>
                         </div>
                     </div>
                 </form>
@@ -669,4 +674,4 @@
             });
         </script>
     @endPushOnce
-</x-shop::layouts>
+</x-hitexis-shop::layouts>

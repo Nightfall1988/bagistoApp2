@@ -110,7 +110,7 @@
 
             <!-- Product Images and Videos for Small Screen -->
             <div class="scrollbar-hide flex w-screen gap-8 overflow-auto 1180:hidden">
-                <x-shop::media.images.lazy
+                <x-hitexis-shop::media.images.lazy
                     ::src="image.large_image_url"
                     class="h-[404px] w-[490px] max-sm:min-w-full"
                     v-for="(image, index) in media.images"

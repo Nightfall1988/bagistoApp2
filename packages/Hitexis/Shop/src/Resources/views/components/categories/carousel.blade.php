@@ -33,7 +33,7 @@
                             :aria-label="category.name"
                         >
                             <template v-if="category.logo?.large_image_url">
-                                <x-shop::media.images.lazy
+                                <x-hitexis-shop::media.images.lazy
                                     ::src="category.logo.large_image_url"
                                     width="110"
                                     height="110"

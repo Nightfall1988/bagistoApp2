@@ -186,7 +186,7 @@
 
                                         <!-- Cart Item Image -->
                                         <a :href="`{{ route('shop.product_or_category.index', '') }}/${item.product_url_key}`">
-                                            <x-shop::media.images.lazy
+                                            <x-hitexis-shop::media.images.lazy
                                                 class="max-w[110px] h-[110px] min-w-[110px] rounded-xl"
                                                 ::src="item.base_image.small_image_url"
                                                 ::alt="item.name"

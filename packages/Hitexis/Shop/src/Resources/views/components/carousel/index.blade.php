@@ -23,7 +23,7 @@
                     @click="visitLink(image)"
                     ref="slide"
                 >
-                    <x-shop::media.images.lazy
+                    <x-hitexis-shop::media.images.lazy
                         class="aspect-[2.743/1] max-h-full w-full max-w-full select-none transition-transform duration-300 ease-in-out"
                         ::lazy="false"
                         ::src="image.image"

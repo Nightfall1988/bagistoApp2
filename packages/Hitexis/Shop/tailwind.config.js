@@ -34,6 +34,9 @@ module.exports = {
                 darkGreen: '#40994A',
                 darkBlue: '#0044F2',
                 darkPink: '#F85156',
+                midnightBlue: '#003366',
+                mineShaft: '#252525',
+                priceRed :'#FF0000'
             },
 
             fontFamily: {
