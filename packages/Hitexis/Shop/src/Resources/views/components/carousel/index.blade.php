@@ -27,7 +27,7 @@
                         class="aspect-[2.743/1] max-h-full w-full max-w-full select-none transition-transform duration-300 ease-in-out"
                         ::lazy="false"
                         ::src="image.image"
-                        ::srcset="image.image + ' 1920w, ' + image.image.replace('storage', 'cache/large') + ' 1280w,' + image.image.replace('storage', 'cache/medium') + ' 1024w, ' + image.image.replace('storage', 'cache/small') + ' 525w'"
+                        ::srcset="`${image.image} 1920w, ${image.image.replace('storage/', 'cache/large/')} 1280w, ${image.image.replace('storage/', 'cache/medium/')} 1024w, ${image.image.replace('storage/', 'cache/small/')} 525w`"
                         ::alt="image?.title"
                     />
                 </div>
