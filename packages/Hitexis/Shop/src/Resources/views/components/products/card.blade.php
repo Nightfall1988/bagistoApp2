@@ -22,7 +22,7 @@
                     :href="`{{ route('shop.product_or_category.index', '') }}/${product.url_key}`"
                     :aria-label="product.name + ' '"
                 >
-                    <hitexis::media.images.lazy
+                    <x-hitexis-shop::media.images.lazy
                         class="after:content-[' '] relative bg-zinc-100 transition-all duration-300 after:block after:pb-[calc(100%+9px)] group-hover:scale-105"
                         ::src="product.base_image.medium_image_url"
                         ::key="product.id"
@@ -38,7 +38,7 @@
                 <!-- Product Ratings -->
                 {!! view_render_event('bagisto.shop.components.products.card.average_ratings.before') !!}
 
-                <x-shop::products.ratings
+                <x-hitexis-shop::products.ratings
                     class="absolute bottom-1.5 items-center !border-white bg-white/80 !px-2 !py-1 text-xs ltr:left-1.5 rtl:right-1.5"
                     ::average="product.ratings.average"
                     ::total="product.ratings.total"
@@ -47,7 +47,7 @@
                 
                 <!-- Product Sale Badge -->
                 <p
-                    class="absolute top-5 inline-block rounded-[44px] bg-[#E51A1A] px-2.5 text-sm text-white ltr:left-5 rtl:right-5"
+                    class="absolute top-5 inline-block rounded-[44px] bg-priceRed px-2.5 text-sm text-white ltr:left-5 rtl:right-5"
                     v-if="product.on_sale"
                 >
                     @lang('shop::app.components.products.card.sale')
@@ -55,7 +55,7 @@
 
                 <!-- Product New Badge -->
                 <p
-                    class="absolute top-5 inline-block rounded-[44px] bg-navyBlue px-2.5 text-sm text-white ltr:left-5 rtl:right-5"
+                    class="absolute top-5 inline-block rounded-[44px] bg-priceRed px-2.5 text-sm text-white ltr:left-5 rtl:right-5"
                     v-else-if="product.is_new"
                 >
                     @lang('shop::app.components.products.card.new')
@@ -157,14 +157,14 @@
 
                 <div class="action-items bg-black">
                     <p
-                        class="absolute top-5 inline-block rounded-[44px] bg-[#E51A1A] px-2.5 text-sm text-white ltr:left-5 rtl:right-5"
+                        class="absolute top-5 inline-block rounded-[44px] bg-priceRed px-2.5 text-sm text-white ltr:left-5 rtl:right-5"
                         v-if="product.on_sale"
                     >
                         @lang('shop::app.components.products.card.sale')
                     </p>
 
                     <p
-                        class="absolute top-5 inline-block rounded-[44px] bg-navyBlue px-2.5 text-sm text-white ltr:left-5 rtl:right-5"
+                        class="absolute top-5 inline-block rounded-[44px] bg-priceRed px-2.5 text-sm text-white ltr:left-5 rtl:right-5"
                         v-else-if="product.is_new"
                     >
                         @lang('shop::app.components.products.card.new')

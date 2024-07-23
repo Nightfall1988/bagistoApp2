@@ -17,7 +17,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Webkul\\Shop\\Providers\\ShopServiceProvider"
+                "Hitexis\\Shop\\Providers\\ShopServiceProvider"
             ],
             "aliases": {}
         }

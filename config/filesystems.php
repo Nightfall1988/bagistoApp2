@@ -73,6 +73,8 @@ return [
         'cache' => [
             'driver' => 'local',
             'root' => storage_path('app/public/cache'),
+            'url' => env('APP_URL') . '/storage/cache',
+            'visibility' => 'public',
         ],
 
     ],

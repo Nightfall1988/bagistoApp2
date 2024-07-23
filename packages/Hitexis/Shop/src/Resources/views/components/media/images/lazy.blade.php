@@ -1,7 +1,6 @@
 <v-shimmer-image {{ $attributes }}>
     <div {{ $attributes->merge(['class' => 'shimmer']) }}></div>
 </v-shimmer-image>
-{{ dump($attributes); }}
 @pushOnce('scripts')
     <script
         type="text/x-template"
@@ -22,6 +21,7 @@
             @load="onLoad"
             v-show="! isLoading"
             v-if="lazy"
+            :src="src"
         >
 
         <img

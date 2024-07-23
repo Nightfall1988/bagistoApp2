@@ -501,6 +501,7 @@ return [
             'design-print-motive'          => "DESIGN PRINT MOTIVE",
             'upload-own-logo'              => "UPLOAD OWN LOGO",
             'change-logo'                  => "CHANGE LOGO",
+            'our-clients'                  => "Our clients",
             
             
             'type' => [

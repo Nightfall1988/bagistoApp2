@@ -2,7 +2,7 @@
 
 <v-carousel :images="{{ json_encode($options['images'] ?? []) }}">
     <div class="overflow-hidden">
-        <div class="shimmer aspect-[2.743/1] max-h-screen w-screen"></div>
+        <div class="shimmer aspect-[2.743/1] max-h-96 max-w-screen-xl mr-12 ml-12"></div>
     </div>
 </v-carousel>
 
@@ -11,31 +11,33 @@
         type="text/x-template"
         id="v-carousel-template"
     >
-        <div class="relative m-auto flex w-full overflow-hidden">
+    <div id='slider-wrapper' class="max-w-9">
+        <div class="relative m-auto flex max-w-screen-xl overflow-hidden">
             <!-- Slider -->
-            <div 
-                class="inline-flex translate-x-0 cursor-pointer transition-transform duration-700 ease-out will-change-transform"
-                ref="sliderContainer"
-            >
-                <div
-                    class="max-h-screen w-screen bg-cover bg-no-repeat"
-                    v-for="(image, index) in images"
-                    @click="visitLink(image)"
-                    ref="slide"
+                <div 
+                    class="inline-flex translate-x-0 cursor-pointer transition-transform duration-700 ease-out will-change-transform f-98 max-w-md"
+                    ref="sliderContainer"
                 >
-                    <x-hitexis-shop::media.images.lazy
-                        class="aspect-[2.743/1] max-h-full w-full max-w-full select-none transition-transform duration-300 ease-in-out"
-                        ::lazy="false"
-                        ::src="image.image"
-                        ::srcset="`${image.image} 1920w, ${image.image.replace('storage/', 'cache/large/')} 1280w, ${image.image.replace('storage/', 'cache/medium/')} 1024w, ${image.image.replace('storage/', 'cache/small/')} 525w`"
-                        ::alt="image?.title"
-                    />
+                    <div
+                        class="max-h-96 w-screen bg-cover bg-no-repeat"
+                        v-for="(image, index) in images"
+                        @click="visitLink(image)"
+                        ref="slide"
+                    >
+                        <x-hitexis-shop::media.images.lazy
+                            class="aspect-[2.743/1] max-h-96 w-full max-w-screen-xl select-none transition-transform duration-300 ease-in-out"
+                            ::lazy="false"
+                            ::src="image.image"
+                            ::srcset="`${image.image} 1920w, ${image.image} 1280w, ${image.image} 1024w, ${image.image} 525w`"
+                            ::alt="image?.title"
+                        />
+                    </div>
                 </div>
             </div>
 
             <!-- Navigation -->
             <span
-                class="icon-arrow-left absolute left-2.5 top-1/2 -mt-[22px] hidden w-auto rounded-full bg-black/80 p-3 text-2xl font-bold text-white opacity-30 transition-all md:inline-block"
+                class="icon-arrow-left absolute left-2.5 top-1/2 -mt-[22px] hidden w-auto rounded-full bg-black/80 p-3 text-2xl font-bold text-white opacity-30 transition-all md:inline-block h-104"
                 :class="{
                     'cursor-not-allowed': direction == 'ltr' && currentIndex == 0,
                     'cursor-pointer hover:opacity-100': direction == 'ltr' ? currentIndex > 0 : currentIndex <= 0
@@ -73,6 +75,8 @@
                 </div>
             </div>
         </div>
+    </div>
+
     </script>
 
     <script type="module">

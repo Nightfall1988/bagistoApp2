@@ -16,7 +16,7 @@ img.lazy {
 
 @layer components {
     ::selection {
-        background-color: rgba(6, 12, 59, .2);
+        background-color: #003366;
     }
 
     input {
@@ -28,6 +28,7 @@ img.lazy {
     }
 
     button:disabled:hover {
+        background-color: #003366;
         @apply cursor-not-allowed opacity-50;
     }
 
@@ -41,7 +42,7 @@ img.lazy {
         font-variant: normal;
         text-transform: none;
         line-height: 1 !important;
-
+        color: #252525!important;
         /* Better Font Rendering =========== */
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;

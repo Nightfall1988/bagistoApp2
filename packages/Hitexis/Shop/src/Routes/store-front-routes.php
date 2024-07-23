@@ -8,6 +8,7 @@ use Hitexis\Shop\Http\Controllers\ProductController;
 use Hitexis\Shop\Http\Controllers\HitexisProductsCategoriesProxyController;
 use Webkul\Shop\Http\Controllers\SearchController;
 use Webkul\Shop\Http\Controllers\SubscriptionController;
+use Hitexis\Shop\Http\Controllers\ClientImageController;
 
 Route::group(['middleware' => ['locale', 'theme', 'currency']], function () {
     /**
@@ -21,8 +22,8 @@ Route::group(['middleware' => ['locale', 'theme', 'currency']], function () {
      * Fallback route.
      */
     Route::fallback(HitexisProductsCategoriesProxyController::class.'@index')
-        ->name('shop.product_or_category.index')
-        ->middleware('cacheResponse');
+        ->name('shop.product_or_category.index');
+        // ->middleware('cacheResponse');
 
     /**
      * Store front home.
@@ -56,6 +57,8 @@ Route::group(['middleware' => ['locale', 'theme', 'currency']], function () {
 
         Route::get('subscription/{token}', 'destroy')->name('shop.subscription.destroy');
     });
+
+    Route::get('/client-logo/{filename}', [ClientImageController::class, 'show'])->name('client.logo');
 
     /**
      * Compare products

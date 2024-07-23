@@ -53,7 +53,7 @@ class HitexisProductsCategoriesProxyController extends Controller
                 'channel_id' => core()->getCurrentChannel()->id,
             ]);
 
-            return view('shop::home.index', compact('customizations'));
+            return view('hitexis-shop::home.index', compact('customizations'));
         }
 
         $category = $this->categoryRepository->findBySlug($slugOrURLKey);
@@ -61,7 +61,7 @@ class HitexisProductsCategoriesProxyController extends Controller
         if ($category) {
             visitor()->visit($category);
 
-            return view('shop::categories.view', [
+            return view('hitexis-shop::categories.view', [
                 'category' => $category,
                 'params'   => [
                     'sort'  => request()->query('sort'),
