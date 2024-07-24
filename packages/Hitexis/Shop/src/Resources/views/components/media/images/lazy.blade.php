@@ -16,7 +16,7 @@
         
         <img
             v-bind="$attrs"
-            :data-src="src"
+            :src="src"
             :id="'image-' + $.uid"
             @load="onLoad"
             v-show="! isLoading"
@@ -26,7 +26,7 @@
 
         <img
             v-bind="$attrs"
-            :data-src="src"
+            :src="src"
             :id="'image-' + $.uid"
             @load="onLoad"
             v-else
