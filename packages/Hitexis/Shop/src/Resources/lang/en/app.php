@@ -781,6 +781,7 @@ return [
             'desc'                => 'Your query or request',
             'describe-here'       => 'Tell us whats up!',
             'submit'              => 'Send',
+            'contact-us-title'    => 'Contact us',
         ]
     ],
 
