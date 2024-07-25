@@ -71,7 +71,6 @@
             sizes="16x16"
         />
     @endif
-
     @stack('styles')
 
     <style>

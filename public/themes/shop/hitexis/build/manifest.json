@@ -1,6 +1,6 @@
 {
   "src/Resources/assets/css/app.css": {
-    "file": "assets/app-9646eaab.css",
+    "file": "assets/app-f3946e00.css",
     "isEntry": true,
     "src": "src/Resources/assets/css/app.css"
   },
@@ -11,6 +11,26 @@
   "src/Resources/assets/images/cash-on-delivery.png": {
     "file": "assets/cash-on-delivery-73061c49.png",
     "src": "src/Resources/assets/images/cash-on-delivery.png"
+  },
+  "src/Resources/assets/images/client_logos/adidas-logo.png": {
+    "file": "assets/adidas-logo-90ed4bcb.png",
+    "src": "src/Resources/assets/images/client_logos/adidas-logo.png"
+  },
+  "src/Resources/assets/images/client_logos/apple-logo.png": {
+    "file": "assets/apple-logo-a1fd0efb.png",
+    "src": "src/Resources/assets/images/client_logos/apple-logo.png"
+  },
+  "src/Resources/assets/images/client_logos/lacoste_logo.png": {
+    "file": "assets/lacoste_logo-68566fc7.png",
+    "src": "src/Resources/assets/images/client_logos/lacoste_logo.png"
+  },
+  "src/Resources/assets/images/client_logos/nike-logo.png": {
+    "file": "assets/nike-logo-3e7a2f41.png",
+    "src": "src/Resources/assets/images/client_logos/nike-logo.png"
+  },
+  "src/Resources/assets/images/contact-logo.png": {
+    "file": "assets/contact-logo-b4f539c9.png",
+    "src": "src/Resources/assets/images/contact-logo.png"
   },
   "src/Resources/assets/images/default-language.svg": {
     "file": "assets/default-language-6ef0ef70.svg",
@@ -88,7 +108,7 @@
     "css": [
       "assets/app-05f8acf7.css"
     ],
-    "file": "assets/app-8b1fb8b7.js",
+    "file": "assets/app-2029027a.js",
     "isEntry": true,
     "src": "src/Resources/assets/js/app.js"
   }

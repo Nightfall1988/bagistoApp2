@@ -286,7 +286,7 @@
                                 {!! view_render_event('bagisto.shop.products.name.before', ['product' => $product]) !!}
 
                                 <div class="flex justify-between gap-4">
-                                    <h1 class="text-3xl font-medium max-sm:text-xl">
+                                    <h1 class="text-3xl font-medium max-sm:text-xl text-mineShaft">
                                         {{ $product->name }}
                                     </h1>
 

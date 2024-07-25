@@ -227,6 +227,7 @@ return [
         Webkul\Inventory\Providers\InventoryServiceProvider::class,
         Webkul\MagicAI\Providers\MagicAIServiceProvider::class,
         Webkul\Marketing\Providers\MarketingServiceProvider::class,
+        Hitexis\Marketing\Providers\MarketingServiceProvider::class,
         Webkul\Notification\Providers\NotificationServiceProvider::class,
         Webkul\Payment\Providers\PaymentServiceProvider::class,
         Webkul\Paypal\Providers\PaypalServiceProvider::class,

@@ -81,6 +81,7 @@
             "Webkul\\Installer\\": "packages/Webkul/Installer/src",
             "Webkul\\Inventory\\": "packages/Webkul/Inventory/src",
             "Webkul\\MagicAI\\": "packages/Webkul/MagicAI/src",
+            "Hitexis\\Marketing\\": "packages/Hitexis/Marketing/src",
             "Webkul\\Marketing\\": "packages/Webkul/Marketing/src",
             "Webkul\\Notification\\": "packages/Webkul/Notification/src",
             "Webkul\\Paypal\\": "packages/Webkul/Paypal/src",

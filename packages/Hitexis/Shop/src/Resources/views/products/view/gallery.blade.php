@@ -21,6 +21,7 @@
                         v-if="lengthOfMedia"
                     >
                     </span>
+
                     <!-- Swiper Container -->
                     <div
                         ref="swiperContainer"

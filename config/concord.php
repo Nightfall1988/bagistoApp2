@@ -35,6 +35,7 @@ return [
         \Webkul\Customer\Providers\ModuleServiceProvider::class,
         \Webkul\DataTransfer\Providers\ModuleServiceProvider::class,
         \Webkul\Inventory\Providers\ModuleServiceProvider::class,
+        \Hitexis\Marketing\Providers\ModuleServiceProvider::class,
         \Webkul\Marketing\Providers\ModuleServiceProvider::class,
         \Webkul\Notification\Providers\ModuleServiceProvider::class,
         \Webkul\Payment\Providers\ModuleServiceProvider::class,

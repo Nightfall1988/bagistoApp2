@@ -77,7 +77,7 @@
                 {!! view_render_event('bagisto.shop.components.products.card.price.before') !!}
 
                 <div
-                    class="flex items-center gap-2.5 text-lg font-semibold"
+                    class="flex items-center gap-2.5 text-lg font-semibold text-midnightBlue"
                     v-html="product.price_html"
                 >
                 </div>

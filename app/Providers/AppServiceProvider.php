@@ -56,6 +56,14 @@ class AppServiceProvider extends ServiceProvider
             );
         });
 
+        // $this->app->singleton(AttributeRepository::class, function ($app) {
+        //     return new AttributeRepository(
+        //         $app->make(AttributeOptionRepository::class),
+        //         $app->make(Container::class)
+        //     );
+        // });
+        
+
         $this->app->singleton(MidoceanApiService::class, function ($app) {
             return new MidoceanApiService($app->make(HitexisProductRepository::class), $app->make(SupplierRepository::class), $app->make(ProductImageRepository::class));
         });

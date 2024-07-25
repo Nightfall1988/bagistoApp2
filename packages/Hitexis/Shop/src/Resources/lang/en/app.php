@@ -772,6 +772,16 @@ return [
             'resend-verify-email' => 'Resend Verification Email',
             'verify-email'        => 'Verify your email account',
         ],
+        'contact' => [
+            'title'               => 'Contact us',
+            'name'                => 'Name',
+            'about'               => 'Please fill out the form to contact us',
+            'email'               => 'E-mail',
+            'phone-number'        => 'Phone number',
+            'desc'                => 'Your query or request',
+            'describe-here'       => 'Tell us whats up!',
+            'submit'              => 'Send',
+        ]
     ],
 
     'partials' => [

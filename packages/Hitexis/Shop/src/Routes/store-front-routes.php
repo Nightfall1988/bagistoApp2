@@ -6,7 +6,7 @@ use Webkul\Shop\Http\Controllers\HomeController;
 use Webkul\Shop\Http\Controllers\PageController;
 use Hitexis\Shop\Http\Controllers\ProductController;
 use Hitexis\Shop\Http\Controllers\HitexisProductsCategoriesProxyController;
-use Webkul\Shop\Http\Controllers\SearchController;
+use Hitexis\Shop\Http\Controllers\SearchController;
 use Webkul\Shop\Http\Controllers\SubscriptionController;
 use Hitexis\Shop\Http\Controllers\ClientImageController;
 

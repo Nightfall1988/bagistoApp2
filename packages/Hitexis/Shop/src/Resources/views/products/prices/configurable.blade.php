@@ -2,6 +2,6 @@
     @lang('shop::app.products.prices.configurable.as-low-as')
 </p>
 
-<p class="final-price font-semibold">
+<p class="final-price font-semibold midnightBlue">
     {{ $prices['regular']['formatted_price'] }}
 </p>

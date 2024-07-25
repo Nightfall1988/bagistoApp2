@@ -160,7 +160,6 @@
                                     </div>
                                 </template>
                             </template>
-
                             {!! view_render_event('bagisto.shop.categories.view.grid.product_card.after') !!}
                         </div>
 
