@@ -135,6 +135,8 @@ class MidoceanApiService {
             }
 
             // GET VARIANT SIZE
+            $capacities = ['4G', '4GB', '8G', '8GB', '16G', '16GB', '32G', '32GB'];
+
             if (isset($variant->size)) {
                 $result = $this->attributeOptionRepository->getOption($variant->size);
 
@@ -154,10 +156,12 @@ class MidoceanApiService {
                         $sizeList[] = $sizeId;
                     }
                 }
-            } elseif (sizeof(explode('-', $variant->sku)) == 3) {
+            } elseif (sizeof(explode('-', $variant->sku)) == 3 && !in_array(explode('-', $variant->sku)[2], $capacities)) {
             
+
                 $sizes = ['L', 'S', 'M', 'XS', 'XL', 'XXS', 'XXL', '3XS', '3XL', 'XXXS', 'XXXL'];
                 $sizeName = explode('-',$variant->sku)[2];
+
                 if (in_array($sizeName, $sizes)) {
                     $result = $this->attributeOptionRepository->getOption($sizeName);
 
@@ -166,7 +170,7 @@ class MidoceanApiService {
                         $sizeList[] = $result->id;
                     }
 
-                    if ($result == null) {
+                    if ($result == null && !in_array($sizeObj->id,$sizes)) {
                         {
                             $size = $this->attributeOptionRepository->create([
                                 'admin_name' => strtoupper($sizeName),
@@ -228,13 +232,14 @@ class MidoceanApiService {
             }
 
             // GET PRODUCT VARIANT SIZE
+            $capacities = ['4G', '4GB', '8G', '8GB', '16G', '16GB', '32G', '32GB'];
             if (isset($apiProduct->variants[$i]->size)) {
                 $result = $this->attributeOptionRepository->getOption($apiProduct->variants[$i]->size);
                 if ($result != null) {
                     $sizeId = $result->id;
                 }
 
-                if ($result == null) {
+                if ($result == null && !in_array(explode('-', $apiProduct->variants[$i]->sku)[2], $capacities)) {
                     {
                         $size = $this->attributeOptionRepository->create([
                             'admin_name' => ucfirst($apiProduct->variants[$i]->size),
@@ -245,9 +250,9 @@ class MidoceanApiService {
                         $sizeList[] = $sizeId;
                     }
                 }
-            } elseif (sizeof(explode('-', $apiProduct->variants[$i]->sku)) == 3) {
+            } elseif (sizeof(explode('-', $apiProduct->variants[$i]->sku)) == 3 && !in_array(explode('-', $apiProduct->variants[$i]->sku)[2], $capacities)) {
             
-                $sizes = ['L', 'S', 'M', 'XS', 'XL', 'XXS', 'XXL', '3XS', 'XXXS', 'XXXL'];
+                $sizes = ['L', 'S', 'M', 'XS', 'XL', 'XXS', 'XXL', '3XS', '3XL', 'XXXS', 'XXXL'];
                 $sizeName = explode('-',$apiProduct->variants[$i]->sku)[2];
                 $result = $this->attributeOptionRepository->getOption($sizeName);
 
@@ -259,7 +264,7 @@ class MidoceanApiService {
                     }
                 }
 
-                if ($result == null || !in_array($sizeName, $sizes)) {
+                if ($result == null || !in_array($sizeName, $sizes) && !in_array(explode('-', $apiProduct->variants[$i]->sku)[2], $capacities)) {
                     {
                         $size = $this->attributeOptionRepository->create([
                             'admin_name' => strtoupper($sizeName),
