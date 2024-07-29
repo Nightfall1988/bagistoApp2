@@ -40,6 +40,7 @@ class MidoceanApiService {
         $this->productAttributeValueRepository = $productAttributeValueRepository;
         $this->categoryImportService = $categoryImportService;
 
+        // $this->url = 'https://appbagst.free.beeceptor.com/zz'; // TEST;
         $this->url = env('MIDOECAN_PRODUCTS_URL');
         $this->pricesUrl = env('MIDOECAN_PRICES_URL');
         $this->identifier = env('MIDOECAN_IDENTIFIER');
@@ -138,13 +139,14 @@ class MidoceanApiService {
                 $result = $this->attributeOptionRepository->getOption($variant->size);
 
                 if ($result != null && !in_array($result->id, $sizeList)) {
+                    $sizeId = $result->id;
                     $sizeList[] = $result->id;
                 }
 
                 if ($result == null) {
                     {
                         $size = $this->attributeOptionRepository->create([
-                            'admin_name' => ucfirst($variant->size),
+                            'admin_name' => strtoupper($variant->size),
                             'attribute_id' => 24,
                         ]);
     
@@ -153,19 +155,21 @@ class MidoceanApiService {
                     }
                 }
             } elseif (sizeof(explode('-', $variant->sku)) == 3) {
+            
                 $sizes = ['L', 'S', 'M', 'XS', 'XL', 'XXS', 'XXL', '3XS', '3XL', 'XXXS', 'XXXL'];
                 $sizeName = explode('-',$variant->sku)[2];
                 if (in_array($sizeName, $sizes)) {
                     $result = $this->attributeOptionRepository->getOption($sizeName);
 
                     if ($result != null && !in_array($result->id, $sizeList)) {
+                        $sizeId = $result->id;
                         $sizeList[] = $result->id;
                     }
 
                     if ($result == null) {
                         {
                             $size = $this->attributeOptionRepository->create([
-                                'admin_name' => ucfirst($sizeName),
+                                'admin_name' => strtoupper($sizeName),
                                 'attribute_id' => 24,
                             ]);
         
@@ -204,12 +208,11 @@ class MidoceanApiService {
 
             $sizeId = '';
             $colorId = '';
-            // GET PRODUCT VARIANT COLOR AND SIZE
+            // GET PRODUCT VARIANT COLOR
             if (isset($apiProduct->variants[$i]->color_description)) {
                 $result = $this->attributeOptionRepository->getOption($apiProduct->variants[$i]->color_description);
                 if ($result != null && !in_array($result->id,$tempAttributes)) {
                     $colorId = $result->id;
-                    $tempAttributes[] = $colorId;
                 }
 
                 if ($result == null) {
@@ -220,17 +223,15 @@ class MidoceanApiService {
                         ]);
 
                         $colorId = $color->id;
-                        $tempAttributes[] = $colorId;
                     }
                 }
             }
 
+            // GET PRODUCT VARIANT SIZE
             if (isset($apiProduct->variants[$i]->size)) {
                 $result = $this->attributeOptionRepository->getOption($apiProduct->variants[$i]->size);
-
-                if ($result != null && !in_array($result->id, $tempAttributes)) {
+                if ($result != null) {
                     $sizeId = $result->id;
-                    $tempAttributes[] = $sizeId;
                 }
 
                 if ($result == null) {
@@ -244,14 +245,43 @@ class MidoceanApiService {
                         $sizeList[] = $sizeId;
                     }
                 }
+            } elseif (sizeof(explode('-', $apiProduct->variants[$i]->sku)) == 3) {
+            
+                $sizes = ['L', 'S', 'M', 'XS', 'XL', 'XXS', 'XXL', '3XS', '3XL', 'XXXS', 'XXXL'];
+                $sizeName = explode('-',$apiProduct->variants[$i]->sku)[2];
+                $result = $this->attributeOptionRepository->getOption($sizeName);
+
+                if (in_array($sizeName, $sizes)) {
+
+                    if ($result != null) {
+                        $sizeId =  $result->id;
+                        $sizeList[] = $result->id;
+                    }
+                }
+
+                if ($result == null || !in_array($sizeName, $sizes)) {
+                    {
+                        $size = $this->attributeOptionRepository->create([
+                            'admin_name' => strtoupper($sizeName),
+                            'attribute_id' => 24,
+                        ]);
+
+                        $sizeId = $size->id;
+                        $sizeList[] = $sizeId;
+                    }
+                }
             }
 
             $images = [];
+
+            // IMAGES
             if (isset($apiProduct->variants[$i]->digital_assets)) {
                 $imageData = $this->productImageRepository->uploadImportedImagesMidocean($apiProduct->variants[$i]->digital_assets);
                 $images['files'] = $imageData['fileList'];
                 $tempPaths[] = $imageData['tempPaths'];
             }
+
+            // URLKEY
             $urlKey = strtolower($apiProduct->product_name . '-' . $apiProduct->variants[$i]->sku);
             $urlKey = preg_replace('/[^a-z0-9]+/', '-', $urlKey);
             $urlKey = trim($urlKey, '-');

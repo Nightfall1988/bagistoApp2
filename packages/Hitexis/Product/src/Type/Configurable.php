@@ -116,7 +116,6 @@ class Configurable extends AbstractType
             $product->super_attributes()->attach($attribute->id);
         }
 
-
         foreach (array_permutation($superAttributes) as $permutation) {
             $this->createVariant($product, $permutation);
         }

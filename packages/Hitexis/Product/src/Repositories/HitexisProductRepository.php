@@ -68,6 +68,23 @@ class HitexisProductRepository extends Repository
         return $product;
     }
 
+
+    public function createStricker(array $data) {
+        // Retrieve the product type class from the configuration
+        $typeClass = config('product_types.' . $data['type'] . '.class');
+
+        if (!$typeClass) {
+            throw new \InvalidArgumentException("Product type '{$data['type']}' not found in configuration.");
+        }
+        
+        $typeInstance = app(config('hitexis_product_types.'.$data['type'].'.class'));
+        echo "4";
+        echo "\n";
+        $product = $typeInstance->createStricker($data);
+
+        return $product;
+    }
+
     /**
      * Create product.
      *
