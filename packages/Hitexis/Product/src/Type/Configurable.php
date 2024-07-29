@@ -94,7 +94,7 @@ class Configurable extends AbstractType
      *
      * @return \Hitexis\Product\Contracts\Product
      */
-    public function create(array $data)
+    public function create(array $data, string $varData = '')
     {
         $product = $this->productRepository->getModel()->create($data);
 
@@ -117,7 +117,11 @@ class Configurable extends AbstractType
         }
 
         foreach (array_permutation($superAttributes) as $permutation) {
-            $this->createVariant($product, $permutation);
+            if (isset($varData)) {
+                $this->createVariant($product, $permutation, ['stricker-sku-prefix-conf' => $varData]);
+            } else {
+                $this->createVariant($product, $permutation);
+            }
         }
 
         return $product;
@@ -184,8 +188,14 @@ class Configurable extends AbstractType
      */
     public function createVariant($product, $permutation, $data = [])
     {
+        if (isset($data['stricker-sku-prefix-conf']) && $data['stricker-sku-prefix-conf'] != '') {
+            $sku = $product->sku. '-' . $data['stricker-sku-prefix-conf'] . '-variant-'.implode('-', $permutation);
+        } else {
+            $sku = $product->sku.'-variant-'.implode('-', $permutation);
+        }
+
         $data = array_merge([
-            'sku'               => $sku = $product->sku.'-variant-'.implode('-', $permutation),
+            'sku'               => $sku,
             'name'              => 'Variant '.implode(' ', $permutation),
             'inventories'       => [],
             'price'             => 0,
@@ -196,6 +206,7 @@ class Configurable extends AbstractType
             'short_description' => $sku,
             'description'       => $sku,
         ], $data);
+
 
         $typeOfVariants = 'simple';
 
@@ -212,7 +223,7 @@ class Configurable extends AbstractType
             'parent_id'           => $product->id,
             'type'                => $typeOfVariants,
             'attribute_family_id' => $product->attribute_family_id,
-            'sku'                 => $data['sku'],
+            'sku'                 => $data['sku'] . rand(1, 10000),
         ]);
 
         $attributeValues = [];

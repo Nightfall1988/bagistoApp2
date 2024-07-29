@@ -13,8 +13,6 @@ use App\Services\CategoryImportService;
 use App\Services\CategoryMapper;
 use Symfony\Component\Console\Helper\ProgressBar;
 
-require 'CategoryMapper.php';
-
 class StrickerApiService {
 
     protected $url;
@@ -134,7 +132,7 @@ class StrickerApiService {
         $mainProduct = $productData['product']; 
         $productVariants = [];
 
-        $productObj = $this->productRepository->upsertsStricker([
+        $productObj = $this->productRepository->upserts([
             'channel' => 'default',
             'attribute_family_id' => '1',
             'sku' => (string)$mainProduct['ProdReference'],
@@ -143,7 +141,7 @@ class StrickerApiService {
         ]);
 
         foreach ($productData['optionals'] as $optional) {
-            $productVariant = $this->productRepository->upsertsStricker([
+            $productVariant = $this->productRepository->upserts([
                 "channel" => "default",
                 'attribute_family_id' => '1',
                 'sku' => $optional['Sku'],
@@ -172,6 +170,13 @@ class StrickerApiService {
             $imageList = $this->productImageRepository->assignImage($productData['optionals'][0]['OptionalImage1']);
             if ($imageList != 0) {
                 $images['files'] = $imageList['files'];
+            }
+        }
+
+        // CATEGORIES
+        if(isset($mainProductOptionals['Type']) && $mainProductOptionals['Type'] != '') {
+            if (array_key_exists($mainProductOptionals['Type'], $this->categoryMapper->midocean_to_stricker_category)) {
+                $categories = $this->categoryImportService->importStrickerCategories($mainProductOptionals, $this->categoryMapper->midocean_to_stricker_category, $this->categoryMapper->midocean_to_stricker_subcategory);
             }
         }
 
@@ -220,7 +225,7 @@ class StrickerApiService {
 
     public function createSimple($productData) {
         
-        $productObj = $this->productRepository->upsertsStricker([
+        $productObj = $this->productRepository->upserts([
             'channel' => 'default',
             'attribute_family_id' => '1',
             'sku' =>  $productData['optionals'][0]['Sku'],
@@ -249,7 +254,7 @@ class StrickerApiService {
             }
         }
         
-        if (isset($variant['OptionalImage1'])) {
+        if (isset($productData['optionals'][0]['OptionalImage1'])) {
             $imageList = $this->productImageRepository->assignImage($productData['optionals'][0]['OptionalImage1']);
             if ($imageList != 0) {
                 $images['files'] = $imageList['files'];
@@ -267,7 +272,7 @@ class StrickerApiService {
             'supplier_code' => $this->identifier
         ]);
 
-        if(isset($productData['optionals'][0]['Type']) &&$productData['optionals'][0]['Type'] != '') {
+        if(isset($productData['optionals'][0]['Type']) && $productData['optionals'][0]['Type'] != '') {
             if (array_key_exists($productData['optionals'][0]['Type'], $this->categoryMapper->midocean_to_stricker_category)) {
                 $categories = $this->categoryImportService->importStrickerCategories($productData['optionals'][0], $this->categoryMapper->midocean_to_stricker_category, $this->categoryMapper->midocean_to_stricker_subcategory);
             }
@@ -306,6 +311,7 @@ class StrickerApiService {
             "height" => $productData['optionals'][0]['BoxHeightMM'] / 10 ?? '',
             "weight" => $productData['optionals'][0]['Weight'],
             'images' =>  $images,
+            'categories' =>  $categories,
         ];
         if ($colorId != '') {
             $superAttributes['color'] = $colorId;
@@ -327,16 +333,9 @@ class StrickerApiService {
         $tempAttributes = [];
         $categories = [];
 
-        if(isset($productData['optionals'][0]['Type']) &&$productData['optionals'][0]['Type'] != '') {
-            if (array_key_exists($productData['optionals'][0]['Type'], $this->categoryMapper->midocean_to_stricker_category)) {
-                $categories = $this->categoryImportService->importStrickerCategories($productData['optionals'][0], $this->categoryMapper->midocean_to_stricker_category, $this->categoryMapper->midocean_to_stricker_subcategory);
-            }
-        }
-
-
         foreach ($productVariants as $variant) {
             $images = [];
-            $variantSku = $variant->sku; // Get SKU of current product variant
+            $variantSku = $variant->sku;
             $foundOptional = null;
         
             foreach ($optionals as $optional) {
@@ -494,7 +493,6 @@ class StrickerApiService {
                     "width" => $foundOptional['BoxWidthMM'] / 10 ?? '',
                     "height" => $foundOptional['BoxHeightMM'] / 10 ?? '',
                     "weight" => $foundOptional['Weight'],
-                    'categories' => $categories,
                     'images' =>  $images,
                 ];
     

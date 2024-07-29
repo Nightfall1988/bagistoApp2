@@ -247,7 +247,7 @@ class MidoceanApiService {
                 }
             } elseif (sizeof(explode('-', $apiProduct->variants[$i]->sku)) == 3) {
             
-                $sizes = ['L', 'S', 'M', 'XS', 'XL', 'XXS', 'XXL', '3XS', '3XL', 'XXXS', 'XXXL'];
+                $sizes = ['L', 'S', 'M', 'XS', 'XL', 'XXS', 'XXL', '3XS', 'XXXS', 'XXXL'];
                 $sizeName = explode('-',$apiProduct->variants[$i]->sku)[2];
                 $result = $this->attributeOptionRepository->getOption($sizeName);
 
