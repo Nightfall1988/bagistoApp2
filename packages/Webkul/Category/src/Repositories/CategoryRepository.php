@@ -181,8 +181,8 @@ class CategoryRepository extends Repository
     public function getVisibleCategoryTree($id = null)
     {
         return $id
-            ? $this->model::orderBy('position', 'ASC')->where('status', 1)->descendantsAndSelf($id)->toTree($id)
-            : $this->model::orderBy('position', 'ASC')->where('status', 1)->get()->toTree();
+            ? $this->model::orderBy('position', 'ASC')->where('status', 1)->get()->toTree()
+            : $this->model::orderBy('position', 'ASC')->where('status', 1)->descendantsAndSelf($id)->toTree($id);
     }
 
     /**
