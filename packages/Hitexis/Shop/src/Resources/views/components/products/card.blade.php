@@ -38,7 +38,7 @@
                 <!-- Product Ratings -->
                 {!! view_render_event('bagisto.shop.components.products.card.average_ratings.before') !!}
 
-                <x-hitexis-shop::products.ratings
+                <x-shop::products.ratings
                     class="absolute bottom-1.5 items-center !border-white bg-white/80 !px-2 !py-1 text-xs ltr:left-1.5 rtl:right-1.5"
                     ::average="product.ratings.average"
                     ::total="product.ratings.total"

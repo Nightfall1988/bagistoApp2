@@ -311,7 +311,6 @@ class StrickerApiService {
             "height" => $productData['optionals'][0]['BoxHeightMM'] / 10 ?? '',
             "weight" => $productData['optionals'][0]['Weight'],
             'images' =>  $images,
-            'categories' =>  $categories,
         ];
         if ($colorId != '') {
             $superAttributes['color'] = $colorId;
