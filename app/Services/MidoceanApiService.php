@@ -170,7 +170,7 @@ class MidoceanApiService {
                         $sizeList[] = $result->id;
                     }
 
-                    if ($result == null && !in_array($sizeObj->id,$sizes)) {
+                    if ($result == null) {
                         {
                             $size = $this->attributeOptionRepository->create([
                                 'admin_name' => strtoupper($sizeName),
