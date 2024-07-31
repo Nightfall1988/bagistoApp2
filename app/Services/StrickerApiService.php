@@ -311,6 +311,7 @@ class StrickerApiService {
             "height" => $productData['optionals'][0]['BoxHeightMM'] / 10 ?? '',
             "weight" => $productData['optionals'][0]['Weight'],
             'images' =>  $images,
+            'categories' =>  $categories,
         ];
         if ($colorId != '') {
             $superAttributes['color'] = $colorId;
@@ -374,7 +375,7 @@ class StrickerApiService {
                         $tempAttributes[] = $sizeId;
                     }
     
-                    if (!$sizeObj) {
+                    if (!$sizeObj && !in_array($sizeName,$tempAttributes)) {
                         {
                             $sizeObj = $this->attributeOptionRepository->create([
                                 'admin_name' => ucfirst(trim($foundOptional['Size'])),
@@ -490,7 +491,7 @@ class StrickerApiService {
                     "special_price_from" => "",
                     "special_price_to" => "",
                     "new" => "1",
-                    "visible_individually" => "0",
+                    "visible_individually" => "1",
                     "status" => "1",
                     "featured" => "1",
                     "guest_checkout" => "1",
@@ -564,8 +565,8 @@ class StrickerApiService {
             }
         }
 
-        if ($productData['HasSizes']) {
-                $sizeNameList = explode(', ', $productData['Sizes']);
+        if ($optional['HasSizes'] && isset($optional['Sizes'])) {
+                $sizeNameList = explode(', ', $optional['Sizes']);
                 foreach ( $sizeNameList as $sizeName) {
                     $sizeObj = $this->attributeOptionRepository->getOption(ucfirst(trim($sizeName)));
                     if ($sizeObj) {
@@ -586,11 +587,10 @@ class StrickerApiService {
                 }
         }
 
-        if ($productData['HasColors']) {
-            $colorNameList = explode(', ', $productData['Colors']);
+        if ($optional['HasColors'] && isset($optional['Colors'])) {
+            $colorNameList = explode(', ', $optional['Colors']);
             foreach ( $colorNameList as $colorName) {
                 $colorObj = $this->attributeOptionRepository->getOption(ucfirst(trim($colorName)));
-                
                 if ( $colorObj) {
                     $colorIds[] = $colorObj->id;
                 }

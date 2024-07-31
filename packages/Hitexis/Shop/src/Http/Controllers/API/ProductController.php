@@ -4,7 +4,7 @@ namespace Hitexis\Shop\Http\Controllers\API;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 use Webkul\Category\Repositories\CategoryRepository;
-use Webkul\Marketing\Jobs\UpdateCreateSearchTerm as UpdateCreateSearchTermJob;
+use Hitexis\Marketing\Jobs\UpdateCreateSearchTerm as UpdateCreateSearchTermJob;
 use Hitexis\Product\Repositories\HitexisProductRepository as ProductRepository;
 use Hitexis\Shop\Http\Resources\ProductResource;
 
@@ -26,9 +26,10 @@ class ProductController extends APIController
      */
     public function index(): JsonResource
     {
-        $products = $this->productRepository->getAll(request()->query());
+        $products = $this->productRepository->getCategoryProducts(request()->query());
 
         if (! empty(request()->query('query'))) {
+            $products = $this->productRepository->getAll(request()->query());
             /**
              * Update or create search term only if
              * there is only one filter that is query param

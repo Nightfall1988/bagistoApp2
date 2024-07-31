@@ -70,15 +70,14 @@
             <div class="container px-[60px] max-lg:px-8 max-sm:px-4">
                 <div class="flex items-start gap-10 max-lg:gap-5 md:mt-10">
                     <!-- Product Listing Filters -->
-                    @include('shop::categories.filters')
+                    @include('hitexis-shop::categories.filters')
 
                     <!-- Product Listing Container -->
                     <div class="flex-1">
                         <!-- Desktop Product Listing Toolbar -->
                         <div class="max-md:hidden">
-                            @include('shop::categories.toolbar')
+                            @include('hitexis-shop::categories.toolbar')
                         </div>
-
                         <!-- Product List Card Container -->
                         <div
                             class="mt-8 grid grid-cols-1 gap-6"
@@ -86,7 +85,7 @@
                         >
                             <!-- Product Card Shimmer Effect -->
                             <template v-if="isLoading">
-                                <x-shop::shimmer.products.cards.list count="12" />
+                                <x-hitexis-shop::shimmer.products.cards.list count="12" />
                             </template>
 
                             <!-- Product Card Listing -->
@@ -94,11 +93,12 @@
 
                             <template v-else>
                                 <template v-if="products.length">
-                                    <x-shop::products.card
+                                    <x-hitexis-shop::products.card
                                         ::mode="'list'"
                                         v-for="product in products"
                                     />
                                 </template>
+
                                 <!-- Empty Products Container -->
                                 <template v-else>
                                     <div class="m-auto grid h-[476px] w-full place-content-center items-center justify-items-center text-center">
@@ -159,7 +159,6 @@
                                     </div>
                                 </template>
                             </template>
-
                             {!! view_render_event('bagisto.shop.categories.view.grid.product_card.after') !!}
                         </div>
 

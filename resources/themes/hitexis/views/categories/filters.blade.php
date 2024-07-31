@@ -144,7 +144,6 @@
             </div>
         </template>
     </script>
-
     <!-- Filter Item Vue template -->
     <script
         type="text/x-template"

@@ -29,7 +29,6 @@
         <div id='search-bar-form' class="flex flex-grow mt-auto mb-auto ml-4" style="width: 830px; align-content:center; ">
 
             {!! view_render_event('bagisto.shop.components.layouts.header.desktop.bottom.search_bar.before') !!}
-
             <!-- Search Bar Container -->
             <div class="relative w-full">
                 <form

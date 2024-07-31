@@ -4,8 +4,7 @@
 
 {!! view_render_event('bagisto.shop.categories.view.toolbar.after') !!}
 
-@inject('toolbar' , 'Webkul\Product\Helpers\Toolbar')
-
+@inject('toolbar' , 'Hitexis\Product\Helpers\Toolbar')
 @pushOnce('scripts')
     <script
         type="text/x-template"

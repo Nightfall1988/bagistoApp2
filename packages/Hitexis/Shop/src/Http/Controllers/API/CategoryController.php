@@ -80,8 +80,11 @@ class CategoryController extends APIController
     {
         $maxPrice = $this->productRepository->getMaxPrice(['category_id' => $categoryId]);
 
+        $category = $this->categoryRepository->find($categoryId);
+
         return new JsonResource([
             'max_price' => core()->convertPrice($maxPrice),
+            'products' => $category->products
         ]);
     }
 }

@@ -29,12 +29,11 @@
         <div id='search-bar-form' class="flex flex-grow mt-auto mb-auto ml-4" style="width: 830px; align-content:center; ">
 
             {!! view_render_event('bagisto.shop.components.layouts.header.desktop.bottom.search_bar.before') !!}
-
             <!-- Search Bar Container -->
             <div class="relative w-full">
                 <form
                     action="{{ route('shop.search.index') }}"
-                    class="flex w-2/3 items-center"
+                    class="flex w-full items-center"
                     role="search"
                 >
                     <label
@@ -79,13 +78,12 @@
             
             <div class="mt-1.5 flex gap-x-8 max-[1100px]:gap-x-6 max-lg:gap-x-8">
                 <div>
-                    <a href="/contact-us" title="@lang('shop::app.home.contact.contact-us-title')">
-                        <img
-                            src="{{ bagisto_asset('images/contact-logo.png') }}"
-                            width="25"
-                            height="25"
-                        >
-                    </a>
+                <img
+                    src="{{ bagisto_asset('images/contact-logo.png') }}"
+                    width="25"
+                    height="25"
+                >
+
                 </div>
                 {!! view_render_event('bagisto.shop.components.layouts.header.desktop.bottom.compare.before') !!}
 
@@ -105,7 +103,7 @@
                 {!! view_render_event('bagisto.shop.components.layouts.header.desktop.bottom.compare.after') !!}
 
                 {!! view_render_event('bagisto.shop.components.layouts.header.desktop.bottom.mini_cart.before') !!}
-
+                @include('hitexis-shop::checkout.cart.mini-cart')
 
                 {!! view_render_event('bagisto.shop.components.layouts.header.desktop.bottom.mini_cart.after') !!}
 

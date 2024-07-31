@@ -551,4 +551,23 @@ class Product extends BaseProduct implements ProductContract
     {
         return $this->hasOne(ProductSupplierProxy::modelClass(),'product_id');
     }
+
+    public function getColors()
+    {
+        $attributeCode = 'color';
+
+        // Retrieve the super attribute by code
+        $colorAttribute = $this->super_attributes->firstWhere('code', $attributeCode);
+
+        if (!$colorAttribute) {
+            return collect();
+        }
+
+        $allColors = $colorAttribute->options;
+        $variantColors = $this->variants->map(function ($variant) use ($attributeCode) {
+            return $variant->{$attributeCode};
+        })->unique();
+
+        return $variantColors;
+    }
 }

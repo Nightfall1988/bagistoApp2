@@ -28,7 +28,8 @@ return [
         'hitexis' => [
             'name'        => 'Hitexis Theme',
             'assets_path' => 'public/themes/shop/hitexis',
-            'views_path'  => 'resources/themes/hitexis/views',
+            'views_path'  => 'resources/themes/hitexis/views', // change to resources/themes/hitexis/views
+
 
             'vite'        => [
                 'hot_file'                 => 'shop-hitexis-vite.hot',

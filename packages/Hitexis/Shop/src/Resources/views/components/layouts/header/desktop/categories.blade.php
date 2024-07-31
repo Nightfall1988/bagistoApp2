@@ -17,7 +17,7 @@
 @pushOnce('scripts')
     <script type="text/x-template" id="v-desktop-categories-template">
 
-        <div class="flex items-center" v-else>
+        <div class="flex items-center">
             <div v-for="category in categories" :key="category.id" class="group relative flex h-[77px] items-center border-b-[4px] border-transparent hover:border-b-[4px] hover:border-navyBlue">
                 <a :href="category.url" class="inline-block px-5 uppercase text-mineShaft">@{{ category.name }}</a>
                 <div v-if="category.children.length" class="pointer-events-none absolute top-[78px] z-[1] max-h-[580px] w-max max-w-[1260px] translate-y-1 overflow-auto overflow-x-auto border border-b-0 border-l-0 border-r-0 border-t border-[#F3F3F3] bg-white p-9 opacity-0 shadow-[0_6px_6px_1px_rgba(0,0,0,.3)] transition duration-300 ease-out group-hover:pointer-events-auto group-hover:translate-y-0 group-hover:opacity-100 group-hover:duration-200 group-hover:ease-in ltr:-left-9 rtl:-right-9">
