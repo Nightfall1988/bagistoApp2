@@ -220,7 +220,7 @@ class HitexisProductRepository extends Repository
 
         $product = $filteredAttributeValues->first()?->product;
 
-        if (get_class($product) == "Webkul\Product\Models\Product") {
+        if (isset($product) && get_class($product) == "Webkul\Product\Models\Product") {
             $product = new ProductAdapter($product);
             $product = $product->getModel();
         }
@@ -621,7 +621,7 @@ class HitexisProductRepository extends Repository
                         ->where($sizeAlias . '.attribute_id', 24); // Adjust this attribute_id if necessary
                 });
 
-                $qb->whereIn($sizeAlias . '.integer_value', $sizeAlias);
+                $qb->whereIn($sizeAlias . '.integer_value', $sizeAlias); // THIS HERE PROBLEM NO SORT BY COLORS
 
             }
 

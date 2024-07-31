@@ -2,6 +2,7 @@ import { defineConfig, loadEnv } from "vite";
 import vue from "@vitejs/plugin-vue";
 import laravel from "laravel-vite-plugin";
 import path from "path";
+import mkcert from 'vite-plugin-mkcert'
 
 export default defineConfig(({ mode }) => {
     const envDir = "../../../";
@@ -22,7 +23,7 @@ export default defineConfig(({ mode }) => {
 
         plugins: [
             vue(),
-
+            mkcert(),
             laravel({
                 hotFile: "../../../public/shop-hitexis-vite.hot",
                 publicDirectory: "../../../public",

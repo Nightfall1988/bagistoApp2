@@ -1,5 +1,4 @@
 <!-- Mini Cart Vue Component -->
-
 <v-mini-cart>
     <span
         class="icon-cart cursor-pointer text-2xl"
@@ -48,7 +47,6 @@
                         @lang('shop::app.checkout.cart.mini-cart.shopping-cart')
                     </p>
                 </div>
-
                 <p class="text-base">
                     @lang('shop::app.checkout.cart.mini-cart.offer-on-orders')
                 </p>
@@ -78,7 +76,6 @@
                                     :src="item.base_image.small_image_url"
                                     class="max-h-[110px] max-w-[110px] rounded-xl"
                                 />
-
                             </a>
                         </div>
 

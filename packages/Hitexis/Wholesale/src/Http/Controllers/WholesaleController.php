@@ -85,11 +85,16 @@ class WholesaleController extends Controller
     
     public function update(Request $request, $id)
     {
-        $product = $this->productRepository->findByAttributeCode('name', $request->product_name);
+        if (isset($request->product_name)) {
+            $product = $this->productRepository->findByAttributeCode('name', $request->product_name);
+        }
 
         $wholesale = $this->wholesaleRepository->update(request()->all(), $id);
-        if ($product) {
-            $product->wholesales()->attach($wholesale->id);
+        
+        if (isset($product)) {
+            if (!$product->wholesales->contains($wholesale->id)) {
+                $product->wholesales()->attach($wholesale->id);
+            }
         }
 
         session()->flash('success', trans('admin::app.wholesale.update-success'));

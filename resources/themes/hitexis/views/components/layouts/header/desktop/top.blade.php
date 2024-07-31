@@ -1,5 +1,6 @@
 {!! view_render_event('bagisto.shop.components.layouts.header.desktop.top.before') !!}
 
+<div class="hidden">
 <v-topbar>
     <!-- Shimmer Effect -->
     <div class="flex items-center justify-between border border-b border-l-0 border-r-0 border-t-0 px-16 py-3">
@@ -144,6 +145,7 @@
         </div>
     </script>
 
+    // currency switcher
     <script
         type="text/x-template"
         id="v-currency-switcher-template"
@@ -236,3 +238,4 @@
         });
     </script>
 @endPushOnce
+</div>

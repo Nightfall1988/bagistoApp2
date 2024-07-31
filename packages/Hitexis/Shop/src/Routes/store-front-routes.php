@@ -8,6 +8,7 @@ use Hitexis\Shop\Http\Controllers\ProductController;
 use Hitexis\Shop\Http\Controllers\HitexisProductsCategoriesProxyController;
 use Hitexis\Shop\Http\Controllers\SearchController;
 use Webkul\Shop\Http\Controllers\SubscriptionController;
+use Hitexis\Admin\Http\Controllers\Settings\LocaleController;
 use Hitexis\Shop\Http\Controllers\ClientImageController;
 
 Route::group(['middleware' => ['locale', 'theme', 'currency']], function () {
@@ -21,6 +22,10 @@ Route::group(['middleware' => ['locale', 'theme', 'currency']], function () {
     /**
      * Fallback route.
      */
+    Route::post('locale-change', [LocaleController::class, 'change'])
+        ->name('locale.change')
+        ->middleware('cacheResponse');
+
     Route::fallback(HitexisProductsCategoriesProxyController::class.'@index')
         ->name('shop.product_or_category.index');
         // ->middleware('cacheResponse');
