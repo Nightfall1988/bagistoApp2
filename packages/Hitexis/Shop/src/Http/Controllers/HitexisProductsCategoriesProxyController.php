@@ -84,7 +84,12 @@ class HitexisProductsCategoriesProxyController extends Controller
 
             visitor()->visit($product);
 
-            return view('hitexis-shop::products.view', compact('product'));
+            if (empty($product->print_techniques)) {
+                return view('hitexis-shop::products.view', compact('product'));
+            } else {
+                $techniques = $product->print_techniques;
+                return view('hitexis-shop::products.view', compact('product', 'techniques'));
+            }
         }
 
         /**

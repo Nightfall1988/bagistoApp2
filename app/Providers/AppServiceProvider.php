@@ -15,9 +15,11 @@ use Hitexis\Product\Repositories\ProductImageRepository;
 use Hitexis\Product\Models\ProductImage;
 use App\Observers\WholesaleObserver;
 use App\Service\CategoryImportService;
+use App\Service\PrintCalculatorImportService;
+use Hitexis\PrintCalculator\Repositories\PrintTechniqueRepository;
 use Hitexis\Wholesale\Models\Wholesale;
 use Webkul\Category\Repositories\CategoryRepository;
-
+use Hitexis\PrintCalculator\Http\Controllers\Api\PrintCalculatorController;
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -60,6 +62,10 @@ class AppServiceProvider extends ServiceProvider
             return new MidoceanApiService($app->make(HitexisProductRepository::class), $app->make(SupplierRepository::class), $app->make(ProductImageRepository::class));
         });
 
+        $this->app->singleton(PrintCalculatorImportService::class, function ($app) {
+            return new PrintCalculatorImportService($app->make(PrintManipulationRepository::class), $app->make(PrintTechniqueRepository::class), $app->make(HitexisProductRepository::class) );
+        });
+
         $this->app->singleton(StrickerApiService::class, function ($app) {
             return new StrickerApiService($app->make(HitexisProductRepository::class), $app->make(SupplierRepository::class));
         });
@@ -71,6 +77,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(CategoryImportService::class, function ($app) {
             return new CategoryImportService($app->make(CategoryRepository::class));
         });
+
+        $this->app->singleton(PrintCalculatorController::class, function ($app) {
+            return new PrintCalculatorController($app->make(HitexisProductRepository::class), $app->make(PrintTechniqueRepository::class));
+        });
+        
 
 
         $this->app->bind(AttributeOption::class, AttributeOptionRepository::class);

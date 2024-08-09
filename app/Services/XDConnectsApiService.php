@@ -50,7 +50,7 @@ class XDConnectsApiService {
         $xmlPriceData = simplexml_load_file($path . 'Xindao.V2.ProductPrices-en-gb-C36797.xml');
         $xmlPrintData = simplexml_load_file($path . 'Xindao.V2.PrintData-en-gb-C36797.xml');
 
-        if ($xmlProductData === false || $xmlPriceData === false || $xmlProductData === false) {
+        if ($xmlProductData === false || $xmlPriceData === false || $xmlPrintData === false) {
             echo "Failed to load XML file.";
             exit;
         }

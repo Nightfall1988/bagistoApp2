@@ -25,6 +25,7 @@ use Webkul\Product\Database\Eloquent\Builder;
 use Hitexis\Product\Database\Factories\ProductFactory;
 use Hitexis\Product\Type\AbstractType;
 use Hitexis\Wholesale\Models\WholesaleProxy;
+use Hitexis\PrintCalculator\Models\PrintTechniqueProxy;
 
 class Product extends BaseProduct implements ProductContract
 {
@@ -545,11 +546,27 @@ class Product extends BaseProduct implements ProductContract
     }
 
     /**
-     * Get the wholesale options.
+     * Get the supplier.
      */
     public function supplier(): HasOne
     {
         return $this->hasOne(ProductSupplierProxy::modelClass(),'product_id');
+    }
+
+    /**
+     * Get the markup.
+     */
+    public function markup(): BelongsToMany
+    {
+        return $this->hasOne(ProductMarkupProxy::modelClass(),'wholesale_product', 'product_id', 'markup_id');
+    }
+
+    /**
+     * Get print techniques.
+     */
+    public function print_techniques(): HasMany
+    {
+        return $this->hasMany(PrintTechniqueProxy::modelClass());
     }
 
     public function getColors()

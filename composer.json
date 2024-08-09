@@ -100,8 +100,10 @@
             "Webkul\\Theme\\": "packages/Webkul/Theme/src",
             "Webkul\\User\\": "packages/Webkul/User/src",
             "Hitexis\\Wholesale\\": "packages/Hitexis/Wholesale/src",
+            "Hitexis\\Markup\\": "packages/Hitexis/Markup/src",
             "Hitexis\\Checkout\\": "packages/Hitexis/Checkout/src",
-            "Hitexis\\CartRule\\": "packages/Hitexis/CartRule/src"
+            "Hitexis\\CartRule\\": "packages/Hitexis/CartRule/src",
+            "Hitexis\\PrintCalculator\\": "packages/Hitexis/PrintCalculator/src"
         }
     },
     "autoload-dev": {

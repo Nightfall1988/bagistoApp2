@@ -50,29 +50,6 @@ class Wholesale extends Model implements WholesaleContract
     {
         return $this->belongsToMany(ProductProxy::modelClass(), 'wholesale_product', 'wholesale_id', 'product_id');
     }
-    // /**
-    //  * Get the customer groups that owns the catalog rule.
-    //  */
-    // public function customer_groups(): BelongsToMany
-    // {
-    //     return $this->belongsToMany(CustomerGroupProxy::modelClass(), 'catalog_rule_customer_groups');
-    // }
-
-    // /**
-    //  * Get the Catalog rule Product that owns the catalog rule
-    //  */
-    // public function catalog_rule_products(): HasMany
-    // {
-    //     return $this->hasMany(CatalogRuleProductProxy::modelClass());
-    // }
-
-    // /**
-    //  * Get the Catalog rule Product that owns the catalog rule.
-    //  */
-    // public function catalog_rule_product_prices(): HasMany
-    // {
-    //     return $this->hasMany(CatalogRuleProductPriceProxy::modelClass());
-    // }
 
     /**
      * Create a new factory instance for the model.

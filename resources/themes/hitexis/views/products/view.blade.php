@@ -68,22 +68,7 @@
     </v-product>
 
 
-    <!-- LogoTron -->
-    <div class="flex flex-column">
-    <div class="flex flex-row max-w-[700px] gap-4 mx-5" style="margin-top: 2rem;">
 
-        @if (isset($product->supplier))
-        <div class="flex flex-row max-w-[300px] gap-4 mx-5" style="margin-top: 2rem;">
-
-            <button data-tl-action="OpenEditor"  id='create-print-motive'
-                data-tl-sid="{{ $product->supplier->supplier_code }}"
-                data-tl-spcode="{{ $product->sku }}"
-                class="secondary-button w-full max-w-full">
-                @lang('shop::app.products.view.create-print-motive')
-            </button>
-        @endif
-        </div>
-    </div>
     <div>
         @if (sizeof($product->wholesales)> 0)
             <ul class="mt-5">
@@ -410,14 +395,16 @@
 
                                     {!! view_render_event('bagisto.shop.products.view.quantity.before', ['product' => $product]) !!}
 
-                                    @if ($product->getTypeInstance()->showQuantityBox())
-                                        <x-shop::quantity-changer
-                                            name="quantity"
-                                            value="1"
-                                            class="gap-x-4 rounded-xl px-7 py-4"
-                                        />
-                                    @endif
-
+                                    <div id='field-qty'                                    >
+                                        @if ($product->getTypeInstance()->showQuantityBox())
+                                            <x-shop::quantity-changer
+                                                id='field-qty'
+                                                name="quantity"
+                                                value="1"
+                                                class="gap-x-4 rounded-xl px-7 py-4"
+                                            />
+                                        @endif
+                                    </div>
                                     {!! view_render_event('bagisto.shop.products.view.quantity.after', ['product' => $product]) !!}
 
                                     <!-- Add To Cart Button -->
@@ -479,6 +466,24 @@
                                 </div>
 
                                 {!! view_render_event('bagisto.shop.products.view.additional_actions.after', ['product' => $product]) !!}
+                            </div>
+                        </div>
+                        @include('printcalculator::printcalculator.printcalculator', ['product' => $product])
+                        <!-- LogoTron -->
+                        <div class="flex flex-column">
+                            <div class="flex flex-row max-w-[700px] gap-4" style="margin-top: 2rem;">
+
+                                @if (isset($product->supplier))
+                                <div class="flex flex-row max-w-[300px] gap-4" style="margin-top: 2rem;">
+
+                                    <button data-tl-action="OpenEditor"  id='create-print-motive'
+                                        data-tl-sid="{{ $product->supplier->supplier_code }}"
+                                        data-tl-spcode="{{ $product->sku }}"
+                                        class="secondary-button w-full max-w-full">
+                                        @lang('shop::app.products.view.create-print-motive')
+                                    </button>
+                                @endif
+                                </div>
                             </div>
                         </div>
                     </div>

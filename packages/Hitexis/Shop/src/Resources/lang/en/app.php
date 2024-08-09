@@ -627,6 +627,7 @@ return [
             'title'         => 'Order successfully placed',
         ],
 
+        
         'cart' => [
             'continue-to-checkout'      => 'Continue to Checkout',
             'illegal'                   => 'Quantity cannot be lesser than one.',
@@ -644,6 +645,19 @@ return [
             'select-hourly-duration'    => 'Select a slot duration of one hour.',
             'success-remove'            => 'Item is successfully removed from the cart.',
             'suspended-account-message' => 'Your account has been suspended.',
+
+                        
+            'mini-cart' => [
+                'continue-to-checkout' => 'Continue to Checkout',
+                'empty-cart'           => 'Your cart is empty',
+                'excl-tax'             => 'Excl. Tax:',
+                'offer-on-orders'      => 'Get Up To 30% OFF on your 1st order',
+                'remove'               => 'Remove',
+                'see-details'          => 'See Details',
+                'shopping-cart'        => 'Shopping Cart',
+                'subtotal'             => 'Subtotal',
+                'view-cart'            => 'View Cart',
+            ],
 
             'index' => [
                 'bagisto'                  => 'Bagisto',
@@ -698,6 +712,7 @@ return [
                 'shopping-cart'        => 'Shopping Cart',
                 'subtotal'             => 'Subtotal',
                 'view-cart'            => 'View Cart',
+                'excl-task'            => 'Excluding tax: '
             ],
 
             'summary' => [

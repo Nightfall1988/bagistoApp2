@@ -11,23 +11,35 @@
     <meta name="keywords" content="{{ $channel->home_seo['meta_keywords'] ?? '' }}" />
 @endPush
 
-<x-shop::layouts>
+<x-hitexis-shop::layouts>
     <!-- Page Title -->
     <x-slot:title>
         {{  $channel->home_seo['meta_title'] ?? '' }}
     </x-slot>
-    
+
     <!-- Loop over the theme customization -->
     @foreach ($customizations as $customization)
+
         @php ($data = $customization->options) @endphp
 
         <!-- Static content -->
         @switch ($customization->type)
+
+
+            @case ($customization::CATEGORY_CAROUSEL)
+            <!-- Categories carousel -->
+            <x-shop::categories.carousel
+                :title="$data['title'] ?? ''"
+                :src="route('shop.api.categories.tree', $data['filters'] ?? [])"
+                :navigation-link="route('shop.home.index')"
+            />
+
+            @break
             @case ($customization::IMAGE_CAROUSEL)
                 <!-- Image Carousel -->
                 <x-shop::carousel :options="$data" />
+            @break
 
-                @break
             @case ($customization::STATIC_CONTENT)
                 <!-- push style -->
                 @if (! empty($data['css']))
@@ -43,16 +55,8 @@
                     {!! $data['html'] !!}
                 @endif
 
-                @break
-            @case ($customization::CATEGORY_CAROUSEL)
-                <!-- Categories carousel -->
-                <x-shop::categories.carousel
-                    :title="$data['title'] ?? ''"
-                    :src="route('shop.api.categories.index', $data['filters'] ?? [])"
-                    :navigation-link="route('shop.home.index')"
-                />
-
-                @break
+            @break
+            
             @case ($customization::PRODUCT_CAROUSEL)
                 <!-- Product Carousel -->
                 <x-shop::products.carousel
@@ -64,4 +68,5 @@
                 @break
         @endswitch
     @endforeach
-</x-shop::layouts>
+
+</x-hitexis-shop::layouts>

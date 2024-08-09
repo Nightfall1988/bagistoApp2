@@ -15,10 +15,10 @@
         id="v-categories-carousel-template"
     >
         <div
-            class="container mt-14 max-lg:px-8 max-sm:mt-5"
+            class="container mt-14 max-lg:px-8 max-sm:mt-5 flex justify-around"
             v-if="! isLoading && categories?.length"
         >
-            <div class="relative">
+            <div class="relative flex justify-center" style="max-width: 1240px;">
                 <div
                     ref="swiperContainer"
                     class="scrollbar-hide flex gap-10 overflow-auto scroll-smooth max-sm:gap-4"

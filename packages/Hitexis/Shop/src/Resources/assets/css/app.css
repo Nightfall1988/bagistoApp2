@@ -10,13 +10,13 @@
     font-display: block;
 }
 
-#search-bar-form {
-    max-width: 1000px!important;
+img.lazy {
+  visibility: hidden;
 }
 
 @layer components {
     ::selection {
-        background-color: #003366;
+        background-color: rgba(6, 12, 59, .2);
     }
 
     input {
@@ -28,7 +28,6 @@
     }
 
     button:disabled:hover {
-        background-color: #003366;
         @apply cursor-not-allowed opacity-50;
     }
 
@@ -42,7 +41,7 @@
         font-variant: normal;
         text-transform: none;
         line-height: 1 !important;
-        color: #252525!important;
+
         /* Better Font Rendering =========== */
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;

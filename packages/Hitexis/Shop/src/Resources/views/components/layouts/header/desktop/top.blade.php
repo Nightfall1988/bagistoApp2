@@ -145,7 +145,6 @@
         </div>
     </script>
 
-    // currency switcher
     <script
         type="text/x-template"
         id="v-currency-switcher-template"

@@ -357,4 +357,12 @@ return [
         'sort'       => 10,
         'icon'       => 'icon-configuration',
     ],
+
+    [
+        'key'        => 'Markup',
+        'name'       => 'admin::app.components.layouts.sidebar.markup',
+        'route'      => 'markup.markup.index',
+        'sort'       => 11,
+        'icon'       => 'icon-configuration',
+    ],
 ];

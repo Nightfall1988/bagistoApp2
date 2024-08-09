@@ -863,4 +863,11 @@ return [
         'route'      => 'wholesale.wholesale.index',
         'sort'       => 10,
     ],
+
+    [
+        'key'        => 'markup',
+        'name'       => 'admin::app.acl.markup',
+        'route'      => 'markup.markup.index',
+        'sort'       => 10,
+    ],
 ];

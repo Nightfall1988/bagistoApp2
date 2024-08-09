@@ -46,6 +46,8 @@ return [
         \Webkul\Sales\Providers\ModuleServiceProvider::class,
         \Webkul\Shipping\Providers\ModuleServiceProvider::class,
         \Hitexis\Shop\Providers\ModuleServiceProvider::class, // HITEXIS
+        \Hitexis\Markup\Providers\ModuleServiceProvider::class, // HITEXIS
+        \Hitexis\PrintCalculator\Providers\ModuleServiceProvider::class, // HITEXIS
         \Webkul\Shop\Providers\ModuleServiceProvider::class, // WEBKUL
         \Webkul\SocialLogin\Providers\ModuleServiceProvider::class,
         \Webkul\Tax\Providers\ModuleServiceProvider::class,

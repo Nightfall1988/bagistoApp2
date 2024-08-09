@@ -101,7 +101,7 @@
             {!! view_render_event('bagisto.shop.layout.content.before') !!}
 
             <!-- Page Content Blade Component -->
-            <main id="main" class="bg-white" style="max-width: 1440px; padding-right: 15px; padding-left: 15px; margin-right: auto; margin-left: auto;">
+            <main id="main" class="bg-white">
                 {{ $slot }}
             </main>
 

@@ -9,20 +9,20 @@
         type="text/x-template"
         id="v-carousel-template"
     >
-        <div class="relative m-auto flex w-full overflow-hidden">
+        <div class="relative m-auto flex w-full h-full overflow-hidden">
             <!-- Slider -->
             <div 
                 class="inline-flex translate-x-0 cursor-pointer transition-transform duration-700 ease-out will-change-transform"
                 ref="sliderContainer"
             >
                 <div
-                    class="max-h-screen w-screen bg-cover bg-no-repeat"
+                    class="w-screen bg-cover bg-no-repeat"
                     v-for="(image, index) in images"
                     @click="visitLink(image)"
                     ref="slide"
                 >
                     <x-shop::media.images.lazy
-                        class="aspect-[2.743/1] max-h-96 w-full max-w-full select-none transition-transform duration-300 ease-in-out"
+                        class="aspect-[2.743/1] w-full max-w-full select-none transition-transform duration-300 ease-in-out"
                         ::lazy="false"
                         ::src="image.image"
                         ::srcset="`${image.image} 1920w, ${image.image.replace('storage/', 'cache/large/')} 1280w, ${image.image.replace('storage/', 'cache/medium/')} 1024w, ${image.image.replace('storage/', 'cache/small/')} 525w`"

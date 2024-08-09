@@ -246,6 +246,8 @@ return [
         Webkul\Theme\Providers\ThemeServiceProvider::class,
         Webkul\User\Providers\UserServiceProvider::class,
         Hitexis\Wholesale\Providers\WholesaleServiceProvider::class,
+        Hitexis\PrintCalculator\Providers\PrintCalculatorServiceProvider::class,
+
     ])->toArray(),
 
     /*

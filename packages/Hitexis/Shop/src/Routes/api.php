@@ -11,6 +11,13 @@ use Hitexis\Shop\Http\Controllers\API\OnepageController;
 use Hitexis\Shop\Http\Controllers\API\ProductController;
 use Hitexis\Shop\Http\Controllers\API\ReviewController;
 use Hitexis\Shop\Http\Controllers\API\WishlistController;
+use Hitexis\PrintCalculator\Http\Controllers\API\PrintCalculatorController;
+
+Route::group(['middleware' => ['locale', 'theme', 'currency'], 'prefix' => 'api'], function () {
+    Route::controller(PrintCalculatorController::class)->prefix('print')->group(function () {
+        Route::get('calculate', 'calculate')->name('printcontroller.api.print.calculate');
+    });
+});
 
 Route::group(['middleware' => ['locale', 'theme', 'currency'], 'prefix' => 'api'], function () {
     Route::controller(CoreController::class)->prefix('core')->group(function () {

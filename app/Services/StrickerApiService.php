@@ -37,11 +37,12 @@ class StrickerApiService {
         $this->supplierRepository = $supplierRepository;
         $this->productImageRepository = $productImageRepository;
         $this->categoryImportService = $categoryImportService;
-        $this->authUrl = env('STRICKER_AUTH_URL') . env('STRICKER_AUTH_TOKEN');
-        $this->url = env('STRICKER_PRODUCTS_URL');
-        $this->optionalsUrl = env('STRICKER_OPTIONALS_URL');
+        // $this->authUrl = env('STRICKER_AUTH_URL') . env('STRICKER_AUTH_TOKEN');
+        // $this->url = env('STRICKER_PRODUCTS_URL');
+        // $this->optionalsUrl = env('STRICKER_OPTIONALS_URL');
         $this->identifier = env('STRICKER_IDENTIFIER');
         $this->categoryMapper = $categoryMapper;
+        
         // TEST DATA
         // $this->url = 'https://appbagst.free.beeceptor.com';
         // $this->optionalsUrl = 'https://appbagst.free.beeceptor.com/op';
@@ -58,25 +59,25 @@ class StrickerApiService {
             'headers' => $headers
         ]);
 
-        $request = $this->httpClient->get($this->authUrl);
-        $authToken = json_decode($request->getBody()->getContents())->Token;
+        // $request = $this->httpClient->get($this->authUrl);
+        // $authToken = json_decode($request->getBody()->getContents())->Token;
 
-        $this->url = $this->url . $authToken . '&lang=en';
-        $this->optionalsUrl = $this->optionalsUrl . $authToken . '&lang=en';
+        // $this->url = $this->url . $authToken . '&lang=en';
+        // $this->optionalsUrl = $this->optionalsUrl . $authToken . '&lang=en';
 
         // GET PRODUCTS
-        $request = $this->httpClient->get($this->url);
-        $productsData = json_decode($request->getBody()->getContents(), true);
+        // $request = $this->httpClient->get($this->url);
+        // $productsData = json_decode($request->getBody()->getContents(), true);
 
         // GET OPTIONALS
-        $optionalsData = $this->httpClient->get($this->optionalsUrl);
-        $optionalsData = json_decode($optionalsData->getBody()->getContents(), true);
+        // $optionalsData = $this->httpClient->get($this->optionalsUrl);
+        // $optionalsData = json_decode($optionalsData->getBody()->getContents(), true);
 
         // TESTING DATA - RESPONSE FROM JSON FILED
-        // $jsonP = file_get_contents('storage\app\private\productstest.json');
-        // $productsData = json_decode($jsonP, true);
-        // $jsonO = file_get_contents('storage\app\private\optionalstest.json');
-        // $optionalsData = json_decode($jsonO, true);
+        $jsonP = file_get_contents('storage\app\private\productstest.json');
+        $productsData = json_decode($jsonP, true);
+        $jsonO = file_get_contents('storage\app\private\optionalstest.json');
+        $optionalsData = json_decode($jsonO, true);
 
         $products = $this->getProductsWithOptionals($productsData, $optionalsData);
         $this->updateProducts($products);
@@ -140,6 +141,7 @@ class StrickerApiService {
             'super_attributes' => $attributes
         ]);
 
+        // dd( $productObj, $attributes);
         foreach ($productData['optionals'] as $optional) {
             $productVariant = $this->productRepository->upserts([
                 "channel" => "default",
@@ -180,6 +182,17 @@ class StrickerApiService {
             }
         }
 
+        $productCategory = preg_replace('/[^a-z0-9]+/i', '', strtolower($mainProductOptionals['Type'])) ?? '';
+        $productSubCategory = preg_replace('/[^a-z0-9]+/i', '', strtolower($mainProductOptionals['SubType'])) ?? '';
+        $material = preg_replace('/[^a-z0-9]+/i', '', strtolower($mainProductOptionals['Materials'])) ?? '';
+        $brand = preg_replace('/[^a-z0-9]+/i', '', strtolower($mainProductOptionals['Brand'])) ?? '';
+        $name = preg_replace('/[^a-z0-9 ]+/i', '', strtolower($mainProductOptionals['Name'])) ?? '';
+        $components = preg_replace('/[^a-z0-9]+/i', '', strtolower($mainProductOptionals['ProductComponents'])) ?? '';
+
+        $meta_title = "$material $name $components $brand";
+        $meta_description = $mainProductOptionals['ShortDescription'];
+        $meta_keywords = "$material, $name, $components, $brand, $productCategory, $productSubCategory";
+
         $superAttributes = [
             "channel" => "default",
             "locale" => "en",
@@ -189,9 +202,9 @@ class StrickerApiService {
             "url_key" => $urlKey ?? '',
             "short_description" =>(!isset($mainProductData['ShortDescription'])) ? 'no description provided' : '<p>' . $mainProductOptionals['ShortDescription'] . '</p>',
             "description" => (!isset($mainProductData['Description'])) ? 'no description provided' : '<p>' . $mainProductOptionals['Description'] . '</p>',
-            "meta_title" => "",
-            "meta_keywords" => "",
-            "meta_description" => "",
+            "meta_title" => $meta_title,
+            "meta_keywords" => $meta_keywords,
+            "meta_description" => $meta_description,
             'price' => $price,
             'cost' => '',
             "special_price" => "",
@@ -277,6 +290,16 @@ class StrickerApiService {
                 $categories = $this->categoryImportService->importStrickerCategories($productData['optionals'][0], $this->categoryMapper->midocean_to_stricker_category, $this->categoryMapper->midocean_to_stricker_subcategory);
             }
         }
+        $productCategory = preg_replace('/[^a-z0-9]+/', '', strtolower($productData['optionals'][0]['Type'])) ?? '';
+        $productSubCategory = preg_replace('/[^a-z0-9]+/', '', strtolower($productData['optionals'][0]['SubType'])) ?? '';
+        $material = preg_replace('/[^a-z0-9]+/', '', strtolower($productData['optionals'][0]['Materials'])) ?? '';
+        $brand = preg_replace('/[^a-z0-9]+/', '', strtolower($productData['optionals'][0]['Brand'])) ?? '';
+        $name = preg_replace('/[^a-z0-9]+/', '', strtolower($productData['optionals'][0]['Name'])) ?? '';
+        $components = preg_replace('/[^a-z0-9]+/', '', strtolower($productData['optionals'][0]['ProductComponents'])) ?? '';
+
+        $meta_title = "$material $name $components $brand";
+        $meta_description = $productData['optionals'][0]['ShortDescription'];
+        $meta_keywords = "$material, $name, $components, $brand, $productCategory, $productSubCategory";
 
         $superAttributes = [
             '_method' => 'PUT',
@@ -290,11 +313,9 @@ class StrickerApiService {
             "weight" => $productData['optionals'][0]['Weight'] ?? 0,
             "short_description" =>(!isset($productData['optionals'][0]['ShortDescription'])) ? 'no description provided' : '<p>' . $productData['optionals'][0]['ShortDescription'] . '</p>',
             "description" => (!isset($productData['optionals'][0]['Description'])) ? 'no description provided' : '<p>' . $productData['optionals'][0]['Description'] . '</p>',
-            "meta_title" => "",
-            "meta_keywords" => "",
-            "meta_description" => "",
-            "meta_description" => "",
-            "meta_description" => "",       
+            "meta_title" => $meta_title,
+            "meta_keywords" => $meta_keywords,
+            "meta_description" => $meta_description,       
             'price' => $price,
             'cost' => '',
             "special_price" => "",
@@ -357,7 +378,7 @@ class StrickerApiService {
                         {
                             $colorObj = $this->attributeOptionRepository->create([
                                 'admin_name' => ucfirst(trim($foundOptional['ColorDesc1'])),
-                                'attribute_id' => 24,
+                                'attribute_id' => 23,
                             ]);
         
                             $colorId = $colorObj->id;
@@ -375,7 +396,7 @@ class StrickerApiService {
                         $tempAttributes[] = $sizeId;
                     }
     
-                    if (!$sizeObj && !in_array($sizeName,$tempAttributes)) {
+                    if (!$sizeObj && !in_array($foundOptional['Size'],$tempAttributes)) {
                         {
                             $sizeObj = $this->attributeOptionRepository->create([
                                 'admin_name' => ucfirst(trim($foundOptional['Size'])),
@@ -443,17 +464,17 @@ class StrickerApiService {
                     'images' => $images
                 ];
                 
-                if ($foundOptional['HasColors'] != false) {
-                    $colorObj = $this->attributeOptionRepository->getOption($foundOptional['ColorDesc1']);
-                    if ($colorObj) {
-                        $variants[$variant->id]['color'] = $colorObj->id;
-                    }
-                }
-                
                 if ($foundOptional['HasSizes'] != false) {
                     $sizeObj = $this->attributeOptionRepository->getOption($foundOptional['Size']);
                     if ($sizeObj) {
                         $variants[$variant->id]['size'] = $sizeObj->id;
+                    }
+                }
+
+                if ($foundOptional['HasColors'] != false) {
+                    $colorObj = $this->attributeOptionRepository->getOption($foundOptional['ColorDesc1']);
+                    if ($colorObj) {
+                        $variants[$variant->id]['color'] = $colorObj->id;
                     }
                 }
     
@@ -491,7 +512,7 @@ class StrickerApiService {
                     "special_price_from" => "",
                     "special_price_to" => "",
                     "new" => "1",
-                    "visible_individually" => "1",
+                    "visible_individually" => "0",
                     "status" => "1",
                     "featured" => "1",
                     "guest_checkout" => "1",
@@ -541,7 +562,7 @@ class StrickerApiService {
 
             if (sizeof($skuArray) == 3) {
                 $sizeName = $skuArray[2];
-                $sizes = ['L', 'S', 'M', 'XS', 'XL', 'XXS', 'XXL', '3XS', '3XL', 'XXXS', 'XXXL'];
+                $sizes = ['L', 'S', 'M', 'XS', 'XL', 'XXS', 'XXL', '3XS', '3XL', 'XXXS', 'XXXL', '4XL', '5XL'];
                 if (in_array($sizeName, $sizes)) {
                     $sizeObj = $this->attributeOptionRepository->getOption($sizeName);
 
@@ -565,7 +586,8 @@ class StrickerApiService {
             }
         }
 
-        if ($optional['HasSizes'] && isset($optional['Sizes'])) {
+        foreach ($optionals as $optional) {
+            if ($optional['HasSizes'] && isset($optional['Sizes'])) {
                 $sizeNameList = explode(', ', $optional['Sizes']);
                 foreach ( $sizeNameList as $sizeName) {
                     $sizeObj = $this->attributeOptionRepository->getOption(ucfirst(trim($sizeName)));
@@ -585,30 +607,48 @@ class StrickerApiService {
                         }
                     }
                 }
-        }
+            }
 
-        if ($optional['HasColors'] && isset($optional['Colors'])) {
-            $colorNameList = explode(', ', $optional['Colors']);
-            foreach ( $colorNameList as $colorName) {
-                $colorObj = $this->attributeOptionRepository->getOption(ucfirst(trim($colorName)));
-                if ( $colorObj) {
-                    $colorIds[] = $colorObj->id;
+            if ($optional['HasColors'] && isset($optional['Colors'])) {
+        
+                $colorNameList = explode(', ', $optional['Colors']);
+                foreach ( $colorNameList as $colorName) {
+                    $colorObj = $this->attributeOptionRepository->getOption(ucfirst(trim($colorName)));
+                    if ( $colorObj) {
+                        $colorIds[] = $colorObj->id;
+                    }
+
+                    if (!$colorObj) {
+                        {
+                            $colorObj = $this->attributeOptionRepository->create([
+                                'admin_name' => ucfirst(trim($colorName)),
+                                'attribute_id' => 23,
+                            ]);
+        
+                            $colorId = $colorObj->id;
+                            $colorIds[] = $colorId;
+                        }
+                    }
                 }
+            } elseif ($optional['HasColors'] && !isset($optional['Colors'])) {
+                if (isset($optional['ColorDesc1'])) {
+                    $colorObj = $this->attributeOptionRepository->getOption(ucfirst(trim($optional['ColorDesc1'])));
+                    if (!$colorObj) {
 
-                if (!$colorObj) {
-                    {
                         $colorObj = $this->attributeOptionRepository->create([
                             'admin_name' => ucfirst(trim($colorName)),
                             'attribute_id' => 23,
-                        ]);
-    
-                        $colorId = $colorObj->id;
-                        $colorIds[] = $colorId;
+                        ]);                    
                     }
+
+                    $colorId = $colorObj->id;
+                    $colorIds[] = $colorId;
                 }
             }
         }
-        
+
+        $colorIds = array_unique($colorIds);
+
         if (sizeof($sizeIds) > 0) {
             $attributes['size'] = $sizeIds;
         }
@@ -616,6 +656,10 @@ class StrickerApiService {
         if (sizeof($colorIds) > 0) {
             $attributes['color'] = $colorIds;
         }
+
+        // if ($optionals[0]['Name'] == "THC LUANDA. Men's tubular cotton T-shirt") {
+        //     dd($attributes);
+        // }
 
         return $attributes;
     }

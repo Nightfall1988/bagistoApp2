@@ -1,12 +1,12 @@
 {!! view_render_event('bagisto.shop.components.layouts.header.desktop.bottom.before') !!}
 
-<div class="flex min-h-[78px] w-full justify-between border border-b border-l-0 border-r-0 border-t-0 px-[60px] max-1180:px-8" style="margin-right: 10rem; margin-left: 10rem;">
+<div class="flex min-h-[78px] w-full justify-between border border-b border-l-0 border-r-0 border-t-0 px-[60px] px-8">
     <!--
         This section will provide categories for the first, second, and third levels. If
         additional levels are required, users can customize them according to their needs.
     -->
     <!-- Left Navigation Section -->
-    <div class="flex flex-row content-center flex-wrap gap-x-4" style="align-content: center!important;">
+    <div class="flex flex-row content-center flex-wrap justify-between w-full gap-8" style="align-content: center!important;">
         <div class="flex items-center gap-x-5 lg:gap-x-10 ">
             {!! view_render_event('bagisto.shop.components.layouts.header.desktop.bottom.logo.before') !!}
 
@@ -24,7 +24,7 @@
             {!! view_render_event('bagisto.shop.components.layouts.header.desktop.bottom.logo.after') !!}
         </div>
         <!-- Right Navigation Section -->
-        <div id='search-bar-form' class="flex flex-grow mt-auto mb-auto ml-4" style="width: 830px; align-content:center; ">
+        <div id='search-bar-form' class="flex flex-grow mt-auto mb-auto ml-4" >
 
             {!! view_render_event('bagisto.shop.components.layouts.header.desktop.bottom.search_bar.before') !!}
             <!-- Search Bar Container -->
@@ -67,7 +67,6 @@
                 </form>
             </div>
         </div>
-    </div>
 
     {!! view_render_event('bagisto.shop.components.layouts.header.desktop.bottom.search_bar.after') !!}
 
@@ -76,11 +75,13 @@
         
         <div class="mt-1.5 flex gap-x-8 max-[1100px]:gap-x-6 max-lg:gap-x-8">
             <div>
+                <a href="{{ route('shop.home.contact_us') }}">
                 <img
                     src="{{ bagisto_asset('images/contact-logo.png') }}"
                     width="25"
                     height="25"
                 >
+                </a>
             </div>
             
             <!-- Currency Switcher -->
@@ -96,15 +97,39 @@
                 </x-slot>
             </x-shop::dropdown>
 
-            <!-- Locale Switcher -->
-            <x-shop::dropdown position="bottom-{{ core()->getCurrentLocale()->direction === 'ltr' ? 'right' : 'left' }}">
+            <x-hitexis-shop::dropdown position="bottom-{{ core()->getCurrentLocale()->direction === 'ltr' ? 'right' : 'left' }}">
                 <x-slot:toggle>
-                    <div class="flex cursor-pointer items-center gap-2.5" role="button" tabindex="0" @click="localeToggler = !localeToggler">
-                        <img src="{{ !empty(core()->getCurrentLocale()->logo_url) ? core()->getCurrentLocale()->logo_url : bagisto_asset('images/default-language.svg') }}" class="h-full" alt="@lang('shop::app.components.layouts.header.desktop.top.default-locale')" width="24" height="16" />
-                        <span>{{ core()->getCurrentChannel()->locales()->orderBy('name')->where('code', app()->getLocale())->value('name') }}</span>
-                        <span class="text-2xl" :class="{'icon-arrow-up': localeToggler, 'icon-arrow-down': !localeToggler}" role="presentation"></span>
+                    <!-- Dropdown Toggler -->
+                    <div
+                        class="flex cursor-pointer items-center gap-2.5"
+                        role="button"
+                        tabindex="0"
+                        @click="localeToggler = ! localeToggler"
+                    >
+                        <img
+                            src="{{ ! empty(core()->getCurrentLocale()->logo_url)
+                                    ? core()->getCurrentLocale()->logo_url
+                                    : bagisto_asset('images/default-language.svg')
+                                }}"
+                            class="h-full"
+                            alt="@lang('shop::app.components.layouts.header.desktop.top.default-locale')"
+                            width="24"
+                            height="16"
+                        />
+                        
+                        <span>
+                            {{ core()->getCurrentChannel()->locales()->orderBy('name')->where('code', app()->getLocale())->value('name') }}
+                        </span>
+
+                        <span
+                            class="text-2xl"
+                            :class="{'icon-arrow-up': localeToggler, 'icon-arrow-down': ! localeToggler}"
+                            role="presentation"
+                        ></span>
                     </div>
                 </x-slot>
+            
+                <!-- Dropdown Content -->
                 <x-slot:content class="!p-0">
                     <v-locale-switcher></v-locale-switcher>
                 </x-slot>
@@ -248,6 +273,8 @@
     </div>
 </div>
 
+</div>
+
 @pushOnce('scripts')
 <script
 type="text/x-template"
@@ -365,6 +392,7 @@ id="v-locale-switcher-template"
         </div>
     </script>
 
+
     <script type="module">
         app.component('v-desktop-category', {
             template: '#v-desktop-category-template',
@@ -374,6 +402,10 @@ id="v-locale-switcher-template"
                     isLoading: true,
 
                     categories: [],
+
+                    localeToggler: '',
+
+                    currencyToggler: '',
                 }
             },
 
@@ -386,7 +418,6 @@ id="v-locale-switcher-template"
                     this.$axios.get("{{ route('shop.api.categories.tree') }}")
                         .then(response => {
                             this.isLoading = false;
-
                             this.categories = response.data.data;
                         }).catch(error => {
                             console.log(error);
@@ -404,6 +435,47 @@ id="v-locale-switcher-template"
                 }
             },
         });
+
+        // app.component('v-currency-switcher', {
+        //     template: '#v-currency-switcher-template',
+
+        //     data() {
+        //         return {
+        //             currencies: @json(core()->getCurrentChannel()->currencies),
+        //         };
+        //     },
+
+        //     methods: {
+        //         change(currency) {
+        //             let url = new URL(window.location.href);
+
+        //             url.searchParams.set('currency', currency.code);
+
+        //             window.location.href = url.href;
+        //         }
+        //     }
+        // });
+
+        // app.component('v-locale-switcher', {
+        //     template: '#v-locale-switcher-template',
+
+        //     data() {
+        //         return {
+        //             locales: @json(core()->getCurrentChannel()->locales()->orderBy('name')->get()),
+        //         };
+        //     },
+
+        //     methods: {
+        //         change(locale) {
+        //             let url = new URL(window.location.href);
+
+        //             url.searchParams.set('locale', locale.code);
+
+        //             window.location.href = url.href;
+        //         }
+        //     }
+        // });
+        
     </script>
 @endPushOnce
 

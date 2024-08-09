@@ -7,7 +7,7 @@ use Webkul\Admin\Validations\ConfigurableUniqueSku;
 use Hitexis\Checkout\Models\CartItem as CartItemModel;
 use Webkul\Product\DataTypes\CartItemValidationResult;
 use Hitexis\Product\Facades\ProductImage;
-use Hitexis\Product\Helpers\Indexers\Price\Configurable as ConfigurableIndexer;
+use Hitexis\Product\Helpers\Configurable as ConfigurableIndexer;
 use Webkul\Tax\Facades\Tax;
 
 class Configurable extends AbstractType
@@ -94,7 +94,7 @@ class Configurable extends AbstractType
      *
      * @return \Hitexis\Product\Contracts\Product
      */
-    public function create(array $data, string $varData = '')
+    public function create(array $data)
     {
         $product = $this->productRepository->getModel()->create($data);
 
@@ -103,6 +103,7 @@ class Configurable extends AbstractType
         }
 
         $superAttributes = [];
+        var_dump($data['super_attributes']);
 
         foreach ($data['super_attributes'] as $attributeCode => $attributeOptions) {
             $attribute = $this->attributesByCode[$attributeCode] ?? null;
@@ -117,11 +118,7 @@ class Configurable extends AbstractType
         }
 
         foreach (array_permutation($superAttributes) as $permutation) {
-            if (isset($varData)) {
-                $this->createVariant($product, $permutation, ['stricker-sku-prefix-conf' => $varData]);
-            } else {
-                $this->createVariant($product, $permutation);
-            }
+            $this->createVariant($product, $permutation);
         }
 
         return $product;

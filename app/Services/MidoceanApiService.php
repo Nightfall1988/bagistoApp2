@@ -44,6 +44,7 @@ class MidoceanApiService {
         $this->url = env('MIDOECAN_PRODUCTS_URL');
         $this->pricesUrl = env('MIDOECAN_PRICES_URL');
         $this->identifier = env('MIDOECAN_IDENTIFIER');
+        $this->printUrl = env('MIDOECAN_PRINT_URL');
         $this->productImages = [];
     }
 
@@ -111,6 +112,9 @@ class MidoceanApiService {
         $tempAttributes = [];
         $attributes = [];
 
+        $productCategory = preg_replace('/[^a-z0-9]+/', '', strtolower($variantList[0]->category_level1)) ?? ', ';
+        $productSubCategory = preg_replace('/[^a-z0-9]+/', '', strtolower($variantList[0]->category_level2)) ?? ', ';
+        
         foreach ($apiProduct->variants as $variant) {
 
             // GET VARIANT COLOR
@@ -292,7 +296,6 @@ class MidoceanApiService {
             $urlKey = trim($urlKey, '-');
             $urlKey = strtolower($urlKey);
             $name = $product['Name'];
-
             $price = $priceList[$apiProduct->variants[$i]->sku] ?? 0;
 
             $variants[$productVariant->id] = [
@@ -347,11 +350,9 @@ class MidoceanApiService {
                 "url_key" => $urlKey,
                 "short_description" => (isset($apiProduct->short_description)) ? '<p>' . $apiProduct->short_description . '</p>' : '',
                 "description" => (isset($apiProduct->long_description)) ? '<p>' . $apiProduct->long_description . '</p>'  : '',
-                "meta_title" => "",
+                "meta_title" =>  "",
                 "meta_keywords" => "",
                 "meta_description" => "",
-                "meta_description" => "",
-                "meta_description" => "",       
                 'price' => $price,
                 'cost' => '',
                 "special_price" => "",
@@ -383,11 +384,17 @@ class MidoceanApiService {
             $productVariant = $this->productRepository->updateToShop($superAttributes, $productVariant->id, $attribute = 'id');
 
         }
+        $productCategory = preg_replace('/[^a-z0-9]+/', '', strtolower($apiProduct->variants[0]->category_level1)) ?? ', ';
+        $productSubCategory = preg_replace('/[^a-z0-9]+/', '', strtolower($apiProduct->variants[0]->category_level2)) ?? ', ';
 
         $urlKey = strtolower($apiProduct->product_name . '-' . $product->sku);
         $urlKey = preg_replace('/[^a-z0-9]+/', '-', $urlKey);
         $urlKey = trim($urlKey, '-');
         $urlKey = strtolower($urlKey);
+
+        $meta_title = "$apiProduct->product_name $apiProduct->product_class $apiProduct->brand";
+        $meta_description = "$apiProduct->short_description";
+        $meta_keywords = "$apiProduct->product_name, $apiProduct->brand, $productCategory, $productSubCategory, $apiProduct->product_class";
 
         $superAttributes = [
             "channel" => "default",
@@ -398,11 +405,9 @@ class MidoceanApiService {
             "url_key" => $urlKey, //
             "short_description" => (isset($apiProduct->short_description)) ? '<p>' . $apiProduct->short_description . '</p>' : '',
             "description" => (isset($apiProduct->long_description)) ? '<p>' . $apiProduct->long_description . '</p>'  : '',
-            "meta_title" => "",
-            "meta_keywords" => "",
-            "meta_description" => "",
-            "meta_description" => "",
-            "meta_description" => "",       
+            "meta_title" =>  $meta_title,
+            "meta_keywords" => $meta_keywords,
+            "meta_description" => $meta_description,
             'price' => $price,
             'cost' => '',
             "special_price" => "",
@@ -453,6 +458,13 @@ class MidoceanApiService {
             $tempPaths[] = $imageData['tempPaths'];
         }
 
+        $productCategory = preg_replace('/[^a-z0-9]+/', '', strtolower($apiProduct->variants[0]->category_level1)) ?? ', ';
+        $productSubCategory = preg_replace('/[^a-z0-9]+/', '', strtolower($apiProduct->variants[0]->category_level2)) ?? ', ';
+
+        $meta_title = "$apiProduct->product_name $apiProduct->product_class $apiProduct->brand";
+        $meta_description = "$apiProduct->short_description";
+        $meta_keywords = "$apiProduct->product_name, $apiProduct->brand, $productCategory, $productSubCategory, $apiProduct->product_class";
+
         $superAttributes = [
             "channel" => "default",
             "locale" => "en",
@@ -462,9 +474,9 @@ class MidoceanApiService {
             "url_key" => (!isset($apiProduct->product_name)) ? '' : $urlKey,
             "short_description" => (isset($apiProduct->short_description)) ? '<p>' . $apiProduct->short_description . '</p>' : '',
             "description" => (isset($apiProduct->long_description)) ? '<p>' . $apiProduct->long_description . '</p>'  : '',
-            "meta_title" => "",
-            "meta_keywords" => "",
-            "meta_description" => "",
+            "meta_title" => $meta_title,
+            "meta_keywords" => $meta_keywords,
+            "meta_description" => $meta_description,
             'price' => $price,
             'cost' => '',
             "special_price" => "",

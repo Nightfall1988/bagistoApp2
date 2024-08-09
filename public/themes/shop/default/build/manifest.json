@@ -20,6 +20,10 @@
     "file": "assets/empty-dwn-product-3c9202e1.png",
     "src": "src/Resources/assets/images/empty-dwn-product.png"
   },
+  "src/Resources/assets/images/contact-logo": {
+    "file": "assets/contact-logo",
+    "src": "src/Resources/assets/images/contact-logo.png"
+  },
   "src/Resources/assets/images/favicon.ico": {
     "file": "assets/favicon-1b7c1fb6.ico",
     "src": "src/Resources/assets/images/favicon.ico"

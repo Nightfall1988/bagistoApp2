@@ -553,7 +553,8 @@ class HitexisProductRepository extends Repository
             'attribute_values',
             'price_indices',
             'inventory_indices',
-            'reviews'
+            'reviews',
+            'variants'
         ])->scopeQuery(function ($query) use ($params, $customerGroup) {
             $prefix = DB::getTablePrefix();
 
@@ -566,7 +567,6 @@ class HitexisProductRepository extends Repository
                 })
                 ->leftJoin('product_categories', 'products.id', 'product_categories.product_id');
 
-            // Joins for description attributes
             $descriptionAlias1 = 'description_9_product_attribute_values';
             $descriptionAlias2 = 'description_10_product_attribute_values';
 
@@ -580,7 +580,6 @@ class HitexisProductRepository extends Repository
                     ->where($descriptionAlias2 . '.attribute_id', 10);
             });
 
-            // Join for visible_individually attribute
             $visibleIndividuallyAlias = 'visible_individually_product_attribute_values';
             $qb->leftJoin('product_attribute_values as ' . $visibleIndividuallyAlias, function ($join) use ($visibleIndividuallyAlias) {
                 $join->on('products.id', '=', $visibleIndividuallyAlias . '.product_id')
@@ -588,47 +587,60 @@ class HitexisProductRepository extends Repository
                     ->where($visibleIndividuallyAlias . '.boolean_value', 1);
             });
 
-            // Join for name attribute
             $nameAlias = 'name_product_attribute_values';
             $qb->leftJoin('product_attribute_values as ' . $nameAlias, function ($join) use ($nameAlias) {
                 $join->on('products.id', '=', $nameAlias . '.product_id')
-                    ->where($nameAlias . '.attribute_id', 2); // Assuming attribute_id = 2 for 'name'
+                    ->where($nameAlias . '.attribute_id', 2); 
             });
 
-            // Filter by category_id
             if (!empty($params['category_id'])) {
                 $qb->where('product_categories.category_id', $params['category_id']);
             }
 
-            // Filter by color
             if (!empty($params['color'])) {
                 $colorIds = explode(',', $params['color']);
                 $colorAlias = 'color_product_attribute_values';
+
                 $qb->leftJoin('product_attribute_values as ' . $colorAlias, function ($join) use ($colorAlias) {
                     $join->on('products.id', '=', $colorAlias . '.product_id')
-                        ->where($colorAlias . '.attribute_id', 23); // Adjust this attribute_id if necessary
+                        ->where($colorAlias . '.attribute_id', 23);
                 });
 
-                $qb->whereIn($colorAlias . '.integer_value', $colorIds);
+                $variantColorAlias = 'variant_color_product_attribute_values';
+                $qb->leftJoin('product_attribute_values as ' . $variantColorAlias, function ($join) use ($variantColorAlias) {
+                    $join->on('variants.id', '=', $variantColorAlias . '.product_id')
+                        ->where($variantColorAlias . '.attribute_id', 23); // Adjust this attribute_id if necessary
+                });
 
+                $qb->where(function ($query) use ($colorAlias, $variantColorAlias, $colorIds) {
+                    $query->whereIn($colorAlias . '.integer_value', $colorIds)
+                        ->orWhereIn($variantColorAlias . '.integer_value', $colorIds);
+                });
             }
 
             if (!empty($params['size'])) {
-                $colorIds = explode(',', $params['size']);
+                $sizeIds = explode(',', $params['size']);
                 $sizeAlias = 'size_product_attribute_values';
+
                 $qb->leftJoin('product_attribute_values as ' . $sizeAlias, function ($join) use ($sizeAlias) {
                     $join->on('products.id', '=', $sizeAlias . '.product_id')
-                        ->where($sizeAlias . '.attribute_id', 24); // Adjust this attribute_id if necessary
+                        ->where($sizeAlias . '.attribute_id', 24);
                 });
 
-                $qb->whereIn($sizeAlias . '.integer_value', $sizeAlias); // THIS HERE PROBLEM NO SORT BY COLORS
+                $variantSizeAlias = 'variant_size_product_attribute_values';
+                $qb->leftJoin('product_attribute_values as ' . $variantSizeAlias, function ($join) use ($variantSizeAlias) {
+                    $join->on('variants.id', '=', $variantSizeAlias . '.product_id')
+                        ->where($variantSizeAlias . '.attribute_id', 24);
+                });
 
+                $qb->where(function ($query) use ($sizeAlias, $variantSizeAlias, $sizeIds) {
+                    $query->whereIn($sizeAlias . '.integer_value', $sizeIds)
+                        ->orWhereIn($variantSizeAlias . '.integer_value', $sizeIds);
+                });
             }
 
-            // Ensure visible_individually is set to 1
             $qb->where($visibleIndividuallyAlias . '.boolean_value', 1);
 
-            // Sort collection
             $sortOptions = $this->getSortOptions($params);
             if ($sortOptions['order'] != 'rand') {
                 $attribute = $this->attributeRepository->findOneByField('code', $sortOptions['sort']);
