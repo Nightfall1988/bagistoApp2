@@ -339,7 +339,7 @@
     </script>
 
     <script type="text/x-template" id="v-media-image-item-template">
-        <div class="group relative grid max-h-[120px] min-w-[120px] justify-items-center overflow-hidden rounded transition-all hover:border-gray-400">
+        <div class="group relative grid max-h-[120px] min-w-[120px] justify-items-center overflow-hidden rounded transition-all hover:border-gray-400 relativediv">
             <!-- Image Preview -->
             <img
                 :src="image.url"

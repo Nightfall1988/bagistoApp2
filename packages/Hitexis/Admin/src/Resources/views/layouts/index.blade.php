@@ -111,6 +111,7 @@
                 @if (!request()->routeIs('admin.configuration.index'))
                     <x-admin::layouts.tabs />
                 @endif
+                zzzzzzzzzzzzzzz
 
                 <!-- Page Content Blade Component -->
                 {{ $slot }}

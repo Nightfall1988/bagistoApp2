@@ -722,6 +722,17 @@ return [
         ],
     ],
 
+    'markup' => [
+        'index' => [
+            'datagrid' => [
+                'name' => 'Name',
+                'amount ' => 'Amount',
+                'name' => 'Name',
+                'markup_unit  ' => 'Markup unit'
+            ]
+        ]
+    ],
+
     'catalog' => [
         'products' => [
             'index' => [
@@ -3325,6 +3336,21 @@ return [
         ],
     ],
 
+    'markup' => [
+        'delete-success'                => 'Markup successfully deleted',
+        'create-btn'                    => 'Create new Markup',
+        'index' => [
+            'datagrid' => [
+                'name' => 'Name',
+                'amount' => 'Fixed amount',
+                'percentage' => 'Markup percentage',
+                'markup_unit' => 'Markup unit',
+                'currency' => 'Currency',
+                'markup_type' => 'Type'
+            ]
+        ]
+    ],
+
     'wholesale' => [
         'create-btn'                    => 'Create new batch rule',
         'edit-btn'                      => 'Edit batch rule',
@@ -4129,6 +4155,7 @@ return [
                 'url-rewrites'             => 'URL Rewrites',
                 'users'                    => 'Users',
                 'wholesale'                => 'Wholesale',
+                'markup'                   => 'Markup'
             ],
         ],
 

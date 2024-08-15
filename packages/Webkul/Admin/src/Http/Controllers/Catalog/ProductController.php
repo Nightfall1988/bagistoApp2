@@ -22,6 +22,7 @@ use Webkul\Product\Repositories\ProductDownloadableLinkRepository;
 use Webkul\Product\Repositories\ProductDownloadableSampleRepository;
 use Webkul\Product\Repositories\ProductInventoryRepository;
 use Webkul\Product\Repositories\ProductRepository;
+use Hitexis\Markup\Repositories\MarkupRepository;
 
 class ProductController extends Controller
 {
@@ -43,6 +44,7 @@ class ProductController extends Controller
         protected ProductDownloadableSampleRepository $productDownloadableSampleRepository,
         protected ProductInventoryRepository $productInventoryRepository,
         protected ProductRepository $productRepository,
+        protected MarkupRepository $markupRepository,
     ) {
     }
 
@@ -141,6 +143,29 @@ class ProductController extends Controller
         $inventorySources = $this->inventorySourceRepository->findWhere(['status' => self::ACTIVE_STATUS]);
 
         return view('admin::catalog.products.edit', compact('product', 'inventorySources'));
+    }
+
+    public function storeMarkup(int $id) {
+        $data = [
+            'name' => request('name'),
+            'amount' => request('amount'),
+            'percentage' => request('percentage'),
+            'currency' => request('currency'),            
+            'markup_unit' => request('markup_unit'),
+            'markup_type' => request('markup_type'),
+            'product_id' => $id
+        ];
+
+        if (request('product_name')) {
+            $data['product_name'] = request('product_name');
+        }
+        
+        $deal = $this->markupRepository->create( $data );
+
+        return response()->json([
+            'success'      => 1,
+            'message'      => __('admin::app.catalog.products.saved-inventory-message'),
+        ]);
     }
 
     /**

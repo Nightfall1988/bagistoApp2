@@ -20,6 +20,8 @@ use Hitexis\PrintCalculator\Repositories\PrintTechniqueRepository;
 use Hitexis\Wholesale\Models\Wholesale;
 use Webkul\Category\Repositories\CategoryRepository;
 use Hitexis\PrintCalculator\Http\Controllers\Api\PrintCalculatorController;
+use Hitexis\Markup\Repositories\MarkupRepository;
+
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -59,7 +61,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         $this->app->singleton(MidoceanApiService::class, function ($app) {
-            return new MidoceanApiService($app->make(HitexisProductRepository::class), $app->make(SupplierRepository::class), $app->make(ProductImageRepository::class));
+            return new MidoceanApiService($app->make(HitexisProductRepository::class), $app->make(SupplierRepository::class), $app->make(ProductImageRepository::class), $app->make(MarkupRepository::class));
         });
 
         $this->app->singleton(PrintCalculatorImportService::class, function ($app) {
@@ -67,11 +69,11 @@ class AppServiceProvider extends ServiceProvider
         });
 
         $this->app->singleton(StrickerApiService::class, function ($app) {
-            return new StrickerApiService($app->make(HitexisProductRepository::class), $app->make(SupplierRepository::class));
+            return new StrickerApiService($app->make(HitexisProductRepository::class), $app->make(SupplierRepository::class), $app->make(MarkupRepository::class));
         });
 
         $this->app->singleton(XDConnectsApiService::class, function ($app) {
-            return new XDConnectsApiService($app->make(HitexisProductRepository::class), $app->make(SupplierRepository::class));
+            return new XDConnectsApiService($app->make(HitexisProductRepository::class), $app->make(SupplierRepository::class)); // $app->make(MarkupRepository::class)
         });
 
         $this->app->singleton(CategoryImportService::class, function ($app) {

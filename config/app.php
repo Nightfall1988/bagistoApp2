@@ -208,6 +208,7 @@ return [
          */
         Webkul\Admin\Providers\AdminServiceProvider::class,
         Hitexis\Admin\Providers\HitexisAdminServiceProvider::class,
+        Hitexis\Markup\Providers\MarkupServiceProvider::class,
         Webkul\Attribute\Providers\AttributeServiceProvider::class,
         Hitexis\Attribute\Providers\AttributeServiceProvider::class,
         Webkul\CartRule\Providers\CartRuleServiceProvider::class,

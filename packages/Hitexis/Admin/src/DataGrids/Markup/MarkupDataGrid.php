@@ -23,8 +23,10 @@ class MarkupDataGrid extends DataGrid
                 'markup.id',
                 'markup.name',
                 'markup.amount',
+                'markup.percentage',
+                'markup.markup_unit',
                 'markup.currency',
-                'markup.type',
+                'markup.markup_type',
             );
 
         $this->addFilter('id', 'markup.id');
@@ -58,6 +60,26 @@ class MarkupDataGrid extends DataGrid
         ]);
 
         $this->addColumn([
+            'index'      => 'percentage',
+            'label'      => trans('admin::app.markup.index.datagrid.percentage'),
+            'type'       => 'string',
+            'searchable' => true,
+            'filterable' => true,
+            'sortable'   => true,
+        ]);
+
+        
+        $this->addColumn([
+            'index'      => 'markup_unit',
+            'label'      => trans('admin::app.markup.index.datagrid.markup_unit'),
+            'type'       => 'string',
+            'searchable' => true,
+            'filterable' => true,
+            'sortable'   => true,
+        ]);
+
+        
+        $this->addColumn([
             'index'      => 'currency',
             'label'      => trans('admin::app.markup.index.datagrid.currency'),
             'type'       => 'string',
@@ -67,8 +89,8 @@ class MarkupDataGrid extends DataGrid
         ]);
 
         $this->addColumn([
-            'index'      => 'type',
-            'label'      => trans('admin::app.markup.index.datagrid.type'),
+            'index'      => 'markup_type',
+            'label'      => trans('admin::app.markup.index.datagrid.markup_type'),
             'type'       => 'string',
             'searchable' => true,
             'filterable' => true,

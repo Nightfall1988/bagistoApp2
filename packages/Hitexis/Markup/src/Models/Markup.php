@@ -23,11 +23,14 @@ class Markup extends Model implements MarkupContract
      * @var array
      */
     protected $fillable = [
-        'id',
         'name',
         'amount',
-        'type',
+        'percentage',
+        'markup_unit',
         'currency',
+        'markup_type',
+        'created_at',
+        'updated_at',
     ];
 
     /**
@@ -42,9 +45,9 @@ class Markup extends Model implements MarkupContract
     /**
      * Get the channels that owns the catalog rule.
      */
-    public function products(): BelongsToMany
+    public function products(): hasMany
     {
-        return $this->belongsToMany(ProductProxy::modelClass(), 'markup_product', 'markup_id', 'product_id');
+        return $this->hasMany(ProductProxy::modelClass(), 'markup_product', 'markup_id', 'product_id');
     }
 
     /**

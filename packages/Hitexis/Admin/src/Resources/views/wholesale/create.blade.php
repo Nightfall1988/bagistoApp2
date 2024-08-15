@@ -71,7 +71,8 @@
             } else {
                 productSuggestions.style.display = 'none';
             }
-        });
+        });    zzzzzzzzzzzzzzz
+
 
         // productSuggestions.addEventListener('click', function (event) {
         //     if (event.target.tagName === 'LI') {

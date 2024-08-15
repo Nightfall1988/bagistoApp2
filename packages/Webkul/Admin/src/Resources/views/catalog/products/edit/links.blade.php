@@ -12,7 +12,7 @@
         <div class="grid gap-2.5">
             <!-- Panel -->
             <div
-                class="box-shadow relative rounded bg-white dark:bg-gray-900"
+                class="box-shadow relative rounded bg-white dark:bg-gray-900 relativediv"
                 v-for="type in types"
             >
                 <div class="mb-2.5 flex justify-between gap-5 p-4">

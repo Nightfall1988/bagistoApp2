@@ -14,9 +14,11 @@ return new class extends Migration
         Schema::create('markup', function (Blueprint $table) {
             $table->increments('id');
             $table->string('name');
-            $table->string('amount');
+            $table->string('amount')->nullable();
+            $table->string('percentage')->nullable();
+            $table->string('markup_unit');
             $table->string('currency');
-            $table->string('type');
+            $table->string('markup_type');
             $table->timestamps();
         });
     }

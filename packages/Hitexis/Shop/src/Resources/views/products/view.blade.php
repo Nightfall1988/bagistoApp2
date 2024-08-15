@@ -468,7 +468,8 @@
                                 {!! view_render_event('bagisto.shop.products.view.additional_actions.after', ['product' => $product]) !!}
                             </div>
                         </div>
-                        @include('printcalculator::printcalculator.printcalculator', ['product' => $product])
+                        
+                        @include('shop::components.printcalculator.printcalculator', ['product' => $product])
                         <!-- LogoTron -->
                         <div class="flex flex-column">
                             <div class="flex flex-row max-w-[700px] gap-4" style="margin-top: 2rem;">

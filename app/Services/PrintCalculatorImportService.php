@@ -20,6 +20,9 @@ class PrintCalculatorImportService {
         $this->printTechniqueRepository = $printTechniqueRepository;
         $this->printManipulationRepository = $printManipulationRepository;
         $this->productRepository = $productRepository;
+        $this->url = env('STRICKER_PRINT_DATA');
+        $this->authUrl = env('STRICKER_AUTH_URL') . env('STRICKER_AUTH_TOKEN');
+
     }
 
     public function importPrintData() {
@@ -49,37 +52,47 @@ class PrintCalculatorImportService {
     }
     
     public function importStrickerPrintData() {
-        // $this->url = env('STRICKER_PRINT_DATA');
+        ini_set('memory_limit', '1G');
+        $headers = [
+            'Content-Type' => 'application/json',
+        ];
 
-        // $headers = [
-        //     'Content-Type' => 'application/json',
-        // ];
+        $this->httpClient = new GuzzleClient([
+            'headers' => $headers
+        ]);
+
+        $request = $this->httpClient->get($this->authUrl);
+        $authToken = json_decode($request->getBody()->getContents())->Token;
+
+        $this->url = $this->url . $authToken . '&lang=en';
+        $headers = [
+            'Content-Type' => 'application/json',
+        ];
     
-        // $this->httpClient = new GuzzleClient([
-        //     'headers' => $headers
-        // ]);
+        $this->httpClient = new GuzzleClient([
+            'headers' => $headers
+        ]);
+        $request = $this->httpClient->get($this->url);
 
-        $jsonO = file_get_contents('storage\app\private\Stricker_Customization_options.json');
-        $printData = json_decode($jsonO, true);
-        $tracker = new ProgressBar($this->output, count($printData));
-        $tracker->start();
+        $responseBody = $request->getBody()->getContents();
+        
+        $printData = json_decode($responseBody, true);
 
         $currency = $printData['Currency'];
         $language = $printData['Language'];
         $productRefs = [];
         $products = [];
-        
+        $tracker = new ProgressBar($this->output, count($printData['CustomizationOptions']));
+        $tracker->start();
         foreach ($printData['CustomizationOptions'] as $key => $customization) {
 
             $allQuantityPricePairs = $this->getQuantityPricePairs($customization);
 
             $prodReference = $customization['ProdReference'];
 
-            // if (!in_array($customization['ProdReference'], $productRefs)) {
                 $products = $this->productRepository
                     ->where('sku', 'like', $prodReference. '%')
                     ->get();
-            // }
 
             foreach ($products as $product) {
 

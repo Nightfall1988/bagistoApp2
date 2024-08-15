@@ -58,22 +58,23 @@ class MarkupController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(Request $request, $id = null)
     {
         $data = [
             'name' => request('name'),
             'amount' => request('amount'),
-            'type' => request('type'),
-            'currency' => request('currency'),
+            'percentage' => request('percentage'),
+            'currency' => request('currency'),            
+            'markup_unit' => request('markup_unit'),
+            'markup_type' => request('markup_type'),
         ];
 
         if (request('product_name')) {
             $data['product_name'] = request('product_name');
         }
         
-        $wholesaleDeal = $this->markupRepository->create();
+        $deal = $this->markupRepository->create( $data );
 
-        
         return redirect()->route('markup.markup.index');
     }
 
@@ -107,24 +108,24 @@ class MarkupController extends Controller
     //     return redirect()->route('wholesale.wholesale.index');
     // }
 
-    // public function destroy(int $id): JsonResponse
-    // {
-    //     try {
-    //         // Event::dispatch('marketing.campaigns.delete.before', $id);
+    public function destroy(int $id): JsonResponse
+    {
+        try {
+            // Event::dispatch('marketing.campaigns.delete.before', $id);
 
-    //         $this->wholesaleRepository->delete($id);
+            $this->markupRepository->delete($id);
 
-    //         // Event::dispatch('marketing.campaigns.delete.after', $id);
+            // Event::dispatch('marketing.campaigns.delete.after', $id);
 
-    //         return new JsonResponse([
-    //             'message' => trans('admin::app.wholesale.delete-success'),
-    //         ]);
-    //     } catch (\Exception $e) {
-    //         return new JsonResponse([
-    //             'message' => $e->message,
-    //         ]);
-    //     }
-    // }
+            return new JsonResponse([
+                'message' => trans('admin::app.markup.delete-success'),
+            ]);
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'message' => $e->message,
+            ]);
+        }
+    }
 
 
 }

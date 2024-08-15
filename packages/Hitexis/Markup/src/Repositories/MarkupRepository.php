@@ -6,6 +6,7 @@ use Illuminate\Container\Container;
 use Illuminate\Support\Facades\DB;
 use Webkul\Core\Eloquent\Repository;
 use Hitexis\Markup\Contracts\Markup as MarkupContract;
+use Hitexis\Product\Repositories\HitexisProductRepository;
 
 class MarkupRepository extends Repository implements MarkupContract
 {
@@ -15,8 +16,10 @@ class MarkupRepository extends Repository implements MarkupContract
      * @return void
      */
     public function __construct(
+        HitexisProductRepository $productRepository,
         Container $container
     ) {
+        $this->productRepository = $productRepository;
         parent::__construct($container);
     }
 
@@ -33,14 +36,25 @@ class MarkupRepository extends Repository implements MarkupContract
      */
     public function create(array $data)
     {
+        if($data['percentage']) {
+            $data["markup_unit"] = 'percent';
+        }
 
+        if($data['amount']) {
+            $data["markup_unit"] = 'amount';
+        }
+
+        $data['currency'] = 'EUR'; // GET DEFAULT LOCALE
         $deal = parent::create($data);
 
         foreach ($data as $key => $value) {
             $deal->$key = $value;
         }
 
-        $deal->products()->attach($deal->product_id);
+        if (isset($data['product_id']) && $data['markup_type'] == 'individual') {
+            $product = $this->productRepository->where('id', $data['product_id'])->first();
+            $product->markup()->attach($deal->id);
+        }
         
         return $deal;
     }
@@ -56,4 +70,5 @@ class MarkupRepository extends Repository implements MarkupContract
 
         return $markup;
     }
+
 }

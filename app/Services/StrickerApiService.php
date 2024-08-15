@@ -11,6 +11,7 @@ use Hitexis\Product\Repositories\SupplierRepository;
 use Hitexis\Product\Repositories\ProductImageRepository;
 use App\Services\CategoryImportService;
 use App\Services\CategoryMapper;
+use Hitexis\Markup\Repositories\MarkupRepository;
 use Symfony\Component\Console\Helper\ProgressBar;
 
 class StrickerApiService {
@@ -28,6 +29,7 @@ class StrickerApiService {
         SupplierRepository $supplierRepository,
         ProductImageRepository $productImageRepository,
         CategoryImportService $categoryImportService,
+        MarkupRepository $markupRepository,
         CategoryMapper $categoryMapper,
         
     ) {
@@ -37,11 +39,13 @@ class StrickerApiService {
         $this->supplierRepository = $supplierRepository;
         $this->productImageRepository = $productImageRepository;
         $this->categoryImportService = $categoryImportService;
-        // $this->authUrl = env('STRICKER_AUTH_URL') . env('STRICKER_AUTH_TOKEN');
-        // $this->url = env('STRICKER_PRODUCTS_URL');
-        // $this->optionalsUrl = env('STRICKER_OPTIONALS_URL');
+        $this->authUrl = env('STRICKER_AUTH_URL') . env('STRICKER_AUTH_TOKEN');
+        $this->url = env('STRICKER_PRODUCTS_URL');
+        $this->optionalsUrl = env('STRICKER_OPTIONALS_URL');
         $this->identifier = env('STRICKER_IDENTIFIER');
         $this->categoryMapper = $categoryMapper;
+        $this->markupRepository = $markupRepository;
+        $this->globalMarkup = null;
         
         // TEST DATA
         // $this->url = 'https://appbagst.free.beeceptor.com';
@@ -59,25 +63,26 @@ class StrickerApiService {
             'headers' => $headers
         ]);
 
-        // $request = $this->httpClient->get($this->authUrl);
-        // $authToken = json_decode($request->getBody()->getContents())->Token;
+        $request = $this->httpClient->get($this->authUrl);
+        $authToken = json_decode($request->getBody()->getContents())->Token;
 
-        // $this->url = $this->url . $authToken . '&lang=en';
-        // $this->optionalsUrl = $this->optionalsUrl . $authToken . '&lang=en';
+        $this->url = $this->url . $authToken . '&lang=en';
+        $this->optionalsUrl = $this->optionalsUrl . $authToken . '&lang=en';
 
         // GET PRODUCTS
-        // $request = $this->httpClient->get($this->url);
-        // $productsData = json_decode($request->getBody()->getContents(), true);
+        $request = $this->httpClient->get($this->url);
+        $productsData = json_decode($request->getBody()->getContents(), true);
 
         // GET OPTIONALS
-        // $optionalsData = $this->httpClient->get($this->optionalsUrl);
-        // $optionalsData = json_decode($optionalsData->getBody()->getContents(), true);
+        $optionalsData = $this->httpClient->get($this->optionalsUrl);
+        $optionalsData = json_decode($optionalsData->getBody()->getContents(), true);
+        $this->globalMarkup = $this->markupRepository->where('markup_type', 'global')->first();
 
-        // TESTING DATA - RESPONSE FROM JSON FILED
-        $jsonP = file_get_contents('storage\app\private\productstest.json');
-        $productsData = json_decode($jsonP, true);
-        $jsonO = file_get_contents('storage\app\private\optionalstest.json');
-        $optionalsData = json_decode($jsonO, true);
+        // // TESTING DATA - RESPONSE FROM JSON FILED
+        // $jsonP = file_get_contents('storage\app\private\productstest.json');
+        // $productsData = json_decode($jsonP, true);
+        // $jsonO = file_get_contents('storage\app\private\optionalstest.json');
+        // $optionalsData = json_decode($jsonO, true);
 
         $products = $this->getProductsWithOptionals($productsData, $optionalsData);
         $this->updateProducts($products);
@@ -160,9 +165,12 @@ class StrickerApiService {
         $mainProductData = $productData['product'];
         $mainProductOptionals = $productData['optionals'][0];
 
-        $price = isset($mainProductOptionals['Price1']) ? $mainProductOptionals['Price1'] : 0;
+        $cost = isset($mainProductOptionals['Price1']) ? $mainProductOptionals['Price1'] : 0;
         $yourPrice = isset($mainProductOptionals['YourPrice']) ? $mainProductOptionals['YourPrice'] : 0;
 
+        $price = $cost + $cost * ($this->globalMarkup->percentage/100);
+        $productVariant->markup()->attach($this->globalMarkup->id);
+        $productObj->markup()->attach($this->globalMarkup->id);
         $urlKey = strtolower($mainProductData['Name'] . '-' . $mainProductData['ProdReference']);
         $urlKey = preg_replace('/[^a-z0-9]+/', '-', $urlKey);
         $urlKey = trim($urlKey, '-');
@@ -206,7 +214,7 @@ class StrickerApiService {
             "meta_keywords" => $meta_keywords,
             "meta_description" => $meta_description,
             'price' => $price,
-            'cost' => '',
+            'cost' => $cost,
             "special_price" => "",
             "special_price_from" => "",
             "special_price_to" => "",          
@@ -278,8 +286,12 @@ class StrickerApiService {
         $urlKey = preg_replace('/[^a-z0-9]+/', '-', $urlKey);
         $urlKey = trim($urlKey, '-');
 
-        $price = isset($productData['optionals'][0]['Price1']) ? $productData['optionals'][0]['Price1'] : 0;
-                
+        $cost = isset($productData['optionals'][0]['Price1']) ? $productData['optionals'][0]['Price1'] : 0;
+        $yourPrice = isset($mainProductOptionals['YourPrice']) ? $mainProductOptionals['YourPrice'] : 0;
+
+        $price = $cost + $cost * ($this->globalMarkup->percentage/100);
+        $productObj->markup()->attach($this->globalMarkup->id);
+
         $this->supplierRepository->create([
             'product_id' => $productObj->id,
             'supplier_code' => $this->identifier
@@ -317,7 +329,7 @@ class StrickerApiService {
             "meta_keywords" => $meta_keywords,
             "meta_description" => $meta_description,       
             'price' => $price,
-            'cost' => '',
+            'cost' => $cost,
             "special_price" => "",
             "special_price_from" => "",
             "special_price_to" => "",
@@ -441,12 +453,17 @@ class StrickerApiService {
                 $urlKey = preg_replace('/[^a-z0-9]+/', '-', $urlKey);
                 $urlKey = trim($urlKey, '-');
     
-                $price = isset($foundOptional['Price1']) ? $foundOptional['Price1'] : 0;
-    
+                $cost = isset($foundOptional['Price1']) ? $foundOptional['Price1'] : 0;
+                $yourPrice = isset($mainProductOptionals['YourPrice']) ? $mainProductOptionals['YourPrice'] : 0;
+        
+                $price = $cost + $cost * ($this->globalMarkup->percentage/100);
+                $variant->markup()->attach($this->globalMarkup->id);
+
                 $variants[$variant->id] = [
                     "sku" => $foundOptional['Sku'],
                     "name" => $foundOptional['Name'],
                     'price' => $price,
+                    'cost' => $cost,
                     "weight" => $foundOptional['Weight'] ?? 0,
                     "status" => "1",
                     "new" => "1",
@@ -506,8 +523,7 @@ class StrickerApiService {
                     "meta_description" => "",
                     "meta_description" => "",
                     "meta_description" => "",       
-                    'price' => $price,
-                    'cost' => '',
+                    'cost' => $cost,
                     "special_price" => "",
                     "special_price_from" => "",
                     "special_price_to" => "",
@@ -634,9 +650,8 @@ class StrickerApiService {
                 if (isset($optional['ColorDesc1'])) {
                     $colorObj = $this->attributeOptionRepository->getOption(ucfirst(trim($optional['ColorDesc1'])));
                     if (!$colorObj) {
-
                         $colorObj = $this->attributeOptionRepository->create([
-                            'admin_name' => ucfirst(trim($colorName)),
+                            'admin_name' => ucfirst(trim($optional['ColorDesc1'])),
                             'attribute_id' => 23,
                         ]);                    
                     }

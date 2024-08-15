@@ -26,6 +26,7 @@ use Hitexis\Product\Database\Factories\ProductFactory;
 use Hitexis\Product\Type\AbstractType;
 use Hitexis\Wholesale\Models\WholesaleProxy;
 use Hitexis\PrintCalculator\Models\PrintTechniqueProxy;
+use Hitexis\Markup\Models\MarkupProxy;
 
 class Product extends BaseProduct implements ProductContract
 {
@@ -556,9 +557,9 @@ class Product extends BaseProduct implements ProductContract
     /**
      * Get the markup.
      */
-    public function markup(): BelongsToMany
+    public function markup(): belongsToMany
     {
-        return $this->hasOne(ProductMarkupProxy::modelClass(),'wholesale_product', 'product_id', 'markup_id');
+        return $this->belongsToMany(MarkupProxy::modelClass(),'markup_product', 'product_id', 'markup_id');
     }
 
     /**

@@ -21,6 +21,9 @@ use Webkul\Product\Contracts\Product as ProductContract;
 use Webkul\Product\Database\Eloquent\Builder;
 use Webkul\Product\Database\Factories\ProductFactory;
 use Webkul\Product\Type\AbstractType;
+use Webkul\Wholesale\Models\WholesaleProxy;
+use Webkul\PrintCalculator\Models\PrintTechniqueProxy;
+use Hitexis\Markup\Models\MarkupProxy;
 
 class Product extends Model implements ProductContract
 {
@@ -505,5 +508,57 @@ class Product extends Model implements ProductContract
     protected static function newFactory(): Factory
     {
         return ProductFactory::new();
+    }
+
+    
+    /**
+     * Get the wholesale options.
+     */
+    public function wholesales(): BelongsToMany
+    {
+        return $this->belongsToMany(WholesaleProxy::modelClass(), 'wholesale_product', 'product_id', 'wholesale_id');
+    }
+
+    /**
+     * Get the supplier.
+     */
+    public function supplier(): HasOne
+    {
+        return $this->hasOne(ProductSupplierProxy::modelClass(),'product_id');
+    }
+
+    /**
+     * Get the markup.
+     */
+    public function markup(): belongsToMany
+    {
+        return $this->belongsToMany(MarkupProxy::modelClass(),'markup_product', 'product_id', 'markup_id');
+    }
+
+    /**
+     * Get print techniques.
+     */
+    public function print_techniques(): HasMany
+    {
+        return $this->hasMany(PrintTechniqueProxy::modelClass());
+    }
+
+    public function getColors()
+    {
+        $attributeCode = 'color';
+
+        // Retrieve the super attribute by code
+        $colorAttribute = $this->super_attributes->firstWhere('code', $attributeCode);
+
+        if (!$colorAttribute) {
+            return collect();
+        }
+
+        $allColors = $colorAttribute->options;
+        $variantColors = $this->variants->map(function ($variant) use ($attributeCode) {
+            return $variant->{$attributeCode};
+        })->unique();
+
+        return $variantColors;
     }
 }

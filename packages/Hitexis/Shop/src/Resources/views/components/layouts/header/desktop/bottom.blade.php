@@ -97,7 +97,7 @@
                 </x-slot>
             </x-shop::dropdown>
 
-            <x-hitexis-shop::dropdown position="bottom-{{ core()->getCurrentLocale()->direction === 'ltr' ? 'right' : 'left' }}">
+            <x-shop::dropdown position="bottom-{{ core()->getCurrentLocale()->direction === 'ltr' ? 'right' : 'left' }}">
                 <x-slot:toggle>
                     <!-- Dropdown Toggler -->
                     <div
@@ -436,45 +436,45 @@ id="v-locale-switcher-template"
             },
         });
 
-        // app.component('v-currency-switcher', {
-        //     template: '#v-currency-switcher-template',
+        app.component('v-currency-switcher', {
+            template: '#v-currency-switcher-template',
 
-        //     data() {
-        //         return {
-        //             currencies: @json(core()->getCurrentChannel()->currencies),
-        //         };
-        //     },
+            data() {
+                return {
+                    currencies: @json(core()->getCurrentChannel()->currencies),
+                };
+            },
 
-        //     methods: {
-        //         change(currency) {
-        //             let url = new URL(window.location.href);
+            methods: {
+                change(currency) {
+                    let url = new URL(window.location.href);
 
-        //             url.searchParams.set('currency', currency.code);
+                    url.searchParams.set('currency', currency.code);
 
-        //             window.location.href = url.href;
-        //         }
-        //     }
-        // });
+                    window.location.href = url.href;
+                }
+            }
+        });
 
-        // app.component('v-locale-switcher', {
-        //     template: '#v-locale-switcher-template',
+        app.component('v-locale-switcher', {
+            template: '#v-locale-switcher-template',
 
-        //     data() {
-        //         return {
-        //             locales: @json(core()->getCurrentChannel()->locales()->orderBy('name')->get()),
-        //         };
-        //     },
+            data() {
+                return {
+                    locales: @json(core()->getCurrentChannel()->locales()->orderBy('name')->get()),
+                };
+            },
 
-        //     methods: {
-        //         change(locale) {
-        //             let url = new URL(window.location.href);
+            methods: {
+                change(locale) {
+                    let url = new URL(window.location.href);
 
-        //             url.searchParams.set('locale', locale.code);
+                    url.searchParams.set('locale', locale.code);
 
-        //             window.location.href = url.href;
-        //         }
-        //     }
-        // });
+                    window.location.href = url.href;
+                }
+            }
+        });
         
     </script>
 @endPushOnce

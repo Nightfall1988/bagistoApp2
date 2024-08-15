@@ -10,6 +10,7 @@ use Hitexis\Product\Repositories\ProductImageRepository;
 use Hitexis\Product\Repositories\ProductAttributeValueRepository;
 use App\Services\CategoryImportService;
 use Symfony\Component\Console\Helper\ProgressBar;
+use Hitexis\Markup\Repositories\MarkupRepository;
 
 class MidoceanApiService {
 
@@ -30,6 +31,7 @@ class MidoceanApiService {
         SupplierRepository $supplierRepository,
         ProductImageRepository $productImageRepository,
         ProductAttributeValueRepository $productAttributeValueRepository,
+        MarkupRepository $markupRepository,
         CategoryImportService $categoryImportService
     ) {
         $this->productRepository = $productRepository;
@@ -38,14 +40,17 @@ class MidoceanApiService {
         $this->supplierRepository = $supplierRepository;
         $this->productImageRepository = $productImageRepository;
         $this->productAttributeValueRepository = $productAttributeValueRepository;
+        $this->markupRepository = $markupRepository;
         $this->categoryImportService = $categoryImportService;
 
         // $this->url = 'https://appbagst.free.beeceptor.com/zz'; // TEST;
+        // dd(env('MIDOECAN_PRODUCTS_URL'));
         $this->url = env('MIDOECAN_PRODUCTS_URL');
         $this->pricesUrl = env('MIDOECAN_PRICES_URL');
         $this->identifier = env('MIDOECAN_IDENTIFIER');
         $this->printUrl = env('MIDOECAN_PRINT_URL');
         $this->productImages = [];
+        $this->globalMarkup = null;
     }
 
     public function getData()
@@ -75,9 +80,10 @@ class MidoceanApiService {
             $priceList[$sku] = $price;
         }
 
+        $this->globalMarkup = $this->markupRepository->where('markup_type', 'global')->first();
+
         $tracker = new ProgressBar($this->output, count($response));
         $tracker->start();
-
         // SAVE PRODUCTS AND VARIANTS
         foreach ($response as $apiProduct) {
 
@@ -290,17 +296,20 @@ class MidoceanApiService {
                 $tempPaths[] = $imageData['tempPaths'];
             }
 
+
             // URLKEY
             $urlKey = strtolower($apiProduct->product_name . '-' . $apiProduct->variants[$i]->sku);
             $urlKey = preg_replace('/[^a-z0-9]+/', '-', $urlKey);
             $urlKey = trim($urlKey, '-');
             $urlKey = strtolower($urlKey);
             $name = $product['Name'];
-            $price = $priceList[$apiProduct->variants[$i]->sku] ?? 0;
+            $cost = $priceList[$apiProduct->variants[$i]->sku] ?? 0;
+            $price = $cost + $cost * ($this->globalMarkup->percentage/100);
 
             $variants[$productVariant->id] = [
                 "sku" => $apiProduct->variants[$i]->sku,
                 "name" => $apiProduct->product_name,
+                "cost" => $cost,
                 "price" => $price,
                 "weight" => $apiProduct->net_weight ?? 0,
                 "status" => "1",
@@ -333,7 +342,9 @@ class MidoceanApiService {
                 'supplier_code' => $this->identifier
             ]);
 
-            $price = $priceList[$apiProduct->variants[$i]->sku] ?? 0;
+            $cost = $priceList[$apiProduct->variants[$i]->sku] ?? 0;
+            $price = $cost + $cost * ($this->globalMarkup->percentage/100);
+            $productVariant->markup()->attach($this->globalMarkup->id);
 
             $urlKey = strtolower($apiProduct->product_name . '-' . $apiProduct->variants[$i]->sku);
             $urlKey = preg_replace('/[^a-z0-9]+/', '-', $urlKey);
@@ -354,7 +365,7 @@ class MidoceanApiService {
                 "meta_keywords" => "",
                 "meta_description" => "",
                 'price' => $price,
-                'cost' => '',
+                'cost' => $cost,
                 "special_price" => "",
                 "special_price_from" => "",
                 "special_price_to" => "",
@@ -409,7 +420,7 @@ class MidoceanApiService {
             "meta_keywords" => $meta_keywords,
             "meta_description" => $meta_description,
             'price' => $price,
-            'cost' => '',
+            'cost' => $cost,
             "special_price" => "",
             "special_price_from" => "",
             "special_price_to" => "",
@@ -443,8 +454,9 @@ class MidoceanApiService {
         ]);
 
         $productSku = $product->sku ?? '';
-        $price = isset($priceList[$productSku]) ? $priceList[$productSku] : 0;
-
+        $cost = isset($priceList[$productSku]) ? $priceList[$productSku] : 0;
+        $price = $cost + $cost * ($this->globalMarkup->percentage/100);
+        $product->markup()->attach($this->globalMarkup->id);
 
         $urlKey = isset($apiProduct->product_name) ? $apiProduct->product_name  . '-' . $apiProduct->master_id : $apiProduct->master_id; 
         $urlKey = preg_replace('/[^a-z0-9]+/', '-', $urlKey);
@@ -461,9 +473,14 @@ class MidoceanApiService {
         $productCategory = preg_replace('/[^a-z0-9]+/', '', strtolower($apiProduct->variants[0]->category_level1)) ?? ', ';
         $productSubCategory = preg_replace('/[^a-z0-9]+/', '', strtolower($apiProduct->variants[0]->category_level2)) ?? ', ';
 
-        $meta_title = "$apiProduct->product_name $apiProduct->product_class $apiProduct->brand";
-        $meta_description = "$apiProduct->short_description";
-        $meta_keywords = "$apiProduct->product_name, $apiProduct->brand, $productCategory, $productSubCategory, $apiProduct->product_class";
+        $name = $apiProduct->variants[0]->product_name ?? '';
+        $productClass = $apiProduct->variants[0]->product_class ?? '';
+        $brand = $apiProduct->variants[0]->brand ?? '';
+        $shortDescriptions = $apiProduct->variants[0]->short_description ?? '';
+
+        $meta_title = "$name $productClass $brand";
+        $meta_description = "$shortDescriptions";
+        $meta_keywords = "$name, $productClass, $brand, $productCategory, $productSubCategory";
 
         $superAttributes = [
             "channel" => "default",
@@ -478,7 +495,7 @@ class MidoceanApiService {
             "meta_keywords" => $meta_keywords,
             "meta_description" => $meta_description,
             'price' => $price,
-            'cost' => '',
+            'cost' => $cost,
             "special_price" => "",
             "special_price_from" => "",
             "special_price_to" => "",          

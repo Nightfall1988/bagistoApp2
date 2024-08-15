@@ -9,6 +9,7 @@ use Webkul\Admin\Http\Controllers\Catalog\Product\ConfigurableController;
 use Webkul\Admin\Http\Controllers\Catalog\Product\DownloadableController;
 use Webkul\Admin\Http\Controllers\Catalog\Product\GroupedController;
 use Webkul\Admin\Http\Controllers\Catalog\ProductController;
+use Hitexis\Markup\Http\Controllers\MarkupController;
 
 /**
  * Catalog routes.
@@ -109,6 +110,8 @@ Route::group(['middleware' => ['admin'], 'prefix' => config('app.admin_url')], f
 
             Route::post('mass-delete', 'massDestroy')->name('admin.catalog.products.mass_delete');
 
+            Route::post('markup/{id}', 'storeMarkup')->name('admin.catalog.products.markup');
+
             Route::controller(ConfigurableController::class)->group(function () {
                 Route::get('{id}/configurable-options', 'options')->name('admin.catalog.products.configurable.options');
             });
@@ -128,6 +131,7 @@ Route::group(['middleware' => ['admin'], 'prefix' => config('app.admin_url')], f
             Route::get('search', 'search')->name('admin.catalog.products.search');
 
             Route::get('{id}/{attribute_id}', 'download')->name('admin.catalog.products.file.download');
+
         });
     });
 });

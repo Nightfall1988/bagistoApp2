@@ -722,14 +722,6 @@ return [
         ],
     ],
 
-    'markup' => [
-        'index' => [
-            'datagrid' => [
-                'type' => 'Type'
-            ]
-        ]
-    ],
-
     'catalog' => [
         'products' => [
             'index' => [
@@ -3334,11 +3326,17 @@ return [
     ],
 
     'markup' => [
+        'delete-success'                => 'Markup successfully deleted',
         'create-btn'                    => 'Create new Markup',
         'index' => [
+            'title' => 'Markup management',
             'datagrid' => [
-                'type' => 'Type',
-                'currency' => 'Currency'
+                'name' => 'Name',
+                'amount' => 'Fixed amount',
+                'percentage' => 'Markup percentage',
+                'markup_unit' => 'Markup unit',
+                'currency' => 'Currency',
+                'markup_type' => 'Type'
             ]
         ]
     ],

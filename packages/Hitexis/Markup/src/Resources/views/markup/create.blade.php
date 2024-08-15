@@ -15,24 +15,28 @@
 
             <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
                 <div class="sm:col-span-3">
-                    <label for="name" class="block text-sm font-medium text-gray-700">markup name</label>
+                    <label for="name" class="block text-sm font-medium text-gray-700">Markup name</label>
                     <input type="text" name="name" id="name" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
                 </div>
 
                 <div class="sm:col-span-3">
-                    <label for="discount_percentage" class="block text-sm font-medium text-gray-700">Discount Percentage</label>
-                    <input type="text" name="discount_percentage" id="discount_percentage" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                    <label for="percentage" class="block text-sm font-medium text-gray-700">Percentage</label>
+                    <input type="text" name="percentage" id="percentage" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
                 </div>
 
                 <div class="sm:col-span-3">
-                    <label for="batch_amount" class="block text-sm font-medium text-gray-700">Batch Amount</label>
-                    <input type="text" name="batch_amount" id="batch_amount" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                    <label for="amount" class="block text-sm font-medium text-gray-700">Amount</label>
+                    <input type="text" name="amount" id="amount" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
                 </div>
 
                 <div class="sm:col-span-6">
-                    <label for="product_name" class="block text-sm font-medium text-gray-700">Product Name</label>
-                    <input type="text" name="product_name" id="product_name" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-                    <div id="found_products"></div>
+                    <label for="markup_unit" class="block text-sm font-medium text-gray-700">Markup Unit</label>
+                    <input type="text" name="markup_unit" id="markup_unit" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                </div>
+
+                <div class="sm:col-span-6">
+                    <label for="markup_type" class="block text-sm font-medium text-gray-700">Markup Type</label>
+                    <input type="text" name="markup_type" id="markup_type" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
                 </div>
             </div>
 

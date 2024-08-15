@@ -153,7 +153,7 @@
                         @if (count($customAttributes))
                             {!! view_render_event('bagisto.admin.catalog.product.edit.form.' . $group->code . '.before', ['product' => $product]) !!}
 
-                            <div class="box-shadow relative rounded bg-white p-4 dark:bg-gray-900">
+                            <div class="box-shadow relative rounded bg-white p-4 dark:bg-gray-900 relativediv">
                                 <p class="mb-4 text-base font-semibold text-gray-800 dark:text-white">
                                     {{ $group->name }}
                                 </p>
@@ -208,8 +208,11 @@
                             {!! view_render_event('bagisto.admin.catalog.product.edit.form.' . $group->code . '.after', ['product' => $product]) !!}
                         @endif
                     @endforeach
-
                     @if ($column == 1)
+                    <div class="box-shadow relative rounded bg-white p-4 dark:bg-gray-900 relativediv">
+                        @include('admin::catalog.products.edit.markup-manager', ['product' => $product])
+                    </div>
+
                         <!-- Images View Blade File -->
                         @include('admin::catalog.products.edit.images')
 
