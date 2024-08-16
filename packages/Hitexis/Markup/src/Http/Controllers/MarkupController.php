@@ -73,8 +73,11 @@ class MarkupController extends Controller
             $data['product_name'] = request('product_name');
         }
         
-        $deal = $this->markupRepository->create( $data );
-
+        $markup = $this->markupRepository->create( $data );
+        if($id) {
+            $product = $this->productRepository->where('id',$id);
+            $this->markupRepository->addMarkupToPrice( $product, $markup);
+        }
         return redirect()->route('markup.markup.index');
     }
 
@@ -82,38 +85,24 @@ class MarkupController extends Controller
         $this->wholesaleRepository->search();
     }
 
-    // public function edit($id)
-    // {
-    //     $wholesale = $this->wholesaleRepository->findOrFail($id);
-    //     return view('wholesale::wholesale.edit', compact('wholesale'));
-    // }
-
-    
-    // public function update(Request $request, $id)
-    // {
-    //     if (isset($request->product_name)) {
-    //         $product = $this->productRepository->findByAttributeCode('name', $request->product_name);
-    //     }
-
-    //     $wholesale = $this->wholesaleRepository->update(request()->all(), $id);
-        
-    //     if (isset($product)) {
-    //         if (!$product->wholesales->contains($wholesale->id)) {
-    //             $product->wholesales()->attach($wholesale->id);
-    //         }
-    //     }
-
-    //     session()->flash('success', trans('admin::app.wholesale.update-success'));
-
-    //     return redirect()->route('wholesale.wholesale.index');
-    // }
-
     public function destroy(int $id): JsonResponse
     {
         try {
             // Event::dispatch('marketing.campaigns.delete.before', $id);
 
-            $this->markupRepository->delete($id);
+            $markup = $this->markupRepository->where('id', $id)->first();
+            $markupId = $markup->id;
+            $products = Product::whereHas('markup', function ($query) use ($markupId) {
+                $query->where('markup_id', $markupId);
+            })->get();
+
+            if ($markup) {
+                foreach ($products as $product) {
+                    $this->markupRepository->subtractMarkupFromPrice($product,$markup);
+                }
+                $this->markupRepository->delete($id);
+            }
+
 
             // Event::dispatch('marketing.campaigns.delete.after', $id);
 
@@ -121,6 +110,7 @@ class MarkupController extends Controller
                 'message' => trans('admin::app.markup.delete-success'),
             ]);
         } catch (\Exception $e) {
+            dd($e);
             return new JsonResponse([
                 'message' => $e->message,
             ]);

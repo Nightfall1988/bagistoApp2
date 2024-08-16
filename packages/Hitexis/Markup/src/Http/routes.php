@@ -9,6 +9,6 @@ Route::group(['middleware' => ['web', 'admin']], function () {
         Route::post('/store', 'Hitexis\Markup\Http\Controllers\MarkupController@store')->name('markup.markup.store');
         Route::get('/edit/{id}', 'Hitexis\Markup\Http\Controllers\MarkupController@edit')->name('markup.markup.edit');
         Route::post('/update/{id}', 'Hitexis\Markup\Http\Controllers\MarkupController@update')->name('markup.markup.update');
-        Route::delete('/delete/{id}', 'Hitexis\Markup\Http\Controllers\MarkupController@destroy')->name('markup.markup.delete');
+        Route::post('/delete/{id}', 'Hitexis\Admin\Http\Controllers\MarkupController@destroy')->name('markup.markup.delete');
     });
 });
