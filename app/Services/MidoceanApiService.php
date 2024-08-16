@@ -304,13 +304,12 @@ class MidoceanApiService {
             $urlKey = strtolower($urlKey);
             $name = $product['Name'];
             $cost = $priceList[$apiProduct->variants[$i]->sku] ?? 0;
-            $price = $cost + $cost * ($this->globalMarkup->percentage/100);
 
             $variants[$productVariant->id] = [
                 "sku" => $apiProduct->variants[$i]->sku,
                 "name" => $apiProduct->product_name,
                 "cost" => $cost,
-                "price" => $price,
+                "price" => $cost,
                 "weight" => $apiProduct->net_weight ?? 0,
                 "status" => "1",
                 "new" => "1",
@@ -343,9 +342,6 @@ class MidoceanApiService {
             ]);
 
             $cost = $priceList[$apiProduct->variants[$i]->sku] ?? 0;
-            $price = $cost + $cost * ($this->globalMarkup->percentage/100);
-            $productVariant->markup()->attach($this->globalMarkup->id);
-
             $urlKey = strtolower($apiProduct->product_name . '-' . $apiProduct->variants[$i]->sku);
             $urlKey = preg_replace('/[^a-z0-9]+/', '-', $urlKey);
             $urlKey = trim($urlKey, '-');
@@ -364,7 +360,7 @@ class MidoceanApiService {
                 "meta_title" =>  "",
                 "meta_keywords" => "",
                 "meta_description" => "",
-                'price' => $price,
+                'price' => $cost,
                 'cost' => $cost,
                 "special_price" => "",
                 "special_price_from" => "",
@@ -393,8 +389,8 @@ class MidoceanApiService {
             }
 
             $productVariant = $this->productRepository->updateToShop($superAttributes, $productVariant->id, $attribute = 'id');
-
         }
+
         $productCategory = preg_replace('/[^a-z0-9]+/', '', strtolower($apiProduct->variants[0]->category_level1)) ?? ', ';
         $productSubCategory = preg_replace('/[^a-z0-9]+/', '', strtolower($apiProduct->variants[0]->category_level2)) ?? ', ';
 
@@ -419,7 +415,7 @@ class MidoceanApiService {
             "meta_title" =>  $meta_title,
             "meta_keywords" => $meta_keywords,
             "meta_description" => $meta_description,
-            'price' => $price,
+            'price' => $cost,
             'cost' => $cost,
             "special_price" => "",
             "special_price_from" => "",
@@ -440,7 +436,7 @@ class MidoceanApiService {
         ];
 
         $product = $this->productRepository->updateToShop($superAttributes, $product->id, $attribute = 'id');
-
+        $this->markupRepository->addMarkupToPrice($product, $this->globalMarkup);
         return $product;
     }
 
@@ -455,7 +451,6 @@ class MidoceanApiService {
 
         $productSku = $product->sku ?? '';
         $cost = isset($priceList[$productSku]) ? $priceList[$productSku] : 0;
-        $price = $cost + $cost * ($this->globalMarkup->percentage/100);
         $product->markup()->attach($this->globalMarkup->id);
 
         $urlKey = isset($apiProduct->product_name) ? $apiProduct->product_name  . '-' . $apiProduct->master_id : $apiProduct->master_id; 
@@ -494,7 +489,7 @@ class MidoceanApiService {
             "meta_title" => $meta_title,
             "meta_keywords" => $meta_keywords,
             "meta_description" => $meta_description,
-            'price' => $price,
+            'price' => $cost,
             'cost' => $cost,
             "special_price" => "",
             "special_price_from" => "",
@@ -521,7 +516,8 @@ class MidoceanApiService {
                 'supplier_code' => $this->identifier
             ]);
 
-        $this->productRepository->updateToShop($superAttributes, $product->id, $attribute = 'id');
+        $product = $this->productRepository->updateToShop($superAttributes, $product->id, $attribute = 'id');
+        $this->markupRepository->addMarkupToPrice($product, $this->globalMarkup);
     }
 
     public function setOutput($output)

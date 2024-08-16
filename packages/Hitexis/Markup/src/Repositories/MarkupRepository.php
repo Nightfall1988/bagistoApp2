@@ -64,7 +64,7 @@ class MarkupRepository extends Repository implements MarkupContract
         return $markup;
     }
 
-    public function addMarkupToPrice($product,$markup) 
+public function addMarkupToPrice($product,$markup) 
     {
         // needs fix
         $cost = $product->getAttribute('cost');
@@ -76,13 +76,13 @@ class MarkupRepository extends Repository implements MarkupContract
             $priceMarkup = $markup->amount;
         }
 
-        $productAttribute = $this->productAttributeValueRepository->findOneWhere([
-            'product_id'   => $product->id,
-            'attribute_id' => 11,
-        ]);
-
         if ($product->type == 'simple') {
-            $productAttribute->float_value = $productAttribute->float_value + $priceMarkup;
+            $productAttribute = $this->productAttributeValueRepository->findOneWhere([
+                'product_id'   => $product->id,
+                'attribute_id' => 11,
+            ]);
+
+            $productAttribute->float_value =+ $priceMarkup;
             $productAttribute->save();
             $product->markup()->attach($markup->id);
             $markup->product_id = $product->id;
@@ -98,6 +98,8 @@ class MarkupRepository extends Repository implements MarkupContract
                 $productVar->markup()->attach($markup->id);
                 $markup->product_id = $productVar->id;
             }
+
+            $product->markup()->attach($markup->id);
         }
     }
 
@@ -129,7 +131,6 @@ class MarkupRepository extends Repository implements MarkupContract
                     'attribute_id' => 11,
                 ]);
         
-                $productAttribute->float_value = $productAttribute->float_value - $priceMarkup;
                 $product->markup()->detach($markup->id);
                 $productAttribute->save();
             }
