@@ -5,6 +5,7 @@
     @php
         $clientId = core()->getConfigData('sales.payment_methods.paypal_smart_button.client_id');
 
+        // currency-fix-needed
         $acceptedCurrency = core()->getConfigData('sales.payment_methods.paypal_smart_button.accepted_currencies');
     @endphp
 

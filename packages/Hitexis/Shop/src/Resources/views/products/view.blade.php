@@ -469,7 +469,9 @@
                             </div>
                         </div>
                         
-                        @include('shop::components.printcalculator.printcalculator', ['product' => $product])
+                        @if (!empty($product->print_techniques))
+                            @include('shop::components.printcalculator.printcalculator', ['product' => $product])
+                        @endif
                         <!-- LogoTron -->
                         <div class="flex flex-column">
                             <div class="flex flex-row max-w-[700px] gap-4" style="margin-top: 2rem;">

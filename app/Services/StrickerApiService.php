@@ -213,7 +213,7 @@ class StrickerApiService {
             "meta_title" => $meta_title,
             "meta_keywords" => $meta_keywords,
             "meta_description" => $meta_description,
-            'price' => $price,
+            'price' => $cost,
             'cost' => $cost,
             "special_price" => "",
             "special_price_from" => "",
@@ -241,7 +241,8 @@ class StrickerApiService {
             'supplier_code' => $this->identifier
         ]);
 
-        $this->productRepository->updateToShop($superAttributes, $productObj->id, 'id');
+        $productObj = $this->productRepository->updateToShop($superAttributes, $productObj->id, 'id');
+        $this->markupRepository->addMarkupToPrice($productObj, $this->globalMarkup);
     }
 
     public function createSimple($productData) {
@@ -289,9 +290,6 @@ class StrickerApiService {
         $cost = isset($productData['optionals'][0]['Price1']) ? $productData['optionals'][0]['Price1'] : 0;
         $yourPrice = isset($mainProductOptionals['YourPrice']) ? $mainProductOptionals['YourPrice'] : 0;
 
-        $price = $cost + $cost * ($this->globalMarkup->percentage/100);
-        $productObj->markup()->attach($this->globalMarkup->id);
-
         $this->supplierRepository->create([
             'product_id' => $productObj->id,
             'supplier_code' => $this->identifier
@@ -328,7 +326,7 @@ class StrickerApiService {
             "meta_title" => $meta_title,
             "meta_keywords" => $meta_keywords,
             "meta_description" => $meta_description,       
-            'price' => $price,
+            'price' => $cost,
             'cost' => $cost,
             "special_price" => "",
             "special_price_from" => "",
@@ -353,7 +351,8 @@ class StrickerApiService {
         if ($sizeId != '') {
             $superAttributes['size'] = $sizeId;
         }
-        $this->productRepository->updateToShop($superAttributes, $productObj->id, 'id');
+        $productObj = $this->productRepository->updateToShop($superAttributes, $productObj->id, 'id');
+        $this->markupRepository->addMarkupToPrice($productObj, $this->globalMarkup);
     }
 
     public function setOutput($output)
@@ -396,6 +395,27 @@ class StrickerApiService {
                             $colorId = $colorObj->id;
                             $colorIds[] = $colorId;
                             $tempAttributes[] = $colorId;
+                        }
+                    }
+                }
+
+                if (isset($foundOptional['Materials'])) {
+                    $materialObj = $this->attributeOptionRepository->getOption($foundOptional['Materials']);
+                    if ($materialObj && !in_array($materialObj->id,$tempAttributes)) {
+                        $materialId = $materialObj->id;
+                        $tempAttributes[] = $materialId;
+                    }
+    
+                    if (!$materialObj) {
+                        {
+                            $materialObj = $this->attributeOptionRepository->create([
+                                'admin_name' => ucfirst(trim($foundOptional['Materials'])),
+                                'attribute_id' => 29,
+                            ]);
+        
+                            $materialId = $materialObj->id;
+                            $materialIds[] = $materialId;
+                            $tempAttributes[] = $materialId;
                         }
                     }
                 }
@@ -514,7 +534,7 @@ class StrickerApiService {
                     "product_number" =>  $foundOptional['ProdReference'] . '-' . $foundOptional['Sku'],
                     "name" =>  $foundOptional['Name'],
                     "url_key" => $urlKey,                    
-                    'price' => $price ?? '0',
+                    'price' => $cost ?? '0',
                     "weight" => $foundOptional['Weight'] ?? 0,
                     "short_description" =>(isset($foundOptional['ShortDescription'])) ? 'no description provided' : '<p>' . $foundOptional['ShortDescription'] . '</p>',
                     "description" => (isset($foundOptional['Description'])) ? 'no description provided' : '<p>' . $foundOptional['Description'] . '</p>',
@@ -524,6 +544,7 @@ class StrickerApiService {
                     "meta_description" => "",
                     "meta_description" => "",       
                     'cost' => $cost,
+                    'material' => $materialObj->admin_name ?? '',
                     "special_price" => "",
                     "special_price_from" => "",
                     "special_price_to" => "",

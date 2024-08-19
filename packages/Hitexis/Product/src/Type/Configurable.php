@@ -103,7 +103,6 @@ class Configurable extends AbstractType
         }
 
         $superAttributes = [];
-        var_dump($data['super_attributes']);
 
         foreach ($data['super_attributes'] as $attributeCode => $attributeOptions) {
             $attribute = $this->attributesByCode[$attributeCode] ?? null;

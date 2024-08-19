@@ -80,6 +80,18 @@ class MarkupController extends Controller
         }
         return redirect()->route('markup.markup.index');
     }
+    
+    /**
+     * Show the form for editing the specified resource.
+     *
+     * @return \Illuminate\View\View
+     */
+    public function edit(int $id)
+    {
+        $markup = $this->markupRepository->findOrFail($id);
+
+        return view('markup::markup.edit', compact('markup'));
+    }
 
     public function search(Request $request) {
         $this->wholesaleRepository->search();

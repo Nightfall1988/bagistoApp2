@@ -1045,6 +1045,11 @@ return [
             'update-success'          => 'Product updated successfully',
         ],
 
+        'markup' => [
+            'create-title' => 'Create Markup',
+            'edit-title' => 'Edit Markup' 
+        ],
+
         'attributes' => [
             'index' => [
                 'create-btn' => 'Create Attributes',

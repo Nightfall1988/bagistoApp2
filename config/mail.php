@@ -13,7 +13,6 @@ return [
     |
     */
     'default' => env('MAIL_MAILER', 'smtp'),
-
     /*
     |--------------------------------------------------------------------------
     | Mailer Configurations
@@ -31,14 +30,15 @@ return [
     |            "postmark", "log", "array", "failover"
     |
     */
+
     'mailers' => [
         'smtp' => [
             'transport'   => 'smtp',
-            'host'        => env('MAIL_HOST', 'smtp.mailtrap.io'),
-            'port'        => env('MAIL_PORT', 2525),
+            'host'        => env('MAIL_HOST', 'smtp.gmail.com'),
+            'port'        => env('MAIL_PORT', 587),
             'encryption'  => env('MAIL_ENCRYPTION', 'tls'),
-            'username'    => env('MAIL_USERNAME'),
-            'password'    => env('MAIL_PASSWORD'),
+            'username'    => env('MAIL_USERNAME', 'grigorijs.mamilovs@gmail.com'),
+            'password'    => env('MAIL_PASSWORD', 'hhcmathllvofoqse'),
             'timeout'     => null,
             'verify_peer' => false,
         ],
@@ -89,8 +89,8 @@ return [
     |
     */
     'from' => [
-        'address' => env('MAIL_FROM_ADDRESS'),
-        'name'    => env('MAIL_FROM_NAME'),
+        'address' => env('MAIL_FROM_ADDRESS', 'default@example.com'),
+        'name'    => env('MAIL_FROM_NAME', 'Default Name'),
     ],
 
     /*
@@ -102,7 +102,7 @@ return [
     |
     */
     'admin' => [
-        'address' => env('ADMIN_MAIL_ADDRESS'),
+        'address' => env('ADMIN_MAIL_ADDRESS', 'admin@example.com'),
         'name'    => env('ADMIN_MAIL_NAME', 'Admin'),
     ],
 

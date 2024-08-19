@@ -32,7 +32,8 @@ class MidoceanApiService {
         ProductImageRepository $productImageRepository,
         ProductAttributeValueRepository $productAttributeValueRepository,
         MarkupRepository $markupRepository,
-        CategoryImportService $categoryImportService
+        CategoryImportService $categoryImportService,
+        LanguageImportService $languageImportService
     ) {
         $this->productRepository = $productRepository;
         $this->attributeOptionRepository = $attributeOptionRepository;
@@ -42,15 +43,16 @@ class MidoceanApiService {
         $this->productAttributeValueRepository = $productAttributeValueRepository;
         $this->markupRepository = $markupRepository;
         $this->categoryImportService = $categoryImportService;
+        $this->languageImportService = $languageImportService;
 
         // $this->url = 'https://appbagst.free.beeceptor.com/zz'; // TEST;
-        // dd(env('MIDOECAN_PRODUCTS_URL'));
         $this->url = env('MIDOECAN_PRODUCTS_URL');
         $this->pricesUrl = env('MIDOECAN_PRICES_URL');
         $this->identifier = env('MIDOECAN_IDENTIFIER');
         $this->printUrl = env('MIDOECAN_PRINT_URL');
         $this->productImages = [];
         $this->globalMarkup = null;
+        $this->defaultLocale = env('APP_LOCALE');
     }
 
     public function getData()
@@ -117,9 +119,37 @@ class MidoceanApiService {
         $variants = [];
         $tempAttributes = [];
         $attributes = [];
+        $translateKey = '';
+        $materialData = [];
+        $materialList = [];
 
         $productCategory = preg_replace('/[^a-z0-9]+/', '', strtolower($variantList[0]->category_level1)) ?? ', ';
         $productSubCategory = preg_replace('/[^a-z0-9]+/', '', strtolower($variantList[0]->category_level2)) ?? ', ';
+        
+        if (isset($apiProduct->material) && $apiProduct->material != '') {    
+            $translateKey = $this->languageImportService->createAttributeTranslationKey($apiProduct->material);
+            $materialData = $this->languageImportService->searchAndAdd($translateKey,$apiProduct->material);
+        }
+
+        if (isset($apiProduct->material)) {
+            $result = $this->attributeOptionRepository->getOption($apiProduct->material);
+
+            if ($result != null && !in_array($result->id, $materialList)) {
+                $materialList[] = $result->id;
+            }
+
+            if ($result == null) {
+                {
+                    $material = $this->attributeOptionRepository->create([
+                        'admin_name' => ucfirst(trans($materialData['code'], [], $this->defaultLocale)),
+                        'attribute_id' => 29,
+                    ]);
+
+                    $materialId = $material->id;
+                    $materialList[] = $materialId;
+                }
+            }
+        }
         
         foreach ($apiProduct->variants as $variant) {
 
@@ -210,6 +240,10 @@ class MidoceanApiService {
             "type" => 'configurable',
             'super_attributes' => $attributes
         ]);
+
+        $meta_title = "$apiProduct->product_name $apiProduct->product_class $apiProduct->brand";
+        $meta_description = "$apiProduct->short_description";
+        $meta_keywords = "$apiProduct->product_name, $apiProduct->brand, $productCategory, $productSubCategory, $apiProduct->product_class";
 
         for ($i=0; $i<sizeof($apiProduct->variants); $i++) {
             $productVariant = $this->productRepository->upserts([
@@ -357,11 +391,12 @@ class MidoceanApiService {
                 "url_key" => $urlKey,
                 "short_description" => (isset($apiProduct->short_description)) ? '<p>' . $apiProduct->short_description . '</p>' : '',
                 "description" => (isset($apiProduct->long_description)) ? '<p>' . $apiProduct->long_description . '</p>'  : '',
-                "meta_title" =>  "",
-                "meta_keywords" => "",
-                "meta_description" => "",
+                "meta_title" =>  $meta_title,
+                "meta_keywords" => $meta_keywords,
+                "meta_description" => $meta_description,
                 'price' => $cost,
                 'cost' => $cost,
+                'material' =>  !isset($materialData['code']) ? '': trans($materialData['code'], [], $this->defaultLocale) ?? '',
                 "special_price" => "",
                 "special_price_from" => "",
                 "special_price_to" => "",
@@ -403,10 +438,14 @@ class MidoceanApiService {
         $meta_description = "$apiProduct->short_description";
         $meta_keywords = "$apiProduct->product_name, $apiProduct->brand, $productCategory, $productSubCategory, $apiProduct->product_class";
 
+        if (isset($apiProduct->material) && $apiProduct->material != '') {    
+            $translateKey = $this->languageImportService->createAttributeTranslationKey($apiProduct->material);
+            $materialData = $this->languageImportService->searchAndAdd($translateKey,$apiProduct->material);
+        }
+
         $superAttributes = [
             "channel" => "default",
-            "locale" => "en",
-            'sku' => $product->sku,
+            "locale" => $this->defaultLocale,
             "product_number" => $apiProduct->master_id, //
             "name" => (!isset($apiProduct->product_name)) ? 'no name' : $apiProduct->product_name,
             "url_key" => $urlKey, //
@@ -415,6 +454,7 @@ class MidoceanApiService {
             "meta_title" =>  $meta_title,
             "meta_keywords" => $meta_keywords,
             "meta_description" => $meta_description,
+            "material" => !isset($materialData['code']) ? '': trans($materialData['code'], [], $this->defaultLocale) ?? '',
             'price' => $cost,
             'cost' => $cost,
             "special_price" => "",
@@ -440,6 +480,7 @@ class MidoceanApiService {
         return $product;
     }
 
+    // SIMPLE
     public function createSimpleProduct($mainVariant, $apiProduct, $priceList, $categories) {
 
         $product = $this->productRepository->upserts([
@@ -451,7 +492,6 @@ class MidoceanApiService {
 
         $productSku = $product->sku ?? '';
         $cost = isset($priceList[$productSku]) ? $priceList[$productSku] : 0;
-        $product->markup()->attach($this->globalMarkup->id);
 
         $urlKey = isset($apiProduct->product_name) ? $apiProduct->product_name  . '-' . $apiProduct->master_id : $apiProduct->master_id; 
         $urlKey = preg_replace('/[^a-z0-9]+/', '-', $urlKey);

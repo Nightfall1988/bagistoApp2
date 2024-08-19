@@ -19,6 +19,6 @@ Route::group(['middleware' => ['web', 'admin']], function () {
         Route::get('/search', 'Hitexis\Admin\Http\Controllers\MarkupController@search')->name('markup.markup.product.search');
         Route::post('/create', 'Hitexis\Admin\Http\Controllers\MarkupController@store')->name('markup.markup.store');
         Route::put('/edit', 'Hitexis\Admin\Http\Controllers\MarkupController@update')->name('markup.markup.update');
-        Route::post('/delete/{id}', 'Hitexis\Admin\Http\Controllers\MarkupController@destroy')->name('markup.markup.delete');
+        Route::delete('/delete/{id}', 'Hitexis\Admin\Http\Controllers\MarkupController@destroy')->name('markup.markup.delete');
     });
 });

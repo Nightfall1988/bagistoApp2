@@ -1,95 +1,214 @@
-{{-- <x-admin::layouts>
-    <x-slot:title>
-        @lang('admin::app.wholesale.create.title')
-    </x-slot>
-
-    <div class="flex gap-4 justify-between items-center mt-3 max-sm:flex-wrap">
-        <p class="text-xl text-gray-800 dark:text-white font-bold">
-            @lang('admin::app.wholesale.create.title')
-        </p>
+<x-admin::layouts>
+    <div id="app">
+        <!-- Pass markup data as a prop -->
+        <v-markup-manager :markup="{{ json_encode($markup) }}"></v-markup-manager>
     </div>
 
-    <!-- Page Header -->
+    @pushOnce('scripts')
+        <script type="text/x-template" id="v-markup-manager-template">
+            <div>
+                <!-- Markup Options -->
+                <div class="grid gap-1.5">
+                    <p class="text-xl font-bold leading-6 text-gray-800 dark:text-white">
+                        @lang('admin::app.catalog.markup.edit-title') <!-- Changed to edit title -->
+                    </p>
+                </div>
 
-    <div class="grid gap-2.5">
-        <div class="flex items-center justify-between gap-4 max-sm:flex-wrap">
-                <form method="POST" action="{{ route('wholesale.wholesale.update', $wholesale->id) }}">
-                    @csrf
-                    <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
-                        <div class="sm:col-span-3">
-                            <label for="name" class="block text-sm font-medium text-gray-700">Wholesale name</label>
-                            <input type="text" name="name" id="name" value="{{ $wholesale->name }}" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                <!-- Form inside Modal -->
+                <form @submit.prevent="submitForm" class="space-y-4 p-4">
+                    <div class="flex flex-column gap-2">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Name:</label>
+                            <input v-model="form.name" type="text" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
                         </div>
-
-                        <div class="sm:col-span-3">
-                            <label for="discount_percentage" class="block text-sm font-medium text-gray-700">Discount Percentage</label>
-                            <input type="text" name="discount_percentage" id="discount_percentage" value="{{ $wholesale->discount_percentage }}" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-                        </div>
-
-                        <div class="sm:col-span-3">
-                            <label for="batch_amount" class="block text-sm font-medium text-gray-700">Batch Amount</label>
-                            <input type="text" name="batch_amount" id="batch_amount" value="{{ $wholesale->batch_amount }}" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-                        </div>
-
-
-                        <div class="flex flex-row gap-4">
-                            <div class="sm:col-span-6">
-                                <label for="product_name" class="block text-sm font-medium text-gray-700">Product Name</label>
-                                <input type="text" name="product_name" id="product_name" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-                                <div id="found_products"></div>
+                        <div class="flex flex-row gap-2">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Amount:</label>
+                                <input v-model="form.amount" step="0.1" type="number" :disabled="percentageEnabled" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
                             </div>
                             <div>
-                                <label for="individual" class="block text-sm font-medium text-gray-700">Individual wholesale option</label>
-                                <input type="checkbox" name='individual'></input>
+                                <label class="block text-sm font-medium text-gray-700">Percentage:</label>
+                                <input v-model="form.percentage" type="number" step="0.1" :disabled="amountEnabled" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
                             </div>
                         </div>
                     </div>
 
-                        <div class="mt-5">
-                            <button type="submit" class="primary-button">@lang('admin::app.wholesale.edit-btn')</button>
+                    <div class='gap-5 mb-4'>
+                        <div>
+                            <div class='flex flex-row gap-5 mt-4 mb-4'>
+                                <label for='form-percentage' class="block text-sm font-medium text-gray-700">Percentage</label>
+                                <input name='form-percentage' type="checkbox" v-model="percentageEnabled" @change="togglePercentage">
+                                
+                                <label for='form-amount' class="block text-sm font-medium text-gray-700">Amount</label>
+                                <input type="checkbox" name='form-amount' v-model="amountEnabled" @change="toggleAmount">
+                            </div>
                         </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Markup Type:</label>
+                            <select v-model="form.markup_type" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                <option value="global">Global</option>
+                                <option value="individual">Individual</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" 
+                            class="w-full bg-blue-600 text-white font-medium py-2 px-4 rounded-md shadow-sm hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                        Submit
+                    </button>
                 </form>
-        </div>
-        </div>
-    </div>
+            </div>
+        </script>
 
-    <script>
+        <script type="module">
+            app.component('v-markup-manager', {
+                template: '#v-markup-manager-template',
 
-        document.addEventListener('DOMContentLoaded', function () {
-        const productInput = document.getElementById('product_name');
-        const productSuggestions = document.getElementById('product_suggestions');
+                props: {
+                    markup: {
+                        type: Object,
+                        default: () => ({}) // Ensure there's a default empty object if no markup is passed
+                    },
+                },
 
-        productInput.addEventListener('keyup', function () {
-            console.log(productInput)
+                data() {
+                    return {
+                        isGlobalMarkup: false,
+                        isIndividualMarkup: false,
+                        isModalVisible: false,
+                        form: {
+                            name: this.markup.name || '',
+                            amount: this.markup.amount || '',
+                            percentage: this.markup.percentage || '',
+                            markup_type: this.markup.markup_type || 'individual',
+                        },
+                        percentageEnabled: !!this.markup.percentage,
+                        amountEnabled: !!this.markup.amount,
+                    }
+                },
 
-            const query = this.value.trim();
+                methods: {
+                    showGlobalMarkup() {
+                        alert('Displaying global markups');
+                    },
 
-            if (query !== '') {
-                fetch(`{{ route("wholesale.wholesale.product.search") }}?query=${query}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        productSuggestions.innerHTML = '';
-                        data.forEach(product => {
-                            const listItem = document.createElement('li');
-                            listItem.textContent = product.name;
-                            productSuggestions.appendChild(listItem);
+                    openModal() {
+                        if (this.isIndividualMarkup) {
+                            this.isModalVisible = true;
+                        }
+
+                        // Adjust z-index based on modal visibility
+                        this.toggleZIndex();
+                    },
+
+                    hideModal() {
+                        this.isModalVisible = false;
+
+                        // Adjust z-index based on modal visibility
+                        this.toggleZIndex();
+                    },
+
+                    submitForm() {    
+                        this.$axios.post("{{ route('admin.catalog.products.markup.update', ['id' => $markup->id ?? null]) }}", this.form)
+                        .then(response => {
+                                alert('Markup submitted successfully');
+                                this.hideModal();
+                            })
+                            .catch(error => {
+                                console.error('Error submitting markup', error);
                         });
-                        productSuggestions.style.display = 'block';
-                    })
-                    .catch(error => {
-                        console.error('Error fetching product suggestions:', error);
-                    });
-            } else {
-                productSuggestions.style.display = 'none';
-            }
-        });
+                    },
 
-        // productSuggestions.addEventListener('click', function (event) {
-        //     if (event.target.tagName === 'LI') {
-        //         productInput.value = event.target.textContent;
-        //         productSuggestions.style.display = 'none';
-        //     }
-        // });
-    });
-    </script>
-</x-admin::layouts> --}}
+                    togglePercentage() {
+                        if (this.percentageEnabled) {
+                            this.form.amount = ''; // Clear amount
+                            this.amountEnabled = false; // Disable amount
+                        }
+                    },
+
+                    toggleAmount() {
+                        if (this.amountEnabled) {
+                            this.form.percentage = ''; // Clear percentage
+                            this.percentageEnabled = false; // Disable percentage
+                        }
+                    },
+
+                    toggleZIndex() {
+                        let relaDiv = document.getElementsByClassName('relativediv');
+                        relaDiv.forEach(element => {
+                            if (this.isModalVisible) {
+                                element.classList.remove('relative');
+                                element.classList.add('z-auto');
+                            } else {
+                                element.classList.remove('z-auto');
+                                element.classList.add('relative');
+                            }
+                        });
+                    }
+                },
+
+                watch: {
+                    'form.amount': function (newVal) {
+                        if (newVal) {
+                            this.amountEnabled = true;
+                            this.percentageEnabled = false;
+                        }
+                    },
+                    'form.percentage': function (newVal) {
+                        if (newVal) {
+                            this.percentageEnabled = true;
+                            this.amountEnabled = false;
+                        }
+                    }
+                },
+
+                computed: {
+                    isAmount() {
+                        return this.amountEnabled && !!this.form.amount;
+                    },
+
+                    isPercentage() {
+                        return this.percentageEnabled && !!this.form.percentage;
+                    }
+                }
+            });
+        </script>
+    @endpushOnce
+
+    @pushOnce('styles')
+        <style>
+            .modal-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+
+            .modal-content {
+                background: #fff;
+                padding: 20px;
+                border-radius: 4px;
+                position: relative;
+                width: 80%;
+                max-width: 600px;
+            }
+
+            .close-btn {
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                background: transparent;
+                border: none;
+                font-size: 20px;
+                cursor: pointer;
+            }
+        </style>
+    @endpushOnce
+
+</x-admin::layouts>

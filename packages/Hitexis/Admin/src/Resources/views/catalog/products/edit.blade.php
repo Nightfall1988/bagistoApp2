@@ -3,7 +3,6 @@
         @lang('admin::app.catalog.products.edit.title')
     </x-slot>
     {!! view_render_event('bagisto.admin.catalog.product.edit.before', ['product' => $product]) !!}
-    zzzzzzzzzzzzzzz
 
     <hitexis-admin::form
         method="PUT"

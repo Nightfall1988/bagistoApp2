@@ -8,8 +8,10 @@ use Hitexis\Attribute\Repositories\AttributeRepository;
 use Hitexis\Attribute\Repositories\AttributeOptionRepository;
 use Hitexis\Product\Repositories\SupplierRepository;
 use Hitexis\Product\Repositories\ProductImageRepository;
+use Hitexis\Markup\Repositories\MarkupRepository;
 use Symfony\Component\Console\Helper\ProgressBar;
-
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 class XDConnectsApiService {
 
     protected $url;
@@ -29,7 +31,8 @@ class XDConnectsApiService {
         SupplierRepository $supplierRepository,
         ProductImageRepository $productImageRepository,
         CategoryMapper $categoryMapper,
-        CategoryImportService $categoryImportService
+        CategoryImportService $categoryImportService,
+        MarkupRepository $markupRepository
     ) {
         $this->productRepository = $productRepository;
         $this->attributeOptionRepository = $attributeOptionRepository;
@@ -38,12 +41,15 @@ class XDConnectsApiService {
         $this->productImageRepository = $productImageRepository;
         $this->categoryMapper = $categoryMapper;
         $this->categoryImportService = $categoryImportService;
-
+        $this->markupRepository = $markupRepository;
         $this->identifier = env('XDCONNECTS_IDENTIFIER');
+        $this->globalMarkup = null;
     }
 
     public function getData()
     {
+        $this->globalMarkup = $this->markupRepository->where('markup_type', 'global')->first();
+
         $path = 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'private' . DIRECTORY_SEPARATOR;
 
         $xmlProductData = simplexml_load_file($path . 'Xindao.V4.ProductData-en-gb-C36797.xml');
@@ -270,7 +276,7 @@ class XDConnectsApiService {
                 $urlKey = strtolower((string)$variant->ItemName . '-' . (string)$variant->ItemCode);
                 $urlKey = preg_replace('/[^a-z0-9]+/', '-', $urlKey);
                 $urlKey = trim($urlKey, '-');    
-                $price = (string)$priceDataList[(string)$variant->ItemCode]->ItemPriceNet_Qty1 ?? '';
+                $cost = (string)$priceDataList[(string)$variant->ItemCode]->ItemPriceNet_Qty1 ?? '';
 
                 $superAttributes = [
                     '_method' => 'PUT',
@@ -289,8 +295,8 @@ class XDConnectsApiService {
                     "meta_description" => "",
                     "meta_description" => "",
                     "meta_description" => "",       
-                    'price' => $price,
-                    'cost' => '',
+                    'price' => $cost,
+                    'cost' => $cost,
                     "special_price" => "",
                     "special_price_from" => "",
                     "special_price_to" => "",
@@ -326,7 +332,7 @@ class XDConnectsApiService {
             $urlKey = strtolower((string)$mainProduct->ItemName . '-' . (string)$mainProduct->ModelCode) . '-main';
             $urlKey = preg_replace('/[^a-z0-9]+/', '-', $urlKey);
             $urlKey = trim($urlKey, '-');    
-            $price = (string)$priceDataList[(string)$mainProduct->ItemCode]->ItemPriceNet_Qty1 ?? '';
+            $cost = (string)$priceDataList[(string)$mainProduct->ItemCode]->ItemPriceNet_Qty1 ?? '';
             
             $superAttributes = [
                 '_method' => 'PUT',
@@ -345,8 +351,8 @@ class XDConnectsApiService {
                 "meta_description" => "",
                 "meta_description" => "",
                 "meta_description" => "",       
-                'price' => $price,
-                'cost' => '',
+                'price' => $cost,
+                'cost' => $cost,
                 "special_price" => "",
                 "special_price_from" => "",
                 "special_price_to" => "",
@@ -368,12 +374,14 @@ class XDConnectsApiService {
                 'images' =>  $images,
             ];
 
-            $this->productRepository->updateToShop($superAttributes, $productObj->id, 'id');
+            $productObj = $this->productRepository->updateToShop($superAttributes, $productObj->id, 'id');
+            $this->markupRepository->addMarkupToPrice($productObj, $this->globalMarkup);
 
             $this->supplierRepository->create([
                 'product_id' => $productObj->id,
                 'supplier_code' => $this->identifier
             ]);
+
 
             $this->tracker->advance();
 
@@ -454,7 +462,7 @@ class XDConnectsApiService {
         $search = ['.', '\'', ' ', '"', ','];
         $replace = '-';
         $urlKey = strtolower(str_replace($search, $replace, $urlKey));
-        $price = (string)$priceDataList[(string)$product->ItemCode]->ItemPriceNet_Qty1 ?? '';
+        $cost = (string)$priceDataList[(string)$product->ItemCode]->ItemPriceNet_Qty1 ?? '';
         
         $superAttributes = [
             '_method' => 'PUT',
@@ -473,8 +481,8 @@ class XDConnectsApiService {
             "meta_description" => "",
             "meta_description" => "",
             "meta_description" => "",       
-            'price' => $price,
-            'cost' => '',
+            'price' => $cost,
+            'cost' => $cost,
             "special_price" => "",
             "special_price_from" => "",
             "special_price_to" => "",
@@ -503,6 +511,8 @@ class XDConnectsApiService {
         }
 
         $this->productRepository->updateToShop($superAttributes, $productVariant->id, 'id');
+        $this->markupRepository->addMarkupToPrice($productVariant, $this->globalMarkup);
+
         $this->tracker->advance();
     }
 

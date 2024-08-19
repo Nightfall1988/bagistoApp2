@@ -18,6 +18,7 @@ use App\Service\CategoryImportService;
 use App\Service\PrintCalculatorImportService;
 use Hitexis\PrintCalculator\Repositories\PrintTechniqueRepository;
 use Hitexis\Wholesale\Models\Wholesale;
+use Hitexis\Markup\Models\Markup;
 use Webkul\Category\Repositories\CategoryRepository;
 use Hitexis\PrintCalculator\Http\Controllers\Api\PrintCalculatorController;
 use Hitexis\Markup\Repositories\MarkupRepository;
@@ -51,6 +52,10 @@ class AppServiceProvider extends ServiceProvider
 
         $this->app->singleton(AttributeOptionRepository::class, function ($app) {
             return new AttributeOptionRepository($app->make(Container::class));
+        });
+
+        $this->app->singleton(\Webkul\Tax\Tax::class, function ($app) {
+            return new \Webkul\Tax\Tax();
         });
 
         $this->app->singleton(AttributeRepository::class, function ($app) {

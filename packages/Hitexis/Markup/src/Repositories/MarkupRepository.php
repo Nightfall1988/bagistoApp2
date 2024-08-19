@@ -8,6 +8,8 @@ use Webkul\Core\Eloquent\Repository;
 use Hitexis\Markup\Contracts\Markup as MarkupContract;
 use Hitexis\Product\Repositories\HitexisProductRepository;
 use Hitexis\Product\Repositories\ProductAttributeValueRepository;
+use Webkul\Product\Repositories\ProductFlatRepository;
+use Hitexis\Product\Models\ProductAttributeValue;
 
 
 class MarkupRepository extends Repository implements MarkupContract
@@ -64,9 +66,11 @@ class MarkupRepository extends Repository implements MarkupContract
         return $markup;
     }
 
-public function addMarkupToPrice($product,$markup) 
+    public function addMarkupToPrice($product,$markup) 
     {
+
         // needs fix
+        $priceMarkup = 0;
         $cost = $product->getAttribute('cost');
         if ($markup->percentage) {
             $priceMarkup = $cost * ($markup->percentage/100);
@@ -82,11 +86,13 @@ public function addMarkupToPrice($product,$markup)
                 'attribute_id' => 11,
             ]);
 
-            $productAttribute->float_value =+ $priceMarkup;
+            $productAttribute->float_value = $productAttribute->float_value + $priceMarkup;
+
             $productAttribute->save();
             $product->markup()->attach($markup->id);
             $markup->product_id = $product->id;
-        } else {
+        } elseif ($product->type == 'configurable') {
+
             foreach ($product->variants as $productVar) {
                 $productAttribute = $this->productAttributeValueRepository->findOneWhere([
                     'product_id'   => $productVar->id,
@@ -97,9 +103,10 @@ public function addMarkupToPrice($product,$markup)
                 $productAttribute->save();
                 $productVar->markup()->attach($markup->id);
                 $markup->product_id = $productVar->id;
+                $product->price = $productAttribute->float_value;
+                $product->save();
             }
 
-            $product->markup()->attach($markup->id);
         }
     }
 

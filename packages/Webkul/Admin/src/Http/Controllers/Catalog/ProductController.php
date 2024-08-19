@@ -23,6 +23,7 @@ use Webkul\Product\Repositories\ProductDownloadableSampleRepository;
 use Webkul\Product\Repositories\ProductInventoryRepository;
 use Webkul\Product\Repositories\ProductRepository;
 use Hitexis\Markup\Repositories\MarkupRepository;
+use Hitexis\Product\Models\Product;
 
 class ProductController extends Controller
 {
@@ -145,7 +146,48 @@ class ProductController extends Controller
         return view('admin::catalog.products.edit', compact('product', 'inventorySources'));
     }
 
-    public function storeMarkup(int $id) {
+    public function storeMarkup(int $id = null) {
+        if (isset($id)) {
+            $data = [
+                'name' => request('name'),
+                'amount' => request('amount'),
+                'percentage' => request('percentage'),
+                'currency' => request('currency'),            
+                'markup_unit' => request('markup_unit'),
+                'markup_type' => request('markup_type'),
+                'product_id' => $id
+            ];
+        } else {
+            $data = [
+                'name' => request('name'),
+                'amount' => request('amount'),
+                'percentage' => request('percentage'),
+                'currency' => request('currency'),            
+                'markup_unit' => request('markup_unit'),
+                'markup_type' => 'global',
+            ];
+        }
+
+
+        if (request('product_name')) {
+            $data['product_name'] = request('product_name');
+        }
+        
+        $markup = $this->markupRepository->create( $data );
+
+        return response()->json([
+            'success'      => 1,
+            'message'      => __('admin::app.catalog.products.saved-inventory-message'),
+        ]);
+    }
+
+/**
+     * Store a newly created resource in storage.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function updateMarkup($id)
+    {
         $data = [
             'name' => request('name'),
             'amount' => request('amount'),
@@ -153,19 +195,18 @@ class ProductController extends Controller
             'currency' => request('currency'),            
             'markup_unit' => request('markup_unit'),
             'markup_type' => request('markup_type'),
-            'product_id' => $id
         ];
 
         if (request('product_name')) {
             $data['product_name'] = request('product_name');
         }
         
-        $deal = $this->markupRepository->create( $data );
+        $markup = $this->markupRepository->update( $data, $id );
+        foreach(Product::all() as $product) {
+            $this->markupRepository->addMarkupToPrice($product, $markup);
+        }
 
-        return response()->json([
-            'success'      => 1,
-            'message'      => __('admin::app.catalog.products.saved-inventory-message'),
-        ]);
+        return redirect()->route('markup.markup.index');
     }
 
     /**

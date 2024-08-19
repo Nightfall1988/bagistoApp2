@@ -110,8 +110,10 @@ Route::group(['middleware' => ['admin'], 'prefix' => config('app.admin_url')], f
 
             Route::post('mass-delete', 'massDestroy')->name('admin.catalog.products.mass_delete');
 
-            Route::post('markup/{id}', 'storeMarkup')->name('admin.catalog.products.markup');
+            Route::post('markup/{id?}', 'storeMarkup')->name('admin.catalog.products.markup');
 
+            Route::post('markup/update/{id?}', 'updateMarkup')->name('admin.catalog.products.markup.update');
+            
             Route::controller(ConfigurableController::class)->group(function () {
                 Route::get('{id}/configurable-options', 'options')->name('admin.catalog.products.configurable.options');
             });
