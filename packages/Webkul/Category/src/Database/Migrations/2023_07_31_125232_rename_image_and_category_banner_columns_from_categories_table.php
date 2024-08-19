@@ -11,10 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (Schema::hasColumns('categories', ['image', 'category_banner'])) {
-            Schema::dropColumns('categories', ['image', 'category_banner']);
+        // Check if columns exist before dropping them
+        if (Schema::hasColumn('categories', 'image') && Schema::hasColumn('categories', 'category_banner')) {
+            Schema::table('categories', function (Blueprint $table) {
+                $table->dropColumn(['image', 'category_banner']);
+            });
         }
 
+        // Add new columns
         Schema::table('categories', function (Blueprint $table) {
             $table->text('logo_path')->nullable()->after('position');
             $table->text('banner_path')->nullable()->after('additional');
@@ -26,10 +30,14 @@ return new class extends Migration
      */
     public function down(): void
     {
-        if (Schema::hasColumns('categories', ['logo_path', 'banner_path'])) {
-            Schema::dropColumns('categories', ['logo_path', 'banner_path']);
+        // Check if columns exist before dropping them
+        if (Schema::hasColumn('categories', 'logo_path') && Schema::hasColumn('categories', 'banner_path')) {
+            Schema::table('categories', function (Blueprint $table) {
+                $table->dropColumn(['logo_path', 'banner_path']);
+            });
         }
 
+        // Re-add the previous columns
         Schema::table('categories', function (Blueprint $table) {
             $table->text('image')->nullable()->after('position');
             $table->text('category_banner')->nullable()->after('additional');

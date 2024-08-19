@@ -15,7 +15,7 @@ return new class extends Migration
     {
         Schema::create('category_translations', function (Blueprint $table) {
             $table->increments('id');
-            $table->integer('category_id')->unsigned();
+            $table->unsignedInteger('category_id'); // Ensure it matches the referenced column
             $table->text('name');
             $table->string('slug');
             $table->string('url_path', 2048);
@@ -23,12 +23,20 @@ return new class extends Migration
             $table->text('meta_title')->nullable();
             $table->text('meta_description')->nullable();
             $table->text('meta_keywords')->nullable();
-            $table->integer('locale_id')->nullable()->unsigned();
+            $table->unsignedInteger('locale_id')->nullable(); // Ensure it matches the referenced column
             $table->string('locale');
 
+            // Unique constraint to ensure no duplicate entries
             $table->unique(['category_id', 'slug', 'locale']);
-            $table->foreign('category_id')->references('id')->on('categories')->onDelete('cascade');
-            $table->foreign('locale_id')->references('id')->on('locales')->onDelete('cascade');
+
+            // Foreign key constraints with explicit names to avoid conflicts
+            $table->foreign('category_id', 'fk_category_translations_category_id')
+                  ->references('id')->on('categories')
+                  ->onDelete('cascade');
+                  
+            $table->foreign('locale_id', 'fk_category_translations_locale_id')
+                  ->references('id')->on('locales')
+                  ->onDelete('cascade');
         });
     }
 

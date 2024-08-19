@@ -14,11 +14,13 @@ return new class extends Migration
     public function up()
     {
         Schema::create('category_filterable_attributes', function (Blueprint $table) {
-            $table->integer('category_id')->unsigned();
-            $table->integer('attribute_id')->unsigned();
+            $table->unsignedInteger('category_id');
+            $table->unsignedInteger('attribute_id');
 
             $table->foreign('category_id')->references('id')->on('categories')->onDelete('cascade');
             $table->foreign('attribute_id')->references('id')->on('attributes')->onDelete('cascade');
+
+            $table->primary(['category_id', 'attribute_id']);
         });
     }
 
