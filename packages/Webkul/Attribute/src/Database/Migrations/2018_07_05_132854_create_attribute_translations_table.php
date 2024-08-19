@@ -15,11 +15,15 @@ return new class extends Migration
     {
         Schema::create('attribute_translations', function (Blueprint $table) {
             $table->increments('id');
-            $table->integer('attribute_id')->unsigned();
+            $table->unsignedInteger('attribute_id');
             $table->string('locale');
             $table->text('name')->nullable();
             $table->unique(['attribute_id', 'locale']);
-            $table->foreign('attribute_id')->references('id')->on('attributes')->onDelete('cascade');
+            
+            // Naming the foreign key explicitly to avoid conflicts
+            $table->foreign('attribute_id', 'fk_attribute_id')
+                  ->references('id')->on('attributes')
+                  ->onDelete('cascade');
         });
     }
 
@@ -30,6 +34,11 @@ return new class extends Migration
      */
     public function down()
     {
+        // Drop the foreign key first if it exists
+        Schema::table('attribute_translations', function (Blueprint $table) {
+            $table->dropForeign(['attribute_id']);
+        });
+
         Schema::dropIfExists('attribute_translations');
     }
 };
