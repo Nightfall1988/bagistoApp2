@@ -1,6 +1,6 @@
 <?php
 
-namespace Webkul\Admin\Listeners;
+namespace Hitexis\Admin\Listeners;
 
 use Illuminate\Support\Facades\Mail;
 

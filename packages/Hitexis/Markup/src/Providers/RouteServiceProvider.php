@@ -1,6 +1,6 @@
 <?php
 
-namespace Hitexis\Wholesale\Providers;
+namespace Hitexis\Markup\Providers;
 use App\Providers\RouteServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Route;
 
