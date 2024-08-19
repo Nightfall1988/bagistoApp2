@@ -9,6 +9,8 @@
     $customAttributeValues = $productViewHelper->getAdditionalData($product);
 
     $attributeData = collect($customAttributeValues)->filter(fn ($item) => ! empty($item['value']));
+    // dd($product->material);
+
 @endphp
 
 <!-- SEO Meta Content -->
@@ -423,6 +425,12 @@
                                     {!! view_render_event('bagisto.shop.products.view.add_to_cart.after', ['product' => $product]) !!}
                                 </div>
 
+                                <div id='additional-info'>
+                                    @php
+                                        var_dump($product->getAttribute('material'));
+                                    @endphp
+                                </div>
+
                                 <!-- Buy Now Button -->
                                 {!! view_render_event('bagisto.shop.products.view.buy_now.before', ['product' => $product]) !!}
 
@@ -468,10 +476,14 @@
                                 {!! view_render_event('bagisto.shop.products.view.additional_actions.after', ['product' => $product]) !!}
                             </div>
                         </div>
-                        
-                        @if (!empty($product->print_techniques))
-                            @include('shop::components.printcalculator.printcalculator', ['product' => $product])
+
+                        @if (isset($product->print_techniques) && $product->print_techniques != '[]')
+                            <div>
+                                @include('shop::components.printcalculator.printcalculator', ['product' => $product])
+                            </div>
                         @endif
+
+                        
                         <!-- LogoTron -->
                         <div class="flex flex-column">
                             <div class="flex flex-row max-w-[700px] gap-4" style="margin-top: 2rem;">
@@ -482,7 +494,8 @@
                                     <button data-tl-action="OpenEditor"  id='create-print-motive'
                                         data-tl-sid="{{ $product->supplier->supplier_code }}"
                                         data-tl-spcode="{{ $product->sku }}"
-                                        class="secondary-button w-full max-w-full">
+                                        class="secondary-button w-full max-w-full"
+                                        type="button">
                                         @lang('shop::app.products.view.create-print-motive')
                                     </button>
                                 @endif
@@ -518,6 +531,7 @@
 
                 mounted() {
 
+                    this.hasTechniques()
                     this.$emitter.on('configurable-variant-update-sku-event', (newSku) => {
 
                         this.sku = newSku.sku;
@@ -526,6 +540,12 @@
                 },
 
                 methods: {
+
+                    hasTechniques() {
+                        console.log(this.product);
+                            
+                    },
+
                     updateButtonSku(sku) {
                         const button2 = document.getElementById('create-print-motive');
                         button2.setAttribute('data-tl-spcode', sku.sku);

@@ -362,9 +362,6 @@
                         .then(response => {
                             if (response.data.message) {
                                 this.cart = response.data.data;
-                                for (let i=0; i<this.cart.items.length; i++ ) {
-                                }
-
                             } else {
                                 this.$emitter.emit('add-flash', { type: 'warning', message: response.data.data.message });
                             }
