@@ -15,12 +15,17 @@ return new class extends Migration
     {
         Schema::create('attribute_option_translations', function (Blueprint $table) {
             $table->increments('id');
-            $table->integer('attribute_option_id')->unsigned();
+            $table->unsignedInteger('attribute_option_id'); // Changed to unsignedInteger
             $table->string('locale');
             $table->text('label')->nullable();
 
+            // Adding a unique index for 'attribute_option_id' and 'locale'
             $table->unique(['attribute_option_id', 'locale']);
-            $table->foreign('attribute_option_id')->references('id')->on('attribute_options')->onDelete('cascade');
+
+            // Explicitly naming the foreign key constraint
+            $table->foreign('attribute_option_id', 'fk_attribute_option_translations_option_id')
+                  ->references('id')->on('attribute_options')
+                  ->onDelete('cascade');
         });
     }
 
@@ -31,6 +36,11 @@ return new class extends Migration
      */
     public function down()
     {
+        // Drop the foreign key before dropping the table
+        Schema::table('attribute_option_translations', function (Blueprint $table) {
+            $table->dropForeign('fk_attribute_option_translations_option_id');
+        });
+
         Schema::dropIfExists('attribute_option_translations');
     }
 };

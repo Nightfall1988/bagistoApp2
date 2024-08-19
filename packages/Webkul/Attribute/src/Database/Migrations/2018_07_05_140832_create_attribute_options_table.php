@@ -15,12 +15,14 @@ return new class extends Migration
     {
         Schema::create('attribute_options', function (Blueprint $table) {
             $table->increments('id');
-            $table->integer('attribute_id')->unsigned();
+            $table->unsignedInteger('attribute_id'); // Changed to unsignedInteger
             $table->string('admin_name')->nullable();
             $table->integer('sort_order')->nullable();
             $table->string('swatch_value')->nullable();
 
-            $table->foreign('attribute_id')->references('id')->on('attributes')->onDelete('cascade');
+            $table->foreign('attribute_id', 'fk_attribute_options_attribute_id')
+                  ->references('id')->on('attributes')
+                  ->onDelete('cascade');
         });
     }
 
@@ -31,6 +33,10 @@ return new class extends Migration
      */
     public function down()
     {
+        Schema::table('attribute_options', function (Blueprint $table) {
+            $table->dropForeign('fk_attribute_options_attribute_id');
+        });
+
         Schema::dropIfExists('attribute_options');
     }
 };
