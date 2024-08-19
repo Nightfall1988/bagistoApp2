@@ -15,11 +15,15 @@ return new class extends Migration
     {
         Schema::create('country_translations', function (Blueprint $table) {
             $table->increments('id');
-            $table->integer('country_id')->unsigned();
+            $table->unsignedInteger('country_id'); // Ensured unsigned
             $table->string('locale');
             $table->text('name')->nullable();
 
+            $table->unique(['country_id', 'locale']); // Ensures unique country-translation pairs per locale
             $table->foreign('country_id')->references('id')->on('countries')->onDelete('cascade');
+
+            // Optional index for locale
+            $table->index('locale');
         });
     }
 
@@ -33,3 +37,4 @@ return new class extends Migration
         Schema::dropIfExists('country_translations');
     }
 };
+

@@ -14,10 +14,13 @@ return new class extends Migration
     public function up()
     {
         Schema::create('channel_inventory_sources', function (Blueprint $table) {
-            $table->integer('channel_id')->unsigned();
-            $table->integer('inventory_source_id')->unsigned();
+            $table->unsignedInteger('channel_id'); // Changed to unsignedInteger
+            $table->unsignedInteger('inventory_source_id'); // Changed to unsignedInteger
 
+            // Unique constraint to prevent duplicate entries
             $table->unique(['channel_id', 'inventory_source_id']);
+
+            // Foreign key constraints
             $table->foreign('channel_id')->references('id')->on('channels')->onDelete('cascade');
             $table->foreign('inventory_source_id')->references('id')->on('inventory_sources')->onDelete('cascade');
         });

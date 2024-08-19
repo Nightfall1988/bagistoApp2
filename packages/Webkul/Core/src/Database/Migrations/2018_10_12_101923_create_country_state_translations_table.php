@@ -15,11 +15,18 @@ return new class extends Migration
     {
         Schema::create('country_state_translations', function (Blueprint $table) {
             $table->increments('id');
-            $table->integer('country_state_id')->unsigned();
+            $table->unsignedInteger('country_state_id'); // Ensured unsigned
             $table->string('locale');
             $table->text('default_name')->nullable();
 
+            // Unique constraint on the combination of country_state_id and locale
+            $table->unique(['country_state_id', 'locale']);
+
+            // Foreign key constraint
             $table->foreign('country_state_id')->references('id')->on('country_states')->onDelete('cascade');
+
+            // Optional index on locale
+            $table->index('locale');
         });
     }
 

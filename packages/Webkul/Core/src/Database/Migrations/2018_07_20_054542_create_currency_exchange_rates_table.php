@@ -15,9 +15,12 @@ return new class extends Migration
     {
         Schema::create('currency_exchange_rates', function (Blueprint $table) {
             $table->increments('id');
-            $table->decimal('rate', 24, 12);
-            $table->integer('target_currency')->unique()->unsigned();
-            $table->foreign('target_currency')->references('id')->on('currencies')->onDelete('cascade');
+            $table->decimal('rate', 12, 6); // Adjusted precision and scale
+            $table->unsignedInteger('target_currency'); // Changed to unsignedInteger
+            $table->unique('target_currency'); // Ensures unique target currency
+            $table->foreign('target_currency', 'fk_currency_exchange_rates_target_currency')
+                  ->references('id')->on('currencies')
+                  ->onDelete('cascade');
             $table->timestamps();
         });
     }
@@ -29,6 +32,10 @@ return new class extends Migration
      */
     public function down()
     {
+        Schema::table('currency_exchange_rates', function (Blueprint $table) {
+            $table->dropForeign('fk_currency_exchange_rates_target_currency');
+        });
+
         Schema::dropIfExists('currency_exchange_rates');
     }
 };

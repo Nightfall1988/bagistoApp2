@@ -15,18 +15,18 @@ return new class extends Migration
     {
         Schema::create('channels', function (Blueprint $table) {
             $table->increments('id');
-            $table->string('code');
+            $table->string('code')->unique(); // Added unique constraint to 'code'
             $table->string('timezone')->nullable();
             $table->string('theme')->nullable();
             $table->string('hostname')->nullable();
             $table->string('logo')->nullable();
             $table->string('favicon')->nullable();
             $table->json('home_seo')->nullable();
-            $table->boolean('is_maintenance_on')->default(0);
+            $table->boolean('is_maintenance_on')->default(false); // Use boolean false
             $table->text('allowed_ips')->nullable();
-            $table->integer('root_category_id')->nullable()->unsigned();
-            $table->integer('default_locale_id')->unsigned();
-            $table->integer('base_currency_id')->unsigned();
+            $table->unsignedInteger('root_category_id')->nullable(); // Ensured unsigned
+            $table->unsignedInteger('default_locale_id'); // Ensured unsigned
+            $table->unsignedInteger('base_currency_id'); // Ensured unsigned
             $table->timestamps();
 
             $table->foreign('root_category_id')->references('id')->on('categories')->onDelete('set null');
@@ -35,8 +35,8 @@ return new class extends Migration
         });
 
         Schema::create('channel_locales', function (Blueprint $table) {
-            $table->integer('channel_id')->unsigned();
-            $table->integer('locale_id')->unsigned();
+            $table->unsignedInteger('channel_id'); // Ensured unsigned
+            $table->unsignedInteger('locale_id'); // Ensured unsigned
 
             $table->primary(['channel_id', 'locale_id']);
             $table->foreign('channel_id')->references('id')->on('channels')->onDelete('cascade');
@@ -44,8 +44,8 @@ return new class extends Migration
         });
 
         Schema::create('channel_currencies', function (Blueprint $table) {
-            $table->integer('channel_id')->unsigned();
-            $table->integer('currency_id')->unsigned();
+            $table->unsignedInteger('channel_id'); // Ensured unsigned
+            $table->unsignedInteger('currency_id'); // Ensured unsigned
 
             $table->primary(['channel_id', 'currency_id']);
             $table->foreign('channel_id')->references('id')->on('channels')->onDelete('cascade');
@@ -60,10 +60,18 @@ return new class extends Migration
      */
     public function down()
     {
+        Schema::table('channel_currencies', function (Blueprint $table) {
+            $table->dropForeign(['channel_id']);
+            $table->dropForeign(['currency_id']);
+        });
+
+        Schema::table('channel_locales', function (Blueprint $table) {
+            $table->dropForeign(['channel_id']);
+            $table->dropForeign(['locale_id']);
+        });
+
         Schema::dropIfExists('channel_currencies');
-
         Schema::dropIfExists('channel_locales');
-
         Schema::dropIfExists('channels');
     }
 };
