@@ -1,4 +1,5 @@
 <?php
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -14,12 +15,12 @@ return new class extends Migration
     {
         Schema::create('wishlist', function (Blueprint $table) {
             $table->increments('id');
-            $table->unsignedInteger('channel_id');  // Use unsignedInteger for consistency
-            $table->unsignedInteger('product_id');  // Use unsignedInteger for consistency
-            $table->unsignedInteger('customer_id'); // Use unsignedInteger for consistency
+            $table->integer('channel_id')->unsigned();
+            $table->integer('product_id')->unsigned();
+            $table->integer('customer_id')->unsigned();
             $table->json('item_options')->nullable();
             $table->date('moved_to_cart')->nullable();
-            $table->boolean('shared')->default(false); // Use default value for booleans
+            $table->boolean('shared')->nullable();
             $table->date('time_of_moving')->nullable();
             $table->json('additional')->nullable();
             $table->timestamps();

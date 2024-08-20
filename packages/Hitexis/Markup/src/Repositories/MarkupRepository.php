@@ -10,7 +10,8 @@ use Hitexis\Product\Repositories\HitexisProductRepository;
 use Hitexis\Product\Repositories\ProductAttributeValueRepository;
 use Webkul\Product\Repositories\ProductFlatRepository;
 use Hitexis\Product\Models\ProductAttributeValue;
-
+use Hitexis\Product\Models\Product;
+use Webkul\Product\Models\ProductFlat;
 
 class MarkupRepository extends Repository implements MarkupContract
 {
@@ -42,6 +43,7 @@ class MarkupRepository extends Repository implements MarkupContract
      */
     public function create(array $data)
     {
+
         if($data['percentage']) {
             $data["markup_unit"] = 'percent';
         }
@@ -53,93 +55,163 @@ class MarkupRepository extends Repository implements MarkupContract
         $data['currency'] = 'EUR'; // GET DEFAULT LOCALE
         $markup = parent::create($data);
 
-        foreach ($data as $key => $value) {
-            $markup->$key = $value;
-        }
-
         if (isset($data['product_id']) && $data['markup_type'] == 'individual') {
             $product = $this->productRepository->where('id', $data['product_id'])->first();
             $product->markup()->attach($markup->id);
             $this->addMarkupToPrice($product,$markup);
+        } else {
+            $products = Product::all();
+
+            if (!$products->isEmpty()) {
+                foreach($products as $product) {
+                    $this->addMarkupToPrice($product, $markup);
+                }
+            }
         }
         
         return $markup;
     }
 
-    public function addMarkupToPrice($product,$markup) 
+    public function addMarkupToPrice($product, $markup) 
     {
+        $cost =  $this->productAttributeValueRepository->findOneWhere([
+            'product_id'   => $product->id,
+            'attribute_id' => 12,
+        ]);
 
-        // needs fix
-        $priceMarkup = 0;
-        $cost = $product->getAttribute('cost');
-        if ($markup->percentage) {
-            $priceMarkup = $cost * ($markup->percentage/100);
-        }
+        $price =  $this->productAttributeValueRepository->findOneWhere([
+            'product_id'   => $product->id,
+            'attribute_id' => 11,
+        ]);
 
-        if ($markup->amount) {
-            $priceMarkup = $markup->amount;
-        }
-
-        if ($product->type == 'simple') {
-            $productAttribute = $this->productAttributeValueRepository->findOneWhere([
-                'product_id'   => $product->id,
-                'attribute_id' => 11,
-            ]);
-
-            $productAttribute->float_value = $productAttribute->float_value + $priceMarkup;
-
-            $productAttribute->save();
-            $product->markup()->attach($markup->id);
-            $markup->product_id = $product->id;
-        } elseif ($product->type == 'configurable') {
-
-            foreach ($product->variants as $productVar) {
-                $productAttribute = $this->productAttributeValueRepository->findOneWhere([
-                    'product_id'   => $productVar->id,
-                    'attribute_id' => 11,
-                ]);
-        
-                $productAttribute->float_value = $productAttribute->float_value + $priceMarkup;
-                $productAttribute->save();
-                $productVar->markup()->attach($markup->id);
-                $markup->product_id = $productVar->id;
-                $product->price = $productAttribute->float_value;
-                $product->save();
+        if ($cost) {
+            if ($markup->percentage) {
+                $priceMarkup = $cost->float_value * ($markup->percentage/100);
             }
 
+            if ($markup->amount) {
+                $priceMarkup = $markup->amount;
+            }
+
+            if ($product->type == 'simple') {
+                $productFlat = ProductFlat::where('product_id',  $product->id)->first();
+                $newPrice = $cost->float_value + $priceMarkup;
+                $product->markup()->attach($markup->id);
+
+                $price->float_value = $newPrice;
+                $price->save();
+
+                if ($productFlat) {
+                    $productFlat->price = $newPrice;
+                    $productFlat->save();
+                }
+
+            } else {
+                foreach ($product->variants as $product) {
+                    $cost = $this->productAttributeValueRepository->findOneWhere([
+                        'product_id'   => $product->id,
+                        'attribute_id' => 12,
+                    ]);
+
+                    $price = $this->productAttributeValueRepository->findOneWhere([
+                        'product_id'   => $product->id,
+                        'attribute_id' => 11,
+                    ]);
+                    
+                    $product->markup()->attach($markup->id);
+                    $productFlat = ProductFlat::where('product_id',  $product->id)->first();
+                    $newPrice = $cost->float_value + $priceMarkup;
+
+                    $price->float_value = $newPrice;
+                    $price->save();
+    
+                    $price->float_value = $newPrice;
+                    $price->save();
+                    
+                    if ($productFlat) {
+                        $productFlat->price = $newPrice;
+                        $productFlat->save();
+                    }
+                }
+            }
         }
     }
 
-    public function subtractMarkupFromPrice($product,$markup) 
+    public function subtractMarkupFromPrice($product, $markup) 
     {
-        // needs fix
-        $cost = $product->getAttribute('cost');
-        if ($markup->percentage) {
-            $priceMarkup = $cost * ($markup->percentage/100);
-        }
+        $cost =  $this->productAttributeValueRepository->findOneWhere([
+            'product_id'   => $product->id,
+            'attribute_id' => 12,
+        ]);
 
-        if ($markup->amount) {
-            $priceMarkup = $markup->amount;
-        }
+        $price = $this->productAttributeValueRepository->findOneWhere([
+            'product_id'   => $product->id,
+            'attribute_id' => 11,
+        ]);
 
-        if ($product->type == 'simple') {
-            $productAttribute = $this->productAttributeValueRepository->findOneWhere([
-                'product_id'   => $product->id,
-                'attribute_id' => 11,
-            ]);
+        if ($product->type == 'simple' && $cost != null) {
+            if ($markup->percentage) {
+                $priceMarkup = $cost->float_value * ($markup->percentage/100);
+            }
     
-            $productAttribute->float_value = $productAttribute->float_value - $priceMarkup;
-            $productAttribute->save();
+            if ($markup->amount) {
+                $priceMarkup = $markup->amount;
+            }
+            
+            $newPrice = $cost->float_value;
             $product->markup()->detach($markup->id);
+            $productFlat = ProductFlat::where('product_id', $product->id)->first();
+            $newPrice = $price->float_value - $priceMarkup;
+
+            if ($productFlat) {
+                $productFlat->price = $newPrice;
+                $productFlat->save();
+
+                $price->float_value = $newPrice;
+                $price->save();
+            }
+
         } else {
+            $price = 0;
             foreach ($product->variants as $product) {
-                $productAttribute = $this->productAttributeValueRepository->findOneWhere([
-                    'product_id'   => $product->id,
-                    'attribute_id' => 11,
-                ]);
+                if ($markup->percentage) {
+                    $priceMarkup = $cost->float_value * ($markup->percentage/100);
+                }
         
+                if ($markup->amount) {
+                    $priceMarkup = $markup->amount;
+                }
+
                 $product->markup()->detach($markup->id);
-                $productAttribute->save();
+                $productFlat = ProductFlat::where('product_id',  $product->id)->first();
+                $newPrice = $price->float_value - $priceMarkup;
+                $price = $newPrice;
+                if ($productFlat) {
+                    $price->float_value = $newPrice;
+                    $price->save();
+
+                    $productFlat->price = $newPrice;
+                    $productFlat->save();
+                }
+            }
+            
+            if ($markup->percentage) {
+                $priceMarkup = $cost->float_value * ($markup->percentage/100);
+            }
+    
+            if ($markup->amount) {
+                $priceMarkup = $markup->amount;
+            }
+            
+            $product->markup()->detach($markup->id);
+            $productFlat = ProductFlat::where('product_id',  $product->id)->first();
+
+            if ($productFlat) {
+                $price->float_value = $newPrice;
+                $price->save();
+
+                $productFlat->price = $newPrice;
+                $productFlat->save();
             }
         }
     }

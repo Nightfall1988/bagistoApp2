@@ -13,39 +13,44 @@ return new class extends Migration
      */
     public function up()
     {
-        // Ensure the table does not already exist
-        if (!Schema::hasTable('channels')) {
-            Schema::create('channels', function (Blueprint $table) {
-                $table->increments('id');
-                $table->string('code');
-                $table->string('timezone')->nullable();
-                $table->string('theme')->nullable();
-                $table->string('hostname')->nullable();
-                $table->string('logo')->nullable();
-                $table->string('favicon')->nullable();
-                $table->json('home_seo')->nullable();
-                $table->boolean('is_maintenance_on')->default(0);
-                $table->text('allowed_ips')->nullable();
-                $table->unsignedInteger('root_category_id')->nullable(); // Ensuring proper unsigned type
-                $table->unsignedInteger('default_locale_id');
-                $table->unsignedInteger('base_currency_id');
-                $table->timestamps();
+        Schema::create('channels', function (Blueprint $table) {
+            $table->increments('id');
+            $table->string('code');
+            $table->string('timezone')->nullable();
+            $table->string('theme')->nullable();
+            $table->string('hostname')->nullable();
+            $table->string('logo')->nullable();
+            $table->string('favicon')->nullable();
+            $table->json('home_seo')->nullable();
+            $table->boolean('is_maintenance_on')->default(0);
+            $table->text('allowed_ips')->nullable();
+            $table->integer('root_category_id')->nullable()->unsigned();
+            $table->integer('default_locale_id')->unsigned();
+            $table->integer('base_currency_id')->unsigned();
+            $table->timestamps();
 
-                // Define foreign keys with explicit names to avoid conflicts
-                $table->foreign('root_category_id', 'fk_channels_root_category')
-                      ->references('id')->on('categories')
-                      ->onDelete('set null');
+            $table->foreign('root_category_id')->references('id')->on('categories')->onDelete('set null');
+            $table->foreign('default_locale_id')->references('id')->on('locales');
+            $table->foreign('base_currency_id')->references('id')->on('currencies');
+        });
 
-                $table->foreign('default_locale_id', 'fk_channels_default_locale')
-                      ->references('id')->on('locales');
+        Schema::create('channel_locales', function (Blueprint $table) {
+            $table->integer('channel_id')->unsigned();
+            $table->integer('locale_id')->unsigned();
 
-                $table->foreign('base_currency_id', 'fk_channels_base_currency')
-                      ->references('id')->on('currencies');
-            });
-        }
+            $table->primary(['channel_id', 'locale_id']);
+            $table->foreign('channel_id')->references('id')->on('channels')->onDelete('cascade');
+            $table->foreign('locale_id')->references('id')->on('locales')->onDelete('cascade');
+        });
 
-        // Ensure no existing constraints conflict with this migration
-        // This step might involve manual inspection if you're avoiding raw SQL
+        Schema::create('channel_currencies', function (Blueprint $table) {
+            $table->integer('channel_id')->unsigned();
+            $table->integer('currency_id')->unsigned();
+
+            $table->primary(['channel_id', 'currency_id']);
+            $table->foreign('channel_id')->references('id')->on('channels')->onDelete('cascade');
+            $table->foreign('currency_id')->references('id')->on('currencies')->onDelete('cascade');
+        });
     }
 
     /**
@@ -55,9 +60,10 @@ return new class extends Migration
      */
     public function down()
     {
-        // Check if the table exists before trying to drop it
-        if (Schema::hasTable('channels')) {
-            Schema::dropIfExists('channels');
-        }
+        Schema::dropIfExists('channel_currencies');
+
+        Schema::dropIfExists('channel_locales');
+
+        Schema::dropIfExists('channels');
     }
 };

@@ -106,34 +106,7 @@
                         <!-- State -->
                         <x-admin::form.control-group>
                             <!-- Country Have States -->
-                            <template v-if="haveStates()">
-                                <x-admin::form.control-group.label class="required">
-                                    @lang('admin::app.settings.taxes.rates.create.state')
-                                </x-admin::form.control-group.label>
 
-                                <x-admin::form.control-group.control
-                                    type="select"
-                                    name="state"
-                                    rules="required"
-                                    :value="old('state')"
-                                    v-model="state"
-                                    :label="trans('admin::app.settings.taxes.rates.create.state')"
-                                    :placeholder="trans('admin::app.settings.taxes.rates.create.state')"
-                                >
-                                    <option value="">
-                                        @lang('admin::app.settings.taxes.rates.edit.select-state')
-                                    </option>
-
-                                        <option
-                                            v-for='(state, index) in countryStates[country]'
-                                            :value="state.code"
-                                        >
-                                            @{{ state.default_name }}
-                                        </option>
-                                    </x-admin::form.control-group.control>
-
-                                <x-admin::form.control-group.error control-name="state" />
-                            </template>
 
                             <!-- Country Have not States -->
                             <template v-else>

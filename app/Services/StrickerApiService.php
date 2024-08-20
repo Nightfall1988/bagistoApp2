@@ -168,9 +168,6 @@ class StrickerApiService {
         $cost = isset($mainProductOptionals['Price1']) ? $mainProductOptionals['Price1'] : 0;
         $yourPrice = isset($mainProductOptionals['YourPrice']) ? $mainProductOptionals['YourPrice'] : 0;
 
-        $price = $cost + $cost * ($this->globalMarkup->percentage/100);
-        $productVariant->markup()->attach($this->globalMarkup->id);
-        $productObj->markup()->attach($this->globalMarkup->id);
         $urlKey = strtolower($mainProductData['Name'] . '-' . $mainProductData['ProdReference']);
         $urlKey = preg_replace('/[^a-z0-9]+/', '-', $urlKey);
         $urlKey = trim($urlKey, '-');
@@ -242,7 +239,7 @@ class StrickerApiService {
         ]);
 
         $productObj = $this->productRepository->updateToShop($superAttributes, $productObj->id, 'id');
-        $this->markupRepository->addMarkupToPrice($productObj, $this->globalMarkup);
+        $this->markupRepository->addMarkupToPrice($productObj,$this->globalMarkup);
     }
 
     public function createSimple($productData) {
@@ -352,7 +349,8 @@ class StrickerApiService {
             $superAttributes['size'] = $sizeId;
         }
         $productObj = $this->productRepository->updateToShop($superAttributes, $productObj->id, 'id');
-        $this->markupRepository->addMarkupToPrice($productObj, $this->globalMarkup);
+        $this->markupRepository->addMarkupToPrice($productObj,$this->globalMarkup);
+
     }
 
     public function setOutput($output)
@@ -475,14 +473,11 @@ class StrickerApiService {
     
                 $cost = isset($foundOptional['Price1']) ? $foundOptional['Price1'] : 0;
                 $yourPrice = isset($mainProductOptionals['YourPrice']) ? $mainProductOptionals['YourPrice'] : 0;
-        
-                $price = $cost + $cost * ($this->globalMarkup->percentage/100);
-                $variant->markup()->attach($this->globalMarkup->id);
 
                 $variants[$variant->id] = [
                     "sku" => $foundOptional['Sku'],
                     "name" => $foundOptional['Name'],
-                    'price' => $price,
+                    'price' => $cost,
                     'cost' => $cost,
                     "weight" => $foundOptional['Weight'] ?? 0,
                     "status" => "1",
@@ -534,7 +529,7 @@ class StrickerApiService {
                     "product_number" =>  $foundOptional['ProdReference'] . '-' . $foundOptional['Sku'],
                     "name" =>  $foundOptional['Name'],
                     "url_key" => $urlKey,                    
-                    'price' => $cost ?? '0',
+                    'price' => $cost,
                     "weight" => $foundOptional['Weight'] ?? 0,
                     "short_description" =>(isset($foundOptional['ShortDescription'])) ? 'no description provided' : '<p>' . $foundOptional['ShortDescription'] . '</p>',
                     "description" => (isset($foundOptional['Description'])) ? 'no description provided' : '<p>' . $foundOptional['Description'] . '</p>',
@@ -576,7 +571,8 @@ class StrickerApiService {
                     }
                 }
     
-                $this->productRepository->updateToShop($superAttributes, $variant->id, 'id');
+                $product = $this->productRepository->updateToShop($superAttributes, $variant->id, 'id');
+                $this->markupRepository->addMarkupToPrice($product,$this->globalMarkup);
 
 
             } else {

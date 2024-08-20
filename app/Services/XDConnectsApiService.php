@@ -236,11 +236,12 @@ class XDConnectsApiService {
                 $urlKey = strtolower((string)$variant->ItemName . '-' . (string)$variant->ItemCode);
                 $urlKey = preg_replace('/[^a-z0-9]+/', '-', $urlKey);
                 $urlKey = trim($urlKey, '-');
+                $cost = (string)$priceDataList[(string)$variant->ItemCode]->ItemPriceNet_Qty1 ?? '';
 
                 $variants[$productVariant->id] = [
                     "sku" => (string)$variant->ItemCode,
                     "name" => (!isset($variant->ItemName)) ? 'no name' : (string)$variant->ItemName,
-                    'price' => (string)$priceDataList[(string)$variant->ItemCode]->ItemPriceNet_Qty1 ?? '',
+                    'price' =>  $cost,
                     "weight" => (string)$variant->ItemWeightNetGr * 1000 ?? 0,
                     "status" => "1",
                     "new" => "1",
@@ -286,7 +287,6 @@ class XDConnectsApiService {
                     "product_number" => (string)$variant->ModelCode . '-' . (string)$variant->ItemCode,
                     "name" => (!isset($variant->ItemName)) ? 'no name' : (string)$variant->ItemName,
                     "url_key" => $urlKey,                    
-                    'price' => (string)$priceDataList[(string)$variant->ItemCode]->ItemPriceNet_Qty1 ?? '',
                     "weight" => (string)$variant->ItemWeightNetGr * 1000 ?? 0,
                     "short_description" => '<p>' . (string)$variant->ShortDescription . '</p>' ?? '',
                     "description" => '<p>' . (string)$variant->LongDescription . '</p>' ?? '',
@@ -295,7 +295,7 @@ class XDConnectsApiService {
                     "meta_description" => "",
                     "meta_description" => "",
                     "meta_description" => "",       
-                    'price' => $cost,
+                    'price' => $price,
                     'cost' => $cost,
                     "special_price" => "",
                     "special_price_from" => "",
@@ -325,7 +325,9 @@ class XDConnectsApiService {
                     $superAttributes['size'] = $sizeId;
                 }
 
-                $this->productRepository->updateToShop($superAttributes, $productVariant->id, 'id');
+                $productVariant = $this->productRepository->updateToShop($superAttributes, $productVariant->id, 'id');
+                $this->markupRepository->addMarkupToPrice($productVariant,$this->globalMarkup);
+
                 $this->tracker->advance();
             }
 
@@ -333,7 +335,7 @@ class XDConnectsApiService {
             $urlKey = preg_replace('/[^a-z0-9]+/', '-', $urlKey);
             $urlKey = trim($urlKey, '-');    
             $cost = (string)$priceDataList[(string)$mainProduct->ItemCode]->ItemPriceNet_Qty1 ?? '';
-            
+
             $superAttributes = [
                 '_method' => 'PUT',
                 "channel" => "default",
@@ -342,7 +344,6 @@ class XDConnectsApiService {
                 "product_number" => (string)$mainProduct->ModelCode . '-' . (string)$productObj->sku,
                 "name" => (!isset($mainProduct->ItemName)) ? 'no name' : (string)$mainProduct->ItemName,
                 "url_key" => $urlKey,                    
-                'price' => (string)$priceDataList[(string)$mainProduct->ItemCode]->ItemPriceNet_Qty1 ?? '',
                 "weight" => (string)$mainProduct->ItemWeightNetGr * 1000 ?? 0,
                 "short_description" => '<p>' . (string)$mainProduct->ShortDescription . '</p>' ?? 'no description provided',
                 "description" => '<p>' . (string)$mainProduct->LongDescription . '</p>' ?? 'no description provided',
@@ -375,7 +376,7 @@ class XDConnectsApiService {
             ];
 
             $productObj = $this->productRepository->updateToShop($superAttributes, $productObj->id, 'id');
-            $this->markupRepository->addMarkupToPrice($productObj, $this->globalMarkup);
+            $this->markupRepository->addMarkupToPrice($productObj,$this->globalMarkup);
 
             $this->supplierRepository->create([
                 'product_id' => $productObj->id,
@@ -463,7 +464,7 @@ class XDConnectsApiService {
         $replace = '-';
         $urlKey = strtolower(str_replace($search, $replace, $urlKey));
         $cost = (string)$priceDataList[(string)$product->ItemCode]->ItemPriceNet_Qty1 ?? '';
-        
+
         $superAttributes = [
             '_method' => 'PUT',
             "channel" => "default",
@@ -472,7 +473,6 @@ class XDConnectsApiService {
             "product_number" => (string)$product->ModelCode . '-' . (string)$product->ItemCode,
             "name" => (!isset($product->ItemName)) ? 'no name' : (string)$product->ItemName,
             "url_key" => $urlKey,                    
-            'price' => (string)$priceDataList[(string)$product->ItemCode]->ItemPriceNet_Qty1 ?? '',
             "weight" => (string)$product->ItemWeightNetGr * 1000 ?? 0,
             "short_description" => '<p>' . (string)$product->ShortDescription . '</p>' ?? '',
             "description" => '<p>' . (string)$product->LongDescription . '</p>' ?? '',
@@ -510,8 +510,8 @@ class XDConnectsApiService {
             $superAttributes['size'] = $sizeId;
         }
 
-        $this->productRepository->updateToShop($superAttributes, $productVariant->id, 'id');
-        $this->markupRepository->addMarkupToPrice($productVariant, $this->globalMarkup);
+        $product = $this->productRepository->updateToShop($superAttributes, $productVariant->id, 'id');
+        $this->markupRepository->addMarkupToPrice($product,$this->globalMarkup);
 
         $this->tracker->advance();
     }

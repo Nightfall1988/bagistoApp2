@@ -32,8 +32,7 @@ class MidoceanApiService {
         ProductImageRepository $productImageRepository,
         ProductAttributeValueRepository $productAttributeValueRepository,
         MarkupRepository $markupRepository,
-        CategoryImportService $categoryImportService,
-        LanguageImportService $languageImportService
+        CategoryImportService $categoryImportService
     ) {
         $this->productRepository = $productRepository;
         $this->attributeOptionRepository = $attributeOptionRepository;
@@ -43,16 +42,15 @@ class MidoceanApiService {
         $this->productAttributeValueRepository = $productAttributeValueRepository;
         $this->markupRepository = $markupRepository;
         $this->categoryImportService = $categoryImportService;
-        $this->languageImportService = $languageImportService;
 
         // $this->url = 'https://appbagst.free.beeceptor.com/zz'; // TEST;
+        // dd(env('MIDOECAN_PRODUCTS_URL'));
         $this->url = env('MIDOECAN_PRODUCTS_URL');
         $this->pricesUrl = env('MIDOECAN_PRICES_URL');
         $this->identifier = env('MIDOECAN_IDENTIFIER');
         $this->printUrl = env('MIDOECAN_PRINT_URL');
         $this->productImages = [];
         $this->globalMarkup = null;
-        $this->defaultLocale = env('APP_LOCALE');
     }
 
     public function getData()
@@ -119,37 +117,9 @@ class MidoceanApiService {
         $variants = [];
         $tempAttributes = [];
         $attributes = [];
-        $translateKey = '';
-        $materialData = [];
-        $materialList = [];
 
         $productCategory = preg_replace('/[^a-z0-9]+/', '', strtolower($variantList[0]->category_level1)) ?? ', ';
         $productSubCategory = preg_replace('/[^a-z0-9]+/', '', strtolower($variantList[0]->category_level2)) ?? ', ';
-        
-        if (isset($apiProduct->material) && $apiProduct->material != '') {    
-            $translateKey = $this->languageImportService->createAttributeTranslationKey($apiProduct->material);
-            $materialData = $this->languageImportService->searchAndAdd($translateKey,$apiProduct->material);
-        }
-
-        if (isset($apiProduct->material)) {
-            $result = $this->attributeOptionRepository->getOption($apiProduct->material);
-
-            if ($result != null && !in_array($result->id, $materialList)) {
-                $materialList[] = $result->id;
-            }
-
-            if ($result == null) {
-                {
-                    $material = $this->attributeOptionRepository->create([
-                        'admin_name' => ucfirst(trans($materialData['code'], [], $this->defaultLocale)),
-                        'attribute_id' => 29,
-                    ]);
-
-                    $materialId = $material->id;
-                    $materialList[] = $materialId;
-                }
-            }
-        }
         
         foreach ($apiProduct->variants as $variant) {
 
@@ -240,10 +210,6 @@ class MidoceanApiService {
             "type" => 'configurable',
             'super_attributes' => $attributes
         ]);
-
-        $meta_title = "$apiProduct->product_name $apiProduct->product_class $apiProduct->brand";
-        $meta_description = "$apiProduct->short_description";
-        $meta_keywords = "$apiProduct->product_name, $apiProduct->brand, $productCategory, $productSubCategory, $apiProduct->product_class";
 
         for ($i=0; $i<sizeof($apiProduct->variants); $i++) {
             $productVariant = $this->productRepository->upserts([
@@ -376,6 +342,9 @@ class MidoceanApiService {
             ]);
 
             $cost = $priceList[$apiProduct->variants[$i]->sku] ?? 0;
+            $price = $cost + $cost * ($this->globalMarkup->percentage/100);
+            $productVariant->markup()->attach($this->globalMarkup->id);
+
             $urlKey = strtolower($apiProduct->product_name . '-' . $apiProduct->variants[$i]->sku);
             $urlKey = preg_replace('/[^a-z0-9]+/', '-', $urlKey);
             $urlKey = trim($urlKey, '-');
@@ -391,12 +360,12 @@ class MidoceanApiService {
                 "url_key" => $urlKey,
                 "short_description" => (isset($apiProduct->short_description)) ? '<p>' . $apiProduct->short_description . '</p>' : '',
                 "description" => (isset($apiProduct->long_description)) ? '<p>' . $apiProduct->long_description . '</p>'  : '',
-                "meta_title" =>  $meta_title,
-                "meta_keywords" => $meta_keywords,
-                "meta_description" => $meta_description,
+                "meta_title" =>  "",
+                "meta_keywords" => "",
+                "meta_description" => "",
+                "tax_category_id" => "1",
                 'price' => $cost,
                 'cost' => $cost,
-                'material' =>  !isset($materialData['code']) ? '': trans($materialData['code'], [], $this->defaultLocale) ?? '',
                 "special_price" => "",
                 "special_price_from" => "",
                 "special_price_to" => "",
@@ -424,6 +393,7 @@ class MidoceanApiService {
             }
 
             $productVariant = $this->productRepository->updateToShop($superAttributes, $productVariant->id, $attribute = 'id');
+            $this->markupRepository->addMarkupToPrice($productVariant,$this->globalMarkup);
         }
 
         $productCategory = preg_replace('/[^a-z0-9]+/', '', strtolower($apiProduct->variants[0]->category_level1)) ?? ', ';
@@ -438,14 +408,10 @@ class MidoceanApiService {
         $meta_description = "$apiProduct->short_description";
         $meta_keywords = "$apiProduct->product_name, $apiProduct->brand, $productCategory, $productSubCategory, $apiProduct->product_class";
 
-        if (isset($apiProduct->material) && $apiProduct->material != '') {    
-            $translateKey = $this->languageImportService->createAttributeTranslationKey($apiProduct->material);
-            $materialData = $this->languageImportService->searchAndAdd($translateKey,$apiProduct->material);
-        }
-
         $superAttributes = [
             "channel" => "default",
-            "locale" => $this->defaultLocale,
+            "locale" => "en",
+            'sku' => $product->sku,
             "product_number" => $apiProduct->master_id, //
             "name" => (!isset($apiProduct->product_name)) ? 'no name' : $apiProduct->product_name,
             "url_key" => $urlKey, //
@@ -454,8 +420,8 @@ class MidoceanApiService {
             "meta_title" =>  $meta_title,
             "meta_keywords" => $meta_keywords,
             "meta_description" => $meta_description,
-            "material" => !isset($materialData['code']) ? '': trans($materialData['code'], [], $this->defaultLocale) ?? '',
-            'price' => $cost,
+            "tax_category_id" => "1",
+            'price' => $price,
             'cost' => $cost,
             "special_price" => "",
             "special_price_from" => "",
@@ -476,11 +442,9 @@ class MidoceanApiService {
         ];
 
         $product = $this->productRepository->updateToShop($superAttributes, $product->id, $attribute = 'id');
-        $this->markupRepository->addMarkupToPrice($product, $this->globalMarkup);
-        return $product;
+        $this->markupRepository->addMarkupToPrice($product,$this->globalMarkup);
     }
 
-    // SIMPLE
     public function createSimpleProduct($mainVariant, $apiProduct, $priceList, $categories) {
 
         $product = $this->productRepository->upserts([
@@ -492,6 +456,9 @@ class MidoceanApiService {
 
         $productSku = $product->sku ?? '';
         $cost = isset($priceList[$productSku]) ? $priceList[$productSku] : 0;
+        if ($this->globalMarkup) {
+            $product->markup()->attach($this->globalMarkup->id);
+        }
 
         $urlKey = isset($apiProduct->product_name) ? $apiProduct->product_name  . '-' . $apiProduct->master_id : $apiProduct->master_id; 
         $urlKey = preg_replace('/[^a-z0-9]+/', '-', $urlKey);
@@ -531,6 +498,7 @@ class MidoceanApiService {
             "meta_description" => $meta_description,
             'price' => $cost,
             'cost' => $cost,
+            "tax_category_id" => "1",
             "special_price" => "",
             "special_price_from" => "",
             "special_price_to" => "",          
@@ -557,7 +525,8 @@ class MidoceanApiService {
             ]);
 
         $product = $this->productRepository->updateToShop($superAttributes, $product->id, $attribute = 'id');
-        $this->markupRepository->addMarkupToPrice($product, $this->globalMarkup);
+        $this->markupRepository->addMarkupToPrice($product,$this->globalMarkup);
+
     }
 
     public function setOutput($output)

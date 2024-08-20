@@ -100,7 +100,6 @@ class MarkupController extends Controller
     public function destroy(int $id): JsonResponse
     {
         try {
-            // Event::dispatch('marketing.campaigns.delete.before', $id);
 
             $markup = $this->markupRepository->where('id', $id)->first();
             $markupId = $markup->id;
@@ -116,8 +115,6 @@ class MarkupController extends Controller
             }
 
 
-            // Event::dispatch('marketing.campaigns.delete.after', $id);
-
             return new JsonResponse([
                 'message' => trans('admin::app.markup.delete-success'),
             ]);
@@ -128,6 +125,4 @@ class MarkupController extends Controller
             ]);
         }
     }
-
-
 }

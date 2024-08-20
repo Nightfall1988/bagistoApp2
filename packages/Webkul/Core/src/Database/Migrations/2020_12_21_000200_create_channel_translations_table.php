@@ -14,8 +14,8 @@ return new class extends Migration
     public function up()
     {
         Schema::create('channel_translations', function (Blueprint $table) {
-            $table->id(); // Uses unsignedBigInteger for the primary key
-            $table->unsignedBigInteger('channel_id'); // Changed to unsignedBigInteger
+            $table->id();
+            $table->integer('channel_id')->unsigned();
             $table->string('locale')->index();
             $table->string('name');
             $table->text('description')->nullable();
@@ -25,10 +25,7 @@ return new class extends Migration
             $table->json('home_seo')->nullable();
             $table->timestamps();
 
-            // Unique constraint for channel and locale
             $table->unique(['channel_id', 'locale']);
-
-            // Foreign key constraint
             $table->foreign('channel_id')->references('id')->on('channels')->onDelete('cascade');
         });
     }

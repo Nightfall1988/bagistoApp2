@@ -15,19 +15,15 @@ return new class extends Migration
     {
         Schema::create('subscribers_list', function (Blueprint $table) {
             $table->increments('id');
-            $table->string('email')->unique(); // Added unique constraint for email
+            $table->string('email');
             $table->boolean('is_subscribed')->default(0);
             $table->string('token')->nullable();
-            $table->unsignedInteger('customer_id')->nullable(); // Changed to unsignedInteger
-            $table->unsignedInteger('channel_id'); // Changed to unsignedInteger
+            $table->integer('customer_id')->unsigned()->nullable();
+            $table->integer('channel_id')->unsigned();
             $table->timestamps();
 
-            // Foreign key constraints
             $table->foreign('customer_id')->references('id')->on('customers')->onDelete('set null');
             $table->foreign('channel_id')->references('id')->on('channels')->onDelete('cascade');
-
-            // Optional index for `email` column
-            $table->index('email');
         });
     }
 
@@ -41,4 +37,3 @@ return new class extends Migration
         Schema::dropIfExists('subscribers_list');
     }
 };
-
