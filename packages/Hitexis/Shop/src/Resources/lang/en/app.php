@@ -625,8 +625,37 @@ return [
             'order-id-info' => 'Your order id is #:order_id',
             'thanks'        => 'Thank you for your order!',
             'title'         => 'Order successfully placed',
-        ],
+            'title' => 'Checkout',
+            'info'  => 'Enable or Disable Mini Cart, cart Summary.',
 
+            'shopping-cart' => [
+                'cart-page'              => 'Cart Page',
+                'cart-page-info'         => 'Control Cart Page visibility to enhance user shopping experience.',
+                'cross-sell'             => 'Cross sell Products',
+                'cross-sell-info'        => 'Enable cross-sell products to boost additional sales opportunities.',
+                'estimate-shipping'      => 'Estimated Shipping',
+                'estimate-shipping-info' => 'Enable estimated shipping to provide upfront shipping costs.',
+                'guest-checkout'         => 'Allow guest checkout',
+                'guest-checkout-info'    => 'Enable guest checkout for a faster, hassle-free purchase process.',
+                'info'                   => 'Enable guest checkout, cart page, cross-sell products, and estimated shipping to enhance user convenience and streamline the shopping process for increased sales.',
+                'title'                  => 'Shopping Cart',
+            ],
+
+            'my-cart' => [
+                'display-item-quantities' => 'Display item quantities',
+                'display-number-in-cart'  => 'Display number of items in cart',
+                'info'                    => 'Enable settings for My Cart to show a summary of item quantities and display the total number of items in the cart for easy tracking.',
+                'summary'                 => 'Summary',
+                'title'                   => 'My Cart',
+            ],
+
+            'mini-cart' => [
+                'display-mini-cart'    => 'Display Mini Cart',
+                'info'                 => 'Enable Mini Cart settings to display the mini cart and show Mini Cart Offer Information for quick access to cart details and promotions.',
+                'mini-cart-offer-info' => 'Mini Cart Offer Information',
+                'title'                => 'Mini Cart',
+            ],
+        ],
         
         'cart' => [
             'continue-to-checkout'      => 'Continue to Checkout',
@@ -724,6 +753,28 @@ return [
                 'proceed-to-checkout' => 'Proceed To Checkout',
                 'sub-total'           => 'Subtotal',
                 'tax'                 => 'Tax',
+                'cart-summary'              => 'Cart Summary',
+                'delivery-charges-excl-tax' => 'Delivery Charges (Excl. Tax)',
+                'delivery-charges-incl-tax' => 'Delivery Charges (Incl. Tax)',
+                'delivery-charges'          => 'Delivery Charges',
+                'discount-amount'           => 'Discount Amount',
+                'grand-total'               => 'Grand Total',
+                'place-order'               => 'Place Order',
+                'proceed-to-checkout'       => 'Proceed To Checkout',
+                'sub-total-excl-tax'        => 'Subtotal (Excl. Tax)',
+                'sub-total-incl-tax'        => 'Subtotal (Incl. Tax)',
+                'sub-total'                 => 'Subtotal',
+                'tax'                       => 'Tax',
+
+                'estimate-shipping' => [
+                    'country'        => 'Country',
+                    'info'           => 'Enter your destination to get a shipping and tax estimate.',
+                    'postcode'       => 'Zip/Postcode',
+                    'select-country' => 'Select Country',
+                    'select-state'   => 'Select State',
+                    'state'          => 'State',
+                    'title'          => 'Estimate Shipping and Tax',
+                ],
             ],
         ],
 
@@ -778,6 +829,28 @@ return [
                 'sub-total'        => 'Subtotal',
                 'tax'              => 'Tax',
             ],
+        ],
+
+        'coupon' => [
+            'already-applied' => 'Coupon code already applied.',
+            'applied'         => 'Coupon applied',
+            'apply'           => 'Apply Coupon',
+            'apply-issue'     => 'Coupon code can\'t be applied.',
+            'button-title'    => 'Apply',
+            'code'            => 'Coupon code',
+            'discount'        => 'Coupon Discount',
+            'enter-your-code' => 'Enter your code',
+            'error'           => 'Something went wrong',
+            'invalid'         => 'Coupon code is invalid.',
+            'remove'          => 'Remove Coupon',
+            'subtotal'        => 'Subtotal',
+            'success-apply'   => 'Coupon code applied successfully.',
+        ],
+
+        'login' => [
+            'title' => 'Login',
+            'email' => 'Email',
+            'password' => 'Password',
         ],
     ],
 
