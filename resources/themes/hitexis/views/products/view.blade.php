@@ -425,7 +425,6 @@
 
                                     {!! view_render_event('bagisto.shop.products.view.add_to_cart.after', ['product' => $product]) !!}
                                 </div>
-
                                     <div id='additional-info' class="mt-8">
                                         <!-- Existing content -->
                                         <div class="grid grid-cols-2 gap-4 text-lg text-zinc-500 max-1180:text-sm">

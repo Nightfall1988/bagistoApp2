@@ -468,6 +468,73 @@ class MidoceanApiService {
                 $superAttributes['size'] = $sizeId;
             }
 
+            if (isset($apiProduct->dimensions)) {
+                $dimensionsObj = $this->attributeOptionRepository->getOption($apiProduct->dimensions);
+                
+                if ($dimensionsObj) {
+                    $superAttributes['dimensions'] =  $dimensionsObj->admin_name;
+                }
+    
+                if (!$dimensionsObj) {
+                    {
+                        $dimensionsObj = $this->attributeOptionRepository->create([
+                            'admin_name' => ucfirst(trim($apiProduct->dimensions)),
+                            'attribute_id' => 30,
+                        ]);
+    
+                        $this->productAttributeValueRepository->upsert([
+                            'product_id' => $product->id,
+                            'attribute_id' => 30,
+                            'locale' => 'en',
+                            'channel' => null,
+                            'unique_id' => implode('|', [$product->id,30]),
+                            'text_value' => $dimensionsObj->admin_name ?? '',
+                            'boolean_value' => null,
+                            'integer_value' => null,
+                            'float_value' => null,
+                            'datetime_value' => null,
+                            'date_value' => null,
+                            'json_value' => null,
+                        ], uniqueBy: ['product_id', 'attribute_id']);
+    
+                        $superAttributes['dimensions'] =  $dimensionsObj->admin_name;
+                    }
+                }
+            }
+
+            if (isset($apiProduct->material)) {
+                $materialObj = $this->attributeOptionRepository->getOption($apiProduct->material);
+                if ($materialObj) {
+                    $superAttributes['material'] =  $materialObj->admin_name;
+                }
+    
+                if (!$materialObj) {
+                    {
+                        $materialObj = $this->attributeOptionRepository->create([
+                            'admin_name' => ucfirst(trim($apiProduct->material)),
+                            'attribute_id' => 29,
+                        ]);
+    
+                        $this->productAttributeValueRepository->upsert([
+                            'product_id' => $product->id,
+                            'attribute_id' => 29,
+                            'locale' => 'en',
+                            'channel' => null,
+                            'unique_id' => implode('|', [$product->id,29]),
+                            'text_value' => $materialObj->admin_name,
+                            'boolean_value' => null,
+                            'integer_value' => null,
+                            'float_value' => null,
+                            'datetime_value' => null,
+                            'date_value' => null,
+                            'json_value' => null,
+                        ], uniqueBy: ['product_id', 'attribute_id']);
+    
+                        $superAttributes['material'] =  $materialObj->admin_name;
+                    }
+                }
+            }
+
             $productVariant = $this->productRepository->updateToShop($superAttributes, $productVariant->id, $attribute = 'id');
             $this->markupRepository->addMarkupToPrice($productVariant,$this->globalMarkup);
         }
@@ -497,9 +564,7 @@ class MidoceanApiService {
             "meta_title" =>  $meta_title,
             "meta_keywords" => $meta_keywords,
             "meta_description" => $meta_description,
-            "material" => $materialObj->admin_name ?? '',
             "tax_category_id" => "1",
-            "dimensions" => $dimensionsObj->admin_name ?? '',
             'price' => $price,
             'cost' => $cost,
             "special_price" => "",
@@ -519,6 +584,73 @@ class MidoceanApiService {
             'images' =>  $images,
             'variants' => $variants
         ];
+
+        if (isset($apiProduct->dimensions)) {
+            $dimensionsObj = $this->attributeOptionRepository->getOption($apiProduct->dimensions);
+            
+            if ($dimensionsObj) {
+                $superAttributes['dimensions'] =  $dimensionsObj->admin_name;
+            }
+
+            if (!$dimensionsObj) {
+                {
+                    $dimensionsObj = $this->attributeOptionRepository->create([
+                        'admin_name' => ucfirst(trim($apiProduct->dimensions)),
+                        'attribute_id' => 30,
+                    ]);
+
+                    $this->productAttributeValueRepository->upsert([
+                        'product_id' => $product->id,
+                        'attribute_id' => 30,
+                        'locale' => 'en',
+                        'channel' => null,
+                        'unique_id' => implode('|', [$product->id,30]),
+                        'text_value' => $dimensionsObj->admin_name ?? '',
+                        'boolean_value' => null,
+                        'integer_value' => null,
+                        'float_value' => null,
+                        'datetime_value' => null,
+                        'date_value' => null,
+                        'json_value' => null,
+                    ], uniqueBy: ['product_id', 'attribute_id']);
+
+                    $superAttributes['dimensions'] =  $dimensionsObj->admin_name;
+                }
+            }
+        }
+
+        if (isset($apiProduct->material)) {
+            $materialObj = $this->attributeOptionRepository->getOption($apiProduct->material);
+            if ($materialObj) {
+                $superAttributes['material'] =  $materialObj->admin_name;
+            }
+
+            if (!$materialObj) {
+                {
+                    $materialObj = $this->attributeOptionRepository->create([
+                        'admin_name' => ucfirst(trim($apiProduct->material)),
+                        'attribute_id' => 29,
+                    ]);
+
+                    $this->productAttributeValueRepository->upsert([
+                        'product_id' => $product->id,
+                        'attribute_id' => 29,
+                        'locale' => 'en',
+                        'channel' => null,
+                        'unique_id' => implode('|', [$product->id,29]),
+                        'text_value' => $materialObj->admin_name,
+                        'boolean_value' => null,
+                        'integer_value' => null,
+                        'float_value' => null,
+                        'datetime_value' => null,
+                        'date_value' => null,
+                        'json_value' => null,
+                    ], uniqueBy: ['product_id', 'attribute_id']);
+
+                    $superAttributes['material'] =  $materialObj->admin_name;
+                }
+            }
+        }
 
         $product = $this->productRepository->updateToShop($superAttributes, $product->id, $attribute = 'id');
         $this->markupRepository->addMarkupToPrice($product,$this->globalMarkup);
@@ -551,79 +683,6 @@ class MidoceanApiService {
             $tempPaths[] = $imageData['tempPaths'];
         }
 
-        if (isset($apiProduct->material)) {
-            $materialObj = $this->attributeOptionRepository->getOption($apiProduct->material);
-            if ($materialObj && !in_array($materialObj->id,$tempAttributes)) {
-                $materialId = $materialObj->id;
-                $tempAttributes[] = $materialId;
-            }
-
-            if (!$materialObj) {
-                {
-                    $materialObj = $this->attributeOptionRepository->create([
-                        'admin_name' => ucfirst(trim($apiProduct->material)),
-                        'attribute_id' => 29,
-                    ]);
-
-                    $materialId = $materialObj->id;
-                    $materialIds[] = $materialId;
-                    $tempAttributes[] = $materialId;
-                }
-            }
-        }
-
-        $this->productAttributeValueRepository->upsert([
-            'product_id' => $product->id,
-            'attribute_id' => 29,
-            'locale' => 'en',
-            'channel' => null,
-            'unique_id' => implode('|', [$product->id,29]),
-            'text_value' => $materialObj->admin_name,
-            'boolean_value' => null,
-            'integer_value' => null,
-            'float_value' => null,
-            'datetime_value' => null,
-            'date_value' => null,
-            'json_value' => null,
-        ], uniqueBy: ['product_id', 'attribute_id']);
-
-
-        if (isset($apiProduct->dimensions)) {
-            $dimensionsObj = $this->attributeOptionRepository->getOption($apiProduct->dimensions);
-            if ($dimensionsObj && !in_array($dimensionsObj->id,$tempAttributes)) {
-                $dimensionsId = $dimensionsObj->id;
-                $tempAttributes[] = $dimensionsId;
-            }
-
-            if (!$dimensionsObj) {
-                {
-                    $dimensionsObj = $this->attributeOptionRepository->create([
-                        'admin_name' => ucfirst(trim($apiProduct->dimensions)),
-                        'attribute_id' => 30,
-                    ]);
-
-                    $dimensionsId = $dimensionsObj->id;
-                    $dimensionsIds[] = $dimensionsId;
-                    $tempAttributes[] = $dimensionsId;
-                }
-            }
-        }
-
-        $this->productAttributeValueRepository->upsert([
-            'product_id' => $product->id,
-            'attribute_id' => 30,
-            'locale' => 'en',
-            'channel' => null,
-            'unique_id' => implode('|', [$product->id,30]),
-            'text_value' => $dimensionsObj->admin_name ?? '',
-            'boolean_value' => null,
-            'integer_value' => null,
-            'float_value' => null,
-            'datetime_value' => null,
-            'date_value' => null,
-            'json_value' => null,
-        ], uniqueBy: ['product_id', 'attribute_id']);
-
         $productCategory = preg_replace('/[^a-z0-9]+/', '', strtolower($apiProduct->variants[0]->category_level1)) ?? ', ';
         $productSubCategory = preg_replace('/[^a-z0-9]+/', '', strtolower($apiProduct->variants[0]->category_level2)) ?? ', ';
 
@@ -651,9 +710,7 @@ class MidoceanApiService {
             "meta_description" => $meta_description,
             'price' => $price,
             'cost' => $cost,
-            "material" => $materialObj->admmin_name ?? '',
             "tax_category_id" => "1",
-            "dimensions" => $dimensionsObj->admmin_name ?? '',
             "special_price" => "",
             "special_price_from" => "",
             "special_price_to" => "",          
@@ -674,6 +731,73 @@ class MidoceanApiService {
             'images' =>  $images
         ];
 
+        if (isset($apiProduct->dimensions)) {
+            $dimensionsObj = $this->attributeOptionRepository->getOption($apiProduct->dimensions);
+            
+            if ($dimensionsObj) {
+                $superAttributes['dimensions'] =  $dimensionsObj->admin_name;
+            }
+
+            if (!$dimensionsObj) {
+                {
+                    $dimensionsObj = $this->attributeOptionRepository->create([
+                        'admin_name' => ucfirst(trim($apiProduct->dimensions)),
+                        'attribute_id' => 30,
+                    ]);
+
+                    $this->productAttributeValueRepository->upsert([
+                        'product_id' => $product->id,
+                        'attribute_id' => 30,
+                        'locale' => 'en',
+                        'channel' => null,
+                        'unique_id' => implode('|', [$product->id,30]),
+                        'text_value' => $dimensionsObj->admin_name ?? '',
+                        'boolean_value' => null,
+                        'integer_value' => null,
+                        'float_value' => null,
+                        'datetime_value' => null,
+                        'date_value' => null,
+                        'json_value' => null,
+                    ], uniqueBy: ['product_id', 'attribute_id']);
+
+                    $superAttributes['dimensions'] =  $dimensionsObj->admin_name;
+                }
+            }
+        }
+
+        if (isset($apiProduct->material)) {
+            $materialObj = $this->attributeOptionRepository->getOption($apiProduct->material);
+            if ($materialObj) {
+                $superAttributes['material'] =  $materialObj->admin_name;
+            }
+
+            if (!$materialObj) {
+                {
+                    $materialObj = $this->attributeOptionRepository->create([
+                        'admin_name' => ucfirst(trim($apiProduct->material)),
+                        'attribute_id' => 29,
+                    ]);
+
+                    $this->productAttributeValueRepository->upsert([
+                        'product_id' => $product->id,
+                        'attribute_id' => 29,
+                        'locale' => 'en',
+                        'channel' => null,
+                        'unique_id' => implode('|', [$product->id,29]),
+                        'text_value' => $materialObj->admin_name,
+                        'boolean_value' => null,
+                        'integer_value' => null,
+                        'float_value' => null,
+                        'datetime_value' => null,
+                        'date_value' => null,
+                        'json_value' => null,
+                    ], uniqueBy: ['product_id', 'attribute_id']);
+
+                    $superAttributes['material'] =  $materialObj->admin_name;
+                }
+            }
+        }
+
         $this->supplierRepository->create([
                 'product_id' => $product->id,
                 'supplier_code' => $this->identifier
@@ -681,7 +805,6 @@ class MidoceanApiService {
 
         $product = $this->productRepository->updateToShop($superAttributes, $product->id, $attribute = 'id');
         $this->markupRepository->addMarkupToPrice($product,$this->globalMarkup);
-
     }
 
     public function setOutput($output)
