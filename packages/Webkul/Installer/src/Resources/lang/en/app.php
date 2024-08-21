@@ -44,6 +44,8 @@ return [
                 'visible-individually' => 'Visible Individually',
                 'weight' => 'Weight',
                 'width' => 'Width',
+                'material' => 'Material',
+                'dimensions' => 'Dimensions'
             ],
             'attribute-options' => [
                 'black' => 'Black',

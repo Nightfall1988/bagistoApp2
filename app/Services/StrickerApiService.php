@@ -198,79 +198,6 @@ class StrickerApiService {
         $name = preg_replace('/[^a-z0-9 ]+/i', '', strtolower($mainProductOptionals['Name'])) ?? '';
         $components = preg_replace('/[^a-z0-9]+/i', '', strtolower($mainProductOptionals['ProductComponents'])) ?? '';
 
-
-        if (isset($material)) {
-            $materialObj = $this->attributeOptionRepository->getOption($material);
-            if ($materialObj && !in_array($materialObj->id,$tempAttributes)) {
-                $materialId = $materialObj->id;
-                $tempAttributes[] = $materialId;
-            }
-
-            if (!$materialObj) {
-                {
-                    $materialObj = $this->attributeOptionRepository->create([
-                        'admin_name' => ucfirst(trim($material)),
-                        'attribute_id' => 29,
-                    ]);
-
-                    $materialId = $materialObj->id;
-                    $materialIds[] = $materialId;
-                    $tempAttributes[] = $materialId;
-                }
-            }
-        }
-
-        $this->productAttributeValueRepository->upsert([
-            'product_id' => $productObj->id,
-            'attribute_id' => 29,
-            'locale' => 'en',
-            'channel' => null,
-            'unique_id' => implode('|', [$productObj->id,29]),
-            'text_value' => $materialObj->admin_name ?? '',
-            'boolean_value' => null,
-            'integer_value' => null,
-            'float_value' => null,
-            'datetime_value' => null,
-            'date_value' => null,
-            'json_value' => null,
-        ], uniqueBy: ['product_id', 'attribute_id']);
-
-        if (isset($dimensions)) {
-            $dimensionsObj = $this->attributeOptionRepository->getOption($dimensions);
-            if ($dimensionsObj && !in_array($dimensionsObj->id,$tempAttributes)) {
-                $dimensionsId = $dimensionsObj->id;
-                $tempAttributes[] = $dimensionsId;
-            }
-
-            if (!$dimensionsObj) {
-                {
-                    $dimensionsObj = $this->attributeOptionRepository->create([
-                        'admin_name' => ucfirst(trim($dimensions)),
-                        'attribute_id' => 30,
-                    ]);
-
-                    $dimensionsId = $dimensionsObj->id;
-                    $dimensionsIds[] = $dimensionsId;
-                    $tempAttributes[] = $dimensionsId;
-                }
-            }
-        }
-
-        $this->productAttributeValueRepository->upsert([
-            'product_id' => $productObj->id,
-            'attribute_id' => 30,
-            'locale' => 'en',
-            'channel' => null,
-            'unique_id' => implode('|', [$productObj->id,30]),
-            'text_value' => $dimensionsObj->admin_name ?? '',
-            'boolean_value' => null,
-            'integer_value' => null,
-            'float_value' => null,
-            'datetime_value' => null,
-            'date_value' => null,
-            'json_value' => null,
-        ], uniqueBy: ['product_id', 'attribute_id']);
-
         $meta_title = "$material $name $components $brand";
         $meta_description = $mainProductOptionals['ShortDescription'];
         $meta_keywords = "$material, $name, $components, $brand, $productCategory, $productSubCategory";
@@ -290,9 +217,7 @@ class StrickerApiService {
             "meta_description" => $meta_description,
             'price' => $price,
             'cost' => $cost,
-            "material" => $materialObj->admin_name ?? '',
             "tax_category_id" => "1",
-            "dimensions" => $dimensionsObj->admin_name ?? '',
             "special_price" => "",
             "special_price_from" => "",
             "special_price_to" => "",          
@@ -318,6 +243,73 @@ class StrickerApiService {
             'product_id' => $productObj->id,
             'supplier_code' => $this->identifier
         ]);
+
+        if (isset($material)) {
+            $materialObj = $this->attributeOptionRepository->getOption($material);
+            if ($materialObj) {
+                $superAttributes['material'] =  $materialObj->admin_name;
+            }
+
+            if (!$materialObj) {
+                {
+                    $materialObj = $this->attributeOptionRepository->create([
+                        'admin_name' => ucfirst(trim($material)),
+                        'attribute_id' => 29,
+                    ]);
+
+                    $this->productAttributeValueRepository->upsert([
+                        'product_id' => $productObj->id,
+                        'attribute_id' => 29,
+                        'locale' => 'en',
+                        'channel' => null,
+                        'unique_id' => implode('|', [$productObj->id,29]),
+                        'text_value' => $materialObj->admin_name,
+                        'boolean_value' => null,
+                        'integer_value' => null,
+                        'float_value' => null,
+                        'datetime_value' => null,
+                        'date_value' => null,
+                        'json_value' => null,
+                    ], uniqueBy: ['product_id', 'attribute_id']);
+
+                    $superAttributes['material'] =  $materialObj->admin_name;
+                }
+            }
+        }
+
+        if (isset($dimensions)) {
+            $dimensionsObj = $this->attributeOptionRepository->getOption($dimensions);
+            
+            if ($dimensionsObj) {
+                $superAttributes['dimensions'] =  $dimensionsObj->admin_name;
+            }
+
+            if (!$dimensionsObj) {
+                {
+                    $dimensionsObj = $this->attributeOptionRepository->create([
+                        'admin_name' => ucfirst(trim($dimensions)),
+                        'attribute_id' => 30,
+                    ]);
+
+                    $this->productAttributeValueRepository->upsert([
+                        'product_id' => $productObj->id,
+                        'attribute_id' => 30,
+                        'locale' => 'en',
+                        'channel' => null,
+                        'unique_id' => implode('|', [$productObj->id,30]),
+                        'text_value' => $dimensionsObj->admin_name ?? '',
+                        'boolean_value' => null,
+                        'integer_value' => null,
+                        'float_value' => null,
+                        'datetime_value' => null,
+                        'date_value' => null,
+                        'json_value' => null,
+                    ], uniqueBy: ['product_id', 'attribute_id']);
+
+                    $superAttributes['dimensions'] =  $dimensionsObj->admin_name;
+                }
+            }
+        }
 
         $productObj = $this->productRepository->updateToShop($superAttributes, $productObj->id, 'id');
         $this->markupRepository->addMarkupToPrice($productObj,$this->globalMarkup);
@@ -381,6 +373,8 @@ class StrickerApiService {
         $productCategory = preg_replace('/[^a-z0-9]+/', '', strtolower($productData['optionals'][0]['Type'])) ?? '';
         $productSubCategory = preg_replace('/[^a-z0-9]+/', '', strtolower($productData['optionals'][0]['SubType'])) ?? '';
         $material = preg_replace('/[^a-z0-9]+/', '', strtolower($productData['optionals'][0]['Materials'])) ?? '';
+        $dimensions = preg_replace('/[^a-z0-9]+/', '', strtolower($productData['optionals'][0]['CombinedSizes'])) ?? '';
+        
         $brand = preg_replace('/[^a-z0-9]+/', '', strtolower($productData['optionals'][0]['Brand'])) ?? '';
         $name = preg_replace('/[^a-z0-9]+/', '', strtolower($productData['optionals'][0]['Name'])) ?? '';
         $components = preg_replace('/[^a-z0-9]+/', '', strtolower($productData['optionals'][0]['ProductComponents'])) ?? '';
@@ -389,78 +383,6 @@ class StrickerApiService {
         $meta_description = $productData['optionals'][0]['ShortDescription'];
         $meta_keywords = "$material, $name, $components, $brand, $productCategory, $productSubCategory";
         $price = $this->markupRepository->calculatePrice($cost, $this->globalMarkup);
-
-        if (isset($productData['optionals'][0]['Materials'])) {
-            $materialObj = $this->attributeOptionRepository->getOption($productData['optionals'][0]['Materials']);
-            if ($materialObj && !in_array($materialObj->id,$tempAttributes)) {
-                $materialId = $materialObj->id;
-                $tempAttributes[] = $materialId;
-            }
-
-            if (!$materialObj) {
-                {
-                    $materialObj = $this->attributeOptionRepository->create([
-                        'admin_name' => ucfirst(trim($material)),
-                        'attribute_id' => 29,
-                    ]);
-
-                    $materialId = $materialObj->id;
-                    $materialIds[] = $materialId;
-                    $tempAttributes[] = $materialId;
-                }
-            }
-        }
-
-        $this->productAttributeValueRepository->upsert([
-            'product_id' => $productObj->id,
-            'attribute_id' => 29,
-            'locale' => 'en',
-            'channel' => null,
-            'unique_id' => implode('|', [$productObj->id,29]),
-            'text_value' => $materialObj->admin_name ?? '',
-            'boolean_value' => null,
-            'integer_value' => null,
-            'float_value' => null,
-            'datetime_value' => null,
-            'date_value' => null,
-            'json_value' => null,
-        ], uniqueBy: ['product_id', 'attribute_id']);
-
-        if (isset($dimensions)) {
-            $dimensionsObj = $this->attributeOptionRepository->getOption($dimensions);
-            if ($dimensionsObj && !in_array($dimensionsObj->id,$tempAttributes)) {
-                $dimensionsId = $dimensionsObj->id;
-                $tempAttributes[] = $dimensionsId;
-            }
-
-            if (!$dimensionsObj) {
-                {
-                    $dimensionsObj = $this->attributeOptionRepository->create([
-                        'admin_name' => ucfirst(trim($dimensions)),
-                        'attribute_id' => 30,
-                    ]);
-
-                    $dimensionsId = $dimensionObj->id;
-                    $dimensionsIds[] = $dimensionsId;
-                    $tempAttributes[] = $dimensionsId;
-                }
-            }
-        }
-
-        $this->productAttributeValueRepository->upsert([
-            'product_id' => $productObj->id,
-            'attribute_id' => 30,
-            'locale' => 'en',
-            'channel' => null,
-            'unique_id' => implode('|', [$productObj->id,30]),
-            'text_value' => $dimensionsObj->admin_name ?? '',
-            'boolean_value' => null,
-            'integer_value' => null,
-            'float_value' => null,
-            'datetime_value' => null,
-            'date_value' => null,
-            'json_value' => null,
-        ], uniqueBy: ['product_id', 'attribute_id']);
 
         $superAttributes = [
             '_method' => 'PUT',
@@ -476,9 +398,7 @@ class StrickerApiService {
             "meta_title" => $meta_title,
             "meta_keywords" => $meta_keywords,
             "meta_description" => $meta_description,
-            "material" => $materialObj->admin_name ?? '',
             "tax_category_id" => "1",
-            "dimensions" => $dimensionsObj->admin_name ?? '',
             'price' => $price,
             'cost' => $cost,
             "special_price" => "",
@@ -504,6 +424,74 @@ class StrickerApiService {
         if ($sizeId != '') {
             $superAttributes['size'] = $sizeId;
         }
+
+        if (isset($material)) {
+            $materialObj = $this->attributeOptionRepository->getOption($material);
+            if ($materialObj) {
+                $superAttributes['material'] =  $materialObj->admin_name;
+            }
+
+            if (!$materialObj) {
+                {
+                    $materialObj = $this->attributeOptionRepository->create([
+                        'admin_name' => ucfirst(trim($material)),
+                        'attribute_id' => 29,
+                    ]);
+
+                    $this->productAttributeValueRepository->upsert([
+                        'product_id' => $productObj->id,
+                        'attribute_id' => 29,
+                        'locale' => 'en',
+                        'channel' => null,
+                        'unique_id' => implode('|', [$productObj->id,29]),
+                        'text_value' => $materialObj->admin_name,
+                        'boolean_value' => null,
+                        'integer_value' => null,
+                        'float_value' => null,
+                        'datetime_value' => null,
+                        'date_value' => null,
+                        'json_value' => null,
+                    ], uniqueBy: ['product_id', 'attribute_id']);
+
+                    $superAttributes['material'] =  $materialObj->admin_name;
+                }
+            }
+        }
+
+        if (isset($dimensions)) {
+            $dimensionsObj = $this->attributeOptionRepository->getOption($dimensions);
+            
+            if ($dimensionsObj) {
+                $superAttributes['dimensions'] =  $dimensionsObj->admin_name;
+            }
+
+            if (!$dimensionsObj) {
+                {
+                    $dimensionsObj = $this->attributeOptionRepository->create([
+                        'admin_name' => ucfirst(trim($dimensions)),
+                        'attribute_id' => 30,
+                    ]);
+
+                    $this->productAttributeValueRepository->upsert([
+                        'product_id' => $productObj->id,
+                        'attribute_id' => 30,
+                        'locale' => 'en',
+                        'channel' => null,
+                        'unique_id' => implode('|', [$productObj->id,30]),
+                        'text_value' => $dimensionsObj->admin_name ?? '',
+                        'boolean_value' => null,
+                        'integer_value' => null,
+                        'float_value' => null,
+                        'datetime_value' => null,
+                        'date_value' => null,
+                        'json_value' => null,
+                    ], uniqueBy: ['product_id', 'attribute_id']);
+
+                    $superAttributes['dimensions'] =  $dimensionsObj->admin_name;
+                }
+            }
+        }
+
         $productObj = $this->productRepository->updateToShop($superAttributes, $productObj->id, 'id');
         $this->markupRepository->addMarkupToPrice($productObj,$this->globalMarkup);
 
@@ -651,42 +639,6 @@ class StrickerApiService {
                     'channel' => null,
                     'unique_id' => implode('|', [$variant->id,29]),
                     'text_value' => $materialObj->admin_name ?? '',
-                    'boolean_value' => null,
-                    'integer_value' => null,
-                    'float_value' => null,
-                    'datetime_value' => null,
-                    'date_value' => null,
-                    'json_value' => null,
-                ], uniqueBy: ['product_id', 'attribute_id']);
-        
-                if (isset($foundOptional['CombinedSizes'])) {
-                    $dimensionsObj = $this->attributeOptionRepository->getOption($foundOptional['CombinedSizes']);
-                    if ($dimensionsObj && !in_array($dimensionsObj->id,$tempAttributes)) {
-                        $dimensionsId = $dimensionsObj->id;
-                        $tempAttributes[] = $dimensionsId;
-                    }
-        
-                    if (!$dimensionsObj) {
-                        {
-                            $dimensionsObj = $this->attributeOptionRepository->create([
-                                'admin_name' => ucfirst(trim($foundOptional['CombinedSizes'])),
-                                'attribute_id' => 30,
-                            ]);
-        
-                            $dimensionsId = $dimensionsObj->id;
-                            $dimensionsIds[] = $dimensionsId;
-                            $tempAttributes[] = $dimensionsId;
-                        }
-                    }
-                }
-        
-                $this->productAttributeValueRepository->upsert([
-                    'product_id' => $variant->id,
-                    'attribute_id' => 30,
-                    'locale' => 'en',
-                    'channel' => null,
-                    'unique_id' => implode('|', [$variant->id,30]),
-                    'text_value' => $dimensionsObj->admin_name ?? '',
                     'boolean_value' => null,
                     'integer_value' => null,
                     'float_value' => null,
