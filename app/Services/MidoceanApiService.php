@@ -615,7 +615,7 @@ class MidoceanApiService {
             'locale' => 'en',
             'channel' => null,
             'unique_id' => implode('|', [$product->id,30]),
-            'text_value' => $dimensionsObj->admin_name,
+            'text_value' => $dimensionsObj->admin_name ?? '',
             'boolean_value' => null,
             'integer_value' => null,
             'float_value' => null,
