@@ -1,6 +1,7 @@
 <v-print-calculator :product="{{ json_encode($product) }}"></v-print-calculator>
 
 @push('scripts')
+<div class="mt-8">
     <script type="text/x-template" id="v-print-calculator-template">
         <div class="p-4 bg-gray-100 rounded-lg shadow-md">
             <div class="mb-4">
@@ -42,7 +43,7 @@
             </div>
         </div>
     </script>
-
+</div>
     <script type="module">
         app.component('v-print-calculator', {
             template: '#v-print-calculator-template',

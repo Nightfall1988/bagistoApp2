@@ -117,20 +117,22 @@ class MarkupRepository extends Repository implements MarkupContract
                         'product_id'   => $product->id,
                         'attribute_id' => 11,
                     ]);
-                    
-                    $product->markup()->attach($markup->id);
-                    $productFlat = ProductFlat::where('product_id',  $product->id)->first();
-                    $newPrice = $cost->float_value + $priceMarkup;
 
-                    $price->float_value = $newPrice;
-                    $price->save();
-    
-                    $price->float_value = $newPrice;
-                    $price->save();
-                    
-                    if ($productFlat) {
-                        $productFlat->price = $newPrice;
-                        $productFlat->save();
+                    if ($cost) {
+                        $product->markup()->attach($markup->id);
+                        $productFlat = ProductFlat::where('product_id',  $product->id)->first();
+                        $newPrice = $cost->float_value + $priceMarkup;
+
+                        $price->float_value = $newPrice;
+                        $price->save();
+        
+                        $price->float_value = $newPrice;
+                        $price->save();
+                        
+                        if ($productFlat) {
+                            $productFlat->price = $newPrice;
+                            $productFlat->save();
+                        }
                     }
                 }
             }
@@ -170,10 +172,11 @@ class MarkupRepository extends Repository implements MarkupContract
                 $price->float_value = $newPrice;
                 $price->save();
             }
-
-        } else {
+        }
+        
+        if ($product->type == 'configurable' && $cost != null) {
             $price = 0;
-            foreach ($product->variants as $product) {
+            foreach ($product->variants as $productVar) {
                 if ($markup->percentage) {
                     $priceMarkup = $cost->float_value * ($markup->percentage/100);
                 }
@@ -182,8 +185,8 @@ class MarkupRepository extends Repository implements MarkupContract
                     $priceMarkup = $markup->amount;
                 }
 
-                $product->markup()->detach($markup->id);
-                $productFlat = ProductFlat::where('product_id',  $product->id)->first();
+                $productVar->markup()->detach($markup->id);
+                $productFlat = ProductFlat::where('product_id',  $productVar->id)->first();
                 $newPrice = $price->float_value - $priceMarkup;
                 $price = $newPrice;
                 if ($productFlat) {
@@ -194,7 +197,7 @@ class MarkupRepository extends Repository implements MarkupContract
                     $productFlat->save();
                 }
             }
-            
+
             if ($markup->percentage) {
                 $priceMarkup = $cost->float_value * ($markup->percentage/100);
             }
@@ -205,7 +208,7 @@ class MarkupRepository extends Repository implements MarkupContract
             
             $product->markup()->detach($markup->id);
             $productFlat = ProductFlat::where('product_id',  $product->id)->first();
-
+            $newPrice = $price->float_value - $priceMarkup;
             if ($productFlat) {
                 $price->float_value = $newPrice;
                 $price->save();
@@ -213,6 +216,14 @@ class MarkupRepository extends Repository implements MarkupContract
                 $productFlat->price = $newPrice;
                 $productFlat->save();
             }
+        }
+    }
+
+    public function calculatePrice($cost, $markup = null) {
+        if (!$markup) {
+            return $cost;
+        } else {
+            return $cost + $cost * ($markup->percentage/100);
         }
     }
 }

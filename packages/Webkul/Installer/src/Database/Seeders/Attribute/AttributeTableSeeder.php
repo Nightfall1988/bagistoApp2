@@ -607,6 +607,27 @@ class AttributeTableSeeder extends Seeder
                 'created_at'          => $now,
                 'updated_at'          => $now,
             ],
+            [
+                'id'                  => 30,
+                'code'                => 'dimensions',
+                'admin_name'          => trans('installer::app.seeders.attribute.attributes.dimensions', [], $defaultLocale),
+                'type'                => 'text',
+                'validation'          => null,
+                'position'            => 6,
+                'is_required'         => 0,
+                'is_unique'           => 0,
+                'value_per_locale'    => 0,
+                'value_per_channel'   => 1,
+                'default_value'       => null,
+                'is_filterable'       => 0,
+                'is_configurable'     => 0,
+                'is_user_defined'     => 0,
+                'is_visible_on_front' => 0,
+                'is_comparable'       => 0,
+                'enable_wysiwyg'      => 0,
+                'created_at'          => $now,
+                'updated_at'          => $now,
+            ],
         ]);
 
         $locales = $parameters['allowed_locales'] ?? [$defaultLocale];
@@ -730,6 +751,11 @@ class AttributeTableSeeder extends Seeder
                     'locale'       => $locale,
                     'name'         => trans('installer::app.seeders.attribute.attributes.material', [], $locale),
                     'attribute_id' => 29,
+                ],
+                [
+                    'locale'       => $locale,
+                    'name'         => trans('installer::app.seeders.attribute.attributes.dimensions', [], $locale),
+                    'attribute_id' => 30,
                 ],
             ]);
         }

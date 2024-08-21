@@ -28,7 +28,8 @@ class PrintCalculatorImportService {
     public function importPrintData() {
         ini_set('memory_limit', '1G');
 
-        $this->importStrickerPrintData();
+        // $this->importStrickerPrintData();
+        $this->importXDConnectsPrintData();
     }
 
     public function importMidoceanPrintData() {
@@ -48,7 +49,6 @@ class PrintCalculatorImportService {
         // foreach ($response->print_manipulations as $manipulation) {
         //     # code...
         // }
-        // dd($response->print_techniques);
     }
     
     public function importStrickerPrintData() {
@@ -115,7 +115,7 @@ class PrintCalculatorImportService {
                             'price' => $pair['Price'],
                             'product_id' => $product->id
                         ]
-                    );                    
+                    );
                 }
 
                 $tracker->advance();
@@ -129,21 +129,17 @@ class PrintCalculatorImportService {
         $tracker->finish();
     }
 
-    public function importXDConnectsPrintData() {
+    public function importXDConnectsPrintData()
+    {
+        ini_set('memory_limit', '1G');
+        $path = 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'private' . DIRECTORY_SEPARATOR;
         $xmlPrintData = simplexml_load_file($path . 'Xindao.V2.PrintData-en-gb-C36797.xml');
-
+        $xmlPriceData = simplexml_load_file($path . 'Xindao.V2.ProductPrices-en-gb-C36797.xml');
+        
+        // Convert XML price data to associative array
+        $productPrices = [];
         foreach ($xmlPriceData->Product as $product) {
             $productPrices[(string)$product->ItemCode] = [
-                'FeedCreatedDateTime' => (string)$product->FeedCreatedDateTime,
-                'ItemPriceLastModifiedDateTime' => (string)$product->ItemPriceLastModifiedDateTime,
-                'Currency' => (string)$product->Currency,
-                'ModelCode' => (string)$product->ModelCode,
-                'ItemCode' => (string)$product->ItemCode,
-                'ItemName' => (string)$product->ItemName,
-                'NonStandardDiscount' => (string)$product->NonStandardDiscount,
-                'Outlet' => (string)$product->Outlet,
-                'AllPrintCodes' => (string)$product->AllPrintCodes,
-                'MOQBlankOrder' => (string)$product->MOQBlankOrder,
                 'Qty1' => (string)$product->Qty1,
                 'Qty2' => (string)$product->Qty2,
                 'Qty3' => (string)$product->Qty3,
@@ -156,65 +152,51 @@ class PrintCalculatorImportService {
                 'ItemPriceNet_Qty4' => (string)$product->ItemPriceNet_Qty4,
                 'ItemPriceNet_Qty5' => (string)$product->ItemPriceNet_Qty5,
                 'ItemPriceNet_Qty6' => (string)$product->ItemPriceNet_Qty6,
-                'ItemPriceGross_Qty1' => (string)$product->ItemPriceGross_Qty1,
-                'ItemPriceGross_Qty2' => (string)$product->ItemPriceGross_Qty2,
-                'ItemPriceGross_Qty3' => (string)$product->ItemPriceGross_Qty3,
-                'ItemPriceGross_Qty4' => (string)$product->ItemPriceGross_Qty4,
-                'ItemPriceGross_Qty5' => (string)$product->ItemPriceGross_Qty5,
-                'ItemPriceGross_Qty6' => (string)$product->ItemPriceGross_Qty6,
-                'AdditionalCostDesc' => (string)$product->AdditionalCostDesc,
-                'AdditionalCost' => (string)$product->AdditionalCost,
-            ];
+                // Add other quantities and prices if needed
+            ];    
         }
-
-        foreach ($xmlPrintData->Product as $product) {
-            $productsPrintData[] = [
-                'FeedCreatedDateTime' => (string)$product->FeedCreatedDateTime,
-                'PrintDataLastModifiedDateTime' => (string)$product->PrintDataLastModifiedDateTime,
-                'ModelCode' => (string)$product->ModelCode,
-                'ItemCode' => (string)$product->ItemCode,
-                'ItemName' => (string)$product->ItemName,
-                'PrintCode' => (string)$product->PrintCode,
-                'PrintTechnique' => (string)$product->PrintTechnique,
-                'Default' => (string)$product->Default,
-                'PrintPosition' => (string)$product->PrintPosition,
-                'PrintPositionCode' => (string)$product->PrintPositionCode,
-                'MaxPrintWidthMM' => (string)$product->MaxPrintWidthMM,
-                'MaxPrintHeightMM' => (string)$product->MaxPrintHeightMM,
-                'MaxPrintArea' => (string)$product->MaxPrintArea,
-                'MaxColors' => (string)$product->MaxColors,
-                'FullColor' => (string)$product->FullColor,
-                'VariableDataPrinting' => (string)$product->VariableDataPrinting,
-                'LineDrawing' => (string)$product->LineDrawing,
-                'ArtworkFile' => (string)$product->ArtworkFile,
-                'DeliveryCountry' => (string)$product->DeliveryCountry,
-                'DeliveryTimePrintOrder' => (string)$product->DeliveryTimePrintOrder,
-                'Qty1' => $productPrices[(string)$product->ItemCode]['Qty1'],
-                'ItemPriceNet_Qty1' => $productPrices[(string)$product->ItemCode]['ItemPriceNet_Qty1'],
-                'ItemPriceGross_Qty1' => $productPrices[(string)$product->ItemCode]['ItemPriceGross_Qty1'],
-            ];
+    
+        // Extract quantity-price pairs
+        $printQtyPricePairs = $this->getQuantityPricePairsXDConnects($productPrices);
+        
+        // Retrieve all products in one batch to minimize queries
+        $prodReferences = array_keys($productPrices);
+        $products = $this->productRepository
+            ->whereIn('sku', $prodReferences)
+            ->get()
+            ->keyBy('sku');
+    
+        $tracker = new ProgressBar($this->output, count($xmlPrintData->Product));
+        $tracker->start();
+    
+        foreach ($xmlPrintData->Product as $printProduct) {
+            $prodReference = (string)$printProduct->ItemCode;
+            $product = $products->get($prodReference);
+    
+            if ($product) {
+                foreach ($printQtyPricePairs as $pair) {
+                    $technique = $this->printTechniqueRepository->create([
+                        'pricing_type' => '',
+                        'setup' => '',
+                        'setup_repeat' => '',
+                        'description' => (string)$printProduct->PrintTechnique,
+                        'next_colour_cost_indicator' => '',
+                        'range_id' => '',
+                        'area_from' => (string)$printProduct->AreaFrom ?? 0, // Use actual value if available
+                        'minimum_colors' => '',
+                        'area_to' => (string)$printProduct->MaxPrintArea ?? 0,
+                        'next_price' => '',
+                        'default' => (string)$printProduct->Default,
+                        'minimum_quantity' => $pair['MinQt'],
+                        'price' => $pair['Price'],
+                        'product_id' => $product->id
+                    ]);
+                }
+                $tracker->advance();
+            }
         }
-
-        foreach ($productsPrintData as $product)  {
-            $technique = $this->printTechniqueRepository->create(
-                [
-                    'pricing_type' => '',
-                    'setup' => '',
-                    'setup_repeat' => '',
-                    'description' => $productsPrintData['PrintTechnique'],
-                    'next_colour_cost_indicator' => '',
-                    'range_id' => '',
-                    'area_from' => 0,
-                    'minimum_colors' => '',
-                    'area_to' => $customization['LocationMaxPrintingAreaMM'],
-                    'next_price' => '',
-                    'default' => $customization['IsDefault'],
-                    'minimum_quantity' => $pair['MinQt'],
-                    'price' => $pair['Price'],
-                    'product_id' => $product->id
-                ]
-            );                
-        }
+    
+        $tracker->finish();
     }
 
     public function getQuantityPricePairs($customization) {
@@ -235,19 +217,21 @@ class PrintCalculatorImportService {
         return $resultArray;
     }
 
-    public function getQuantityPricePairsXDConnects($customization) {
+    public function getQuantityPricePairsXDConnects($productPrices)
+    {
         $resultArray = [];
-
-        // Loop through the array to group MinQt and Price pairs
-        $i = 1;
-        while (isset($customization["MinQt{$i}"]) && isset($customization["Price{$i}"])) {
-            if ($customization["MinQt{$i}"] !== null && $customization["Price{$i}"] !== null) {
-                $resultArray[] = [
-                    'MinQt' => $customization["MinQt{$i}"],
-                    'Price' => $customization["Price{$i}"]
-                ];
+    
+        foreach ($productPrices as $itemCode => $product) {
+            $i = 1;
+            while (isset($product["Qty{$i}"]) && isset($product["ItemPriceNet_Qty{$i}"])) {
+                if ($product["Qty{$i}"] !== null && $product["ItemPriceNet_Qty{$i}"] !== null) {
+                    $resultArray[] = [
+                        'MinQt' => $product["Qty{$i}"],
+                        'Price' => $product["ItemPriceNet_Qty{$i}"]
+                    ];
+                }
+                $i++;
             }
-            $i++;
         }
 
         return $resultArray;

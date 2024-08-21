@@ -502,6 +502,8 @@ return [
             'upload-own-logo'              => "UPLOAD OWN LOGO",
             'change-logo'                  => "CHANGE LOGO",
             'our-clients'                  => "Our clients",
+            'material'                     => "Material",
+            'dimensions'                   => "Dimensions",
             
             
             'type' => [

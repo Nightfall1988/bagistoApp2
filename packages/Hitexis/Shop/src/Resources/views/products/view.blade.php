@@ -9,8 +9,9 @@
     $customAttributeValues = $productViewHelper->getAdditionalData($product);
 
     $attributeData = collect($customAttributeValues)->filter(fn ($item) => ! empty($item['value']));
-    // dd($product->material);
 
+
+    // dd($attributeData);
 @endphp
 
 <!-- SEO Meta Content -->
@@ -425,11 +426,26 @@
                                     {!! view_render_event('bagisto.shop.products.view.add_to_cart.after', ['product' => $product]) !!}
                                 </div>
 
-                                <div id='additional-info'>
-                                    @php
-                                        var_dump($product->getAttribute('material'));
-                                    @endphp
-                                </div>
+                                    <div id='additional-info' class="mt-8">
+                                        <!-- Existing content -->
+                                        <div class="grid grid-cols-2 gap-4 text-lg text-zinc-500 max-1180:text-sm">
+                                            <!-- Material Attribute -->
+                                            @if($product->getAttribute('material'))
+                                                <div class="flex items-center">
+                                                    <p class="text-base text-black font-medium">@lang('shop::app.products.view.material'):</p>
+                                                    <p class="ml-2 text-base text-zinc-500">{{ $product->getAttribute('material') }}</p>
+                                                </div>
+                                            @endif
+                                        <br>
+                                            <!-- Dimensions Attribute -->
+                                            @if($product->getAttribute('dimensions'))
+                                                <div class="flex items-center">
+                                                    <p class="text-base text-black font-medium">@lang('shop::app.products.view.dimensions'):</p>
+                                                    <p class="ml-2 text-base text-zinc-500">{{ $product->getAttribute('dimensions') }}</p>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </div>
 
                                 <!-- Buy Now Button -->
                                 {!! view_render_event('bagisto.shop.products.view.buy_now.before', ['product' => $product]) !!}

@@ -44,7 +44,6 @@ class MidoceanApiService {
         $this->categoryImportService = $categoryImportService;
 
         // $this->url = 'https://appbagst.free.beeceptor.com/zz'; // TEST;
-        // dd(env('MIDOECAN_PRODUCTS_URL'));
         $this->url = env('MIDOECAN_PRODUCTS_URL');
         $this->pricesUrl = env('MIDOECAN_PRICES_URL');
         $this->identifier = env('MIDOECAN_IDENTIFIER');
@@ -121,6 +120,7 @@ class MidoceanApiService {
         $productCategory = preg_replace('/[^a-z0-9]+/', '', strtolower($variantList[0]->category_level1)) ?? ', ';
         $productSubCategory = preg_replace('/[^a-z0-9]+/', '', strtolower($variantList[0]->category_level2)) ?? ', ';
         
+
         foreach ($apiProduct->variants as $variant) {
 
             // GET VARIANT COLOR
@@ -296,6 +296,78 @@ class MidoceanApiService {
                 $tempPaths[] = $imageData['tempPaths'];
             }
 
+            if (isset($apiProduct->material)) {
+                $materialObj = $this->attributeOptionRepository->getOption($apiProduct->material);
+                if ($materialObj && !in_array($materialObj->id,$tempAttributes)) {
+                    $materialId = $materialObj->id;
+                    $tempAttributes[] = $materialId;
+                }
+
+                if (!$materialObj) {
+                    {
+                        $materialObj = $this->attributeOptionRepository->create([
+                            'admin_name' => ucfirst(trim($apiProduct->material)),
+                            'attribute_id' => 29,
+                        ]);
+    
+                        $materialId = $materialObj->id;
+                        $materialIds[] = $materialId;
+                        $tempAttributes[] = $materialId;
+                    }
+                }
+            }
+
+            $this->productAttributeValueRepository->upsert([
+                'product_id' => $product->id,
+                'attribute_id' => 29,
+                'locale' => 'en',
+                'channel' => null,
+                'unique_id' => implode('|', [$product->id,29]),
+                'text_value' => $materialObj->admin_name,
+                'boolean_value' => null,
+                'integer_value' => null,
+                'float_value' => null,
+                'datetime_value' => null,
+                'date_value' => null,
+                'json_value' => null,
+            ], uniqueBy: ['product_id', 'attribute_id']);
+
+
+            if (isset($apiProduct->dimensions)) {
+                $dimensionsObj = $this->attributeOptionRepository->getOption($apiProduct->dimensions);
+                if ($dimensionsObj && !in_array($dimensionsObj->id,$tempAttributes)) {
+                    $dimensionsId = $dimensionsObj->id;
+                    $tempAttributes[] = $dimensionsId;
+                }
+
+                if (!$dimensionsObj) {
+                    {
+                        $dimensionsObj = $this->attributeOptionRepository->create([
+                            'admin_name' => ucfirst(trim($apiProduct->dimensions)),
+                            'attribute_id' => 30,
+                        ]);
+    
+                        $dimensionsId = $dimensionsObj->id;
+                        $dimensionsIds[] = $dimensionsId;
+                        $tempAttributes[] = $dimensionsId;
+                    }
+                }
+            }
+
+            $this->productAttributeValueRepository->upsert([
+                'product_id' => $product->id,
+                'attribute_id' => 30,
+                'locale' => 'en',
+                'channel' => null,
+                'unique_id' => implode('|', [$product->id,30]),
+                'text_value' => $dimensionsObj->admin_name,
+                'boolean_value' => null,
+                'integer_value' => null,
+                'float_value' => null,
+                'datetime_value' => null,
+                'date_value' => null,
+                'json_value' => null,
+            ], uniqueBy: ['product_id', 'attribute_id']);
 
             // URLKEY
             $urlKey = strtolower($apiProduct->product_name . '-' . $apiProduct->variants[$i]->sku);
@@ -305,11 +377,13 @@ class MidoceanApiService {
             $name = $product['Name'];
             $cost = $priceList[$apiProduct->variants[$i]->sku] ?? 0;
 
+            $price = $this->markupRepository->calculatePrice($cost, $this->globalMarkup);
+
             $variants[$productVariant->id] = [
                 "sku" => $apiProduct->variants[$i]->sku,
                 "name" => $apiProduct->product_name,
                 "cost" => $cost,
-                "price" => $cost,
+                "price" => $price,
                 "weight" => $apiProduct->net_weight ?? 0,
                 "status" => "1",
                 "new" => "1",
@@ -342,13 +416,14 @@ class MidoceanApiService {
             ]);
 
             $cost = $priceList[$apiProduct->variants[$i]->sku] ?? 0;
-            $price = $cost + $cost * ($this->globalMarkup->percentage/100);
+            $price = $this->markupRepository->calculatePrice($cost, $this->globalMarkup);
             $productVariant->markup()->attach($this->globalMarkup->id);
 
             $urlKey = strtolower($apiProduct->product_name . '-' . $apiProduct->variants[$i]->sku);
             $urlKey = preg_replace('/[^a-z0-9]+/', '-', $urlKey);
             $urlKey = trim($urlKey, '-');
             $urlKey = strtolower($urlKey);
+            $price = $this->markupRepository->calculatePrice($cost, $this->globalMarkup);
 
             $superAttributes = [
                 '_method' => 'PUT',
@@ -363,8 +438,10 @@ class MidoceanApiService {
                 "meta_title" =>  "",
                 "meta_keywords" => "",
                 "meta_description" => "",
+                "material" => $materialObj->admin_name ?? '',
                 "tax_category_id" => "1",
-                'price' => $cost,
+                "dimensions" => $dimensionsObj->admin_name ?? '',
+                'price' => $price,
                 'cost' => $cost,
                 "special_price" => "",
                 "special_price_from" => "",
@@ -382,7 +459,6 @@ class MidoceanApiService {
                 'categories' => $categories,
                 'images' =>  $images,
             ];
-
         
             if ($colorId != '') {
                 $superAttributes['color'] = $colorId;
@@ -407,6 +483,7 @@ class MidoceanApiService {
         $meta_title = "$apiProduct->product_name $apiProduct->product_class $apiProduct->brand";
         $meta_description = "$apiProduct->short_description";
         $meta_keywords = "$apiProduct->product_name, $apiProduct->brand, $productCategory, $productSubCategory, $apiProduct->product_class";
+        $price = $this->markupRepository->calculatePrice($cost, $this->globalMarkup);
 
         $superAttributes = [
             "channel" => "default",
@@ -414,13 +491,15 @@ class MidoceanApiService {
             'sku' => $product->sku,
             "product_number" => $apiProduct->master_id, //
             "name" => (!isset($apiProduct->product_name)) ? 'no name' : $apiProduct->product_name,
-            "url_key" => $urlKey, //
+            "url_key" => $urlKey,
             "short_description" => (isset($apiProduct->short_description)) ? '<p>' . $apiProduct->short_description . '</p>' : '',
             "description" => (isset($apiProduct->long_description)) ? '<p>' . $apiProduct->long_description . '</p>'  : '',
             "meta_title" =>  $meta_title,
             "meta_keywords" => $meta_keywords,
             "meta_description" => $meta_description,
+            "material" => $materialObj->admin_name ?? '',
             "tax_category_id" => "1",
+            "dimensions" => $dimensionsObj->admin_name ?? '',
             'price' => $price,
             'cost' => $cost,
             "special_price" => "",
@@ -446,7 +525,7 @@ class MidoceanApiService {
     }
 
     public function createSimpleProduct($mainVariant, $apiProduct, $priceList, $categories) {
-
+        $tempAttributes= [];
         $product = $this->productRepository->upserts([
             'channel' => 'default',
             'attribute_family_id' => '1',
@@ -472,6 +551,79 @@ class MidoceanApiService {
             $tempPaths[] = $imageData['tempPaths'];
         }
 
+        if (isset($apiProduct->material)) {
+            $materialObj = $this->attributeOptionRepository->getOption($apiProduct->material);
+            if ($materialObj && !in_array($materialObj->id,$tempAttributes)) {
+                $materialId = $materialObj->id;
+                $tempAttributes[] = $materialId;
+            }
+
+            if (!$materialObj) {
+                {
+                    $materialObj = $this->attributeOptionRepository->create([
+                        'admin_name' => ucfirst(trim($apiProduct->material)),
+                        'attribute_id' => 29,
+                    ]);
+
+                    $materialId = $materialObj->id;
+                    $materialIds[] = $materialId;
+                    $tempAttributes[] = $materialId;
+                }
+            }
+        }
+
+        $this->productAttributeValueRepository->upsert([
+            'product_id' => $product->id,
+            'attribute_id' => 29,
+            'locale' => 'en',
+            'channel' => null,
+            'unique_id' => implode('|', [$product->id,29]),
+            'text_value' => $materialObj->admin_name,
+            'boolean_value' => null,
+            'integer_value' => null,
+            'float_value' => null,
+            'datetime_value' => null,
+            'date_value' => null,
+            'json_value' => null,
+        ], uniqueBy: ['product_id', 'attribute_id']);
+
+
+        if (isset($apiProduct->dimensions)) {
+            $dimensionsObj = $this->attributeOptionRepository->getOption($apiProduct->dimensions);
+            if ($dimensionsObj && !in_array($dimensionsObj->id,$tempAttributes)) {
+                $dimensionsId = $dimensionsObj->id;
+                $tempAttributes[] = $dimensionsId;
+            }
+
+            if (!$dimensionsObj) {
+                {
+                    $dimensionsObj = $this->attributeOptionRepository->create([
+                        'admin_name' => ucfirst(trim($apiProduct->dimensions)),
+                        'attribute_id' => 30,
+                    ]);
+
+                    $dimensionsId = $dimensionsObj->id;
+                    $dimensionsIds[] = $dimensionsId;
+                    $tempAttributes[] = $dimensionsId;
+                }
+            }
+        }
+
+        $this->productAttributeValueRepository->upsert([
+            'product_id' => $product->id,
+            'attribute_id' => 30,
+            'locale' => 'en',
+            'channel' => null,
+            'unique_id' => implode('|', [$product->id,30]),
+            'text_value' => $dimensionsObj->admin_name,
+            'boolean_value' => null,
+            'integer_value' => null,
+            'float_value' => null,
+            'datetime_value' => null,
+            'date_value' => null,
+            'json_value' => null,
+        ], uniqueBy: ['product_id', 'attribute_id']);
+
         $productCategory = preg_replace('/[^a-z0-9]+/', '', strtolower($apiProduct->variants[0]->category_level1)) ?? ', ';
         $productSubCategory = preg_replace('/[^a-z0-9]+/', '', strtolower($apiProduct->variants[0]->category_level2)) ?? ', ';
 
@@ -483,6 +635,7 @@ class MidoceanApiService {
         $meta_title = "$name $productClass $brand";
         $meta_description = "$shortDescriptions";
         $meta_keywords = "$name, $productClass, $brand, $productCategory, $productSubCategory";
+        $price = $this->markupRepository->calculatePrice($cost, $this->globalMarkup);
 
         $superAttributes = [
             "channel" => "default",
@@ -496,9 +649,11 @@ class MidoceanApiService {
             "meta_title" => $meta_title,
             "meta_keywords" => $meta_keywords,
             "meta_description" => $meta_description,
-            'price' => $cost,
+            'price' => $price,
             'cost' => $cost,
+            "material" => $materialObj->admmin_name ?? '',
             "tax_category_id" => "1",
+            "dimensions" => $dimensionsObj->admmin_name ?? '',
             "special_price" => "",
             "special_price_from" => "",
             "special_price_to" => "",          

@@ -12,6 +12,8 @@ use Hitexis\Markup\Repositories\MarkupRepository;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Hitexis\Product\Repositories\ProductAttributeValueRepository;
+
 class XDConnectsApiService {
 
     protected $url;
@@ -32,7 +34,8 @@ class XDConnectsApiService {
         ProductImageRepository $productImageRepository,
         CategoryMapper $categoryMapper,
         CategoryImportService $categoryImportService,
-        MarkupRepository $markupRepository
+        MarkupRepository $markupRepository,
+        ProductAttributeValueRepository $productAttributeValueRepository,
     ) {
         $this->productRepository = $productRepository;
         $this->attributeOptionRepository = $attributeOptionRepository;
@@ -42,6 +45,7 @@ class XDConnectsApiService {
         $this->categoryMapper = $categoryMapper;
         $this->categoryImportService = $categoryImportService;
         $this->markupRepository = $markupRepository;
+        $this->productAttributeValueRepository = $productAttributeValueRepository;
         $this->identifier = env('XDCONNECTS_IDENTIFIER');
         $this->globalMarkup = null;
     }
@@ -103,6 +107,7 @@ class XDConnectsApiService {
             $sizeList = [];
             $categories = [];
             $attributes = [];
+            $tempAttributes = [];
 
             // GET ALL COLORS AND SIZES FOR PRODUCT
             foreach ($products as $product) {
@@ -162,6 +167,78 @@ class XDConnectsApiService {
                 "type" => 'configurable',
                 'super_attributes' => $attributes
             ]);
+
+            if (isset($product->Material)) {
+                $materialObj = $this->attributeOptionRepository->getOption((string)$product->Material);
+                if ($materialObj && !in_array($materialObj->id,$tempAttributes)) {
+                    $materialId = $materialObj->id;
+                    $tempAttributes[] = $materialId;
+                }
+    
+                if (!$materialObj) {
+                    {
+                        $materialObj = $this->attributeOptionRepository->create([
+                            'admin_name' => ucfirst(trim((string)$product->Material)),
+                            'attribute_id' => 29,
+                        ]);
+    
+                        $materialId = $materialObj->id;
+                        $materialIds[] = $materialId;
+                        $tempAttributes[] = $materialId;
+                    }
+                }
+            }
+    
+            $this->productAttributeValueRepository->upsert([
+                'product_id' => $productObj->id,
+                'attribute_id' => 29,
+                'locale' => 'en',
+                'channel' => null,
+                'unique_id' => implode('|', [$productObj->id,29]),
+                'text_value' => $materialObj->admin_name ?? '',
+                'boolean_value' => null,
+                'integer_value' => null,
+                'float_value' => null,
+                'datetime_value' => null,
+                'date_value' => null,
+                'json_value' => null,
+            ], uniqueBy: ['product_id', 'attribute_id']);
+    
+            if (isset($product->ItemDimensions)) {
+                $dimensionsObj = $this->attributeOptionRepository->getOption((string)$product->ItemDimensions);
+                if ($dimensionsObj && !in_array($dimensionsObj->id,$tempAttributes)) {
+                    $dimensionsId = $dimensionsObj->id;
+                    $tempAttributes[] = $dimensionsId;
+                }
+    
+                if (!$dimensionsObj) {
+                    {
+                        $dimensionsObj = $this->attributeOptionRepository->create([
+                            'admin_name' => ucfirst(trim((string)$product->ItemDimensions)),
+                            'attribute_id' => 30,
+                        ]);
+    
+                        $dimensionsId = $dimensionsObj->id;
+                        $dimensionsIds[] = $dimensionsId;
+                        $tempAttributes[] = $dimensionsId;
+                    }
+                }
+            }
+    
+            $this->productAttributeValueRepository->upsert([
+                'product_id' => $productObj->id,
+                'attribute_id' => 30,
+                'locale' => 'en',
+                'channel' => null,
+                'unique_id' => implode('|', [$productObj->id,30]),
+                'text_value' => $dimensionsObj->admin_name ?? '',
+                'boolean_value' => null,
+                'integer_value' => null,
+                'float_value' => null,
+                'datetime_value' => null,
+                'date_value' => null,
+                'json_value' => null,
+            ], uniqueBy: ['product_id', 'attribute_id']);
 
             // VARIANT GATHERING
             foreach ($products as $variant) {
@@ -237,11 +314,12 @@ class XDConnectsApiService {
                 $urlKey = preg_replace('/[^a-z0-9]+/', '-', $urlKey);
                 $urlKey = trim($urlKey, '-');
                 $cost = (string)$priceDataList[(string)$variant->ItemCode]->ItemPriceNet_Qty1 ?? '';
+                $price = $this->markupRepository->calculatePrice($cost, $this->globalMarkup);
 
                 $variants[$productVariant->id] = [
                     "sku" => (string)$variant->ItemCode,
                     "name" => (!isset($variant->ItemName)) ? 'no name' : (string)$variant->ItemName,
-                    'price' =>  $cost,
+                    'price' =>  $price,
                     "weight" => (string)$variant->ItemWeightNetGr * 1000 ?? 0,
                     "status" => "1",
                     "new" => "1",
@@ -278,6 +356,7 @@ class XDConnectsApiService {
                 $urlKey = preg_replace('/[^a-z0-9]+/', '-', $urlKey);
                 $urlKey = trim($urlKey, '-');    
                 $cost = (string)$priceDataList[(string)$variant->ItemCode]->ItemPriceNet_Qty1 ?? '';
+                $price = $this->markupRepository->calculatePrice($cost, $this->globalMarkup);
 
                 $superAttributes = [
                     '_method' => 'PUT',
@@ -335,6 +414,7 @@ class XDConnectsApiService {
             $urlKey = preg_replace('/[^a-z0-9]+/', '-', $urlKey);
             $urlKey = trim($urlKey, '-');    
             $cost = (string)$priceDataList[(string)$mainProduct->ItemCode]->ItemPriceNet_Qty1 ?? '';
+            $price = $this->markupRepository->calculatePrice($cost, $this->globalMarkup);
 
             $superAttributes = [
                 '_method' => 'PUT',
@@ -347,12 +427,15 @@ class XDConnectsApiService {
                 "weight" => (string)$mainProduct->ItemWeightNetGr * 1000 ?? 0,
                 "short_description" => '<p>' . (string)$mainProduct->ShortDescription . '</p>' ?? 'no description provided',
                 "description" => '<p>' . (string)$mainProduct->LongDescription . '</p>' ?? 'no description provided',
+                "material" => $materialObj->admin_name ?? '',
+                "tax_category_id" => "1",
+                "dimensions" => $dimensionsObj->admin_name ?? '',
                 "meta_title" => "",
                 "meta_keywords" => "",
                 "meta_description" => "",
                 "meta_description" => "",
                 "meta_description" => "",       
-                'price' => $cost,
+                'price' => $price,
                 'cost' => $cost,
                 "special_price" => "",
                 "special_price_from" => "",
@@ -382,7 +465,6 @@ class XDConnectsApiService {
                 'product_id' => $productObj->id,
                 'supplier_code' => $this->identifier
             ]);
-
 
             $this->tracker->advance();
 
@@ -453,6 +535,78 @@ class XDConnectsApiService {
             'supplier_code' => $this->identifier
         ]);
 
+        if (isset($product->Material)) {
+            $materialObj = $this->attributeOptionRepository->getOption((string)$product->Material);
+            if ($materialObj && !in_array($materialObj->id,$tempAttributes)) {
+                $materialId = $materialObj->id;
+                $tempAttributes[] = $materialId;
+            }
+
+            if (!$materialObj) {
+                {
+                    $materialObj = $this->attributeOptionRepository->create([
+                        'admin_name' => ucfirst(trim((string)$product->Material)),
+                        'attribute_id' => 29,
+                    ]);
+
+                    $materialId = $materialObj->id;
+                    $materialIds[] = $materialId;
+                    $tempAttributes[] = $materialId;
+                }
+            }
+        }
+
+        $this->productAttributeValueRepository->upsert([
+            'product_id' => $productVariant->id,
+            'attribute_id' => 29,
+            'locale' => 'en',
+            'channel' => null,
+            'unique_id' => implode('|', [$productVariant->id,29]),
+            'text_value' => $materialObj->admin_name ?? '',
+            'boolean_value' => null,
+            'integer_value' => null,
+            'float_value' => null,
+            'datetime_value' => null,
+            'date_value' => null,
+            'json_value' => null,
+        ], uniqueBy: ['product_id', 'attribute_id']);
+
+        if (isset($product->ItemDimensions)) {
+            $dimensionsObj = $this->attributeOptionRepository->getOption((string)$product->ItemDimensions);
+            if ($dimensionsObj && !in_array($dimensionsObj->id,$tempAttributes)) {
+                $dimensionsId = $dimensionsObj->id;
+                $tempAttributes[] = $dimensionsId;
+            }
+
+            if (!$dimensionsObj) {
+                {
+                    $dimensionsObj = $this->attributeOptionRepository->create([
+                        'admin_name' => ucfirst(trim($dimensions)),
+                        'attribute_id' => 30,
+                    ]);
+
+                    $dimensionsId = $dimensionsObj->id;
+                    $dimensionsIds[] = $dimensionsId;
+                    $tempAttributes[] = $dimensionsId;
+                }
+            }
+        }
+
+        $this->productAttributeValueRepository->upsert([
+            'product_id' => $productObj->id,
+            'attribute_id' => 30,
+            'locale' => 'en',
+            'channel' => null,
+            'unique_id' => implode('|', [$productObj->id,30]),
+            'text_value' => $dimensionsObj->admin_name ?? '',
+            'boolean_value' => null,
+            'integer_value' => null,
+            'float_value' => null,
+            'datetime_value' => null,
+            'date_value' => null,
+            'json_value' => null,
+        ], uniqueBy: ['product_id', 'attribute_id']);
+
         $allImagesString = (string)$product->AllImages;
         $imageLinks = explode(', ', $allImagesString);
         $imageData = $this->productImageRepository->uploadImportedImagesXDConnects($imageLinks, $productVariant);
@@ -464,6 +618,7 @@ class XDConnectsApiService {
         $replace = '-';
         $urlKey = strtolower(str_replace($search, $replace, $urlKey));
         $cost = (string)$priceDataList[(string)$product->ItemCode]->ItemPriceNet_Qty1 ?? '';
+        $price = $this->markupRepository->calculatePrice($cost, $this->globalMarkup);
 
         $superAttributes = [
             '_method' => 'PUT',
@@ -476,12 +631,15 @@ class XDConnectsApiService {
             "weight" => (string)$product->ItemWeightNetGr * 1000 ?? 0,
             "short_description" => '<p>' . (string)$product->ShortDescription . '</p>' ?? '',
             "description" => '<p>' . (string)$product->LongDescription . '</p>' ?? '',
+            "material" => $materialObj->admin_name ?? '',
+            "tax_category_id" => "1",
+            "dimensions" => $dimensionsObj->admin_name ?? '',
             "meta_title" => "",
             "meta_keywords" => "",
             "meta_description" => "",
             "meta_description" => "",
             "meta_description" => "",       
-            'price' => $cost,
+            'price' => $price,
             'cost' => $cost,
             "special_price" => "",
             "special_price_from" => "",
