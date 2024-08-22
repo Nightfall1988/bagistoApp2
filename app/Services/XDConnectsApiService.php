@@ -332,7 +332,6 @@ class XDConnectsApiService {
                     $superAttributes['size'] = $sizeId;
                 }
 
-
                 $productVariant = $this->productRepository->updateToShop($superAttributes, $productVariant->id, 'id');
                 $this->markupRepository->addMarkupToPrice($productVariant,$this->globalMarkup);
 
@@ -400,11 +399,11 @@ class XDConnectsApiService {
                         ]);
     
                         $this->productAttributeValueRepository->upsert([
-                            'product_id' => $product->id,
+                            'product_id' => $productObj->id,
                             'attribute_id' => 30,
                             'locale' => 'en',
                             'channel' => null,
-                            'unique_id' => implode('|', [$product->id,30]),
+                            'unique_id' => implode('|', [$productObj->id,30]),
                             'text_value' => $dimensionsObj->admin_name ?? '',
                             'boolean_value' => null,
                             'integer_value' => null,
@@ -433,11 +432,11 @@ class XDConnectsApiService {
                         ]);
     
                         $this->productAttributeValueRepository->upsert([
-                            'product_id' => $product->id,
+                            'product_id' => $productObj->id,
                             'attribute_id' => 29,
                             'locale' => 'en',
                             'channel' => null,
-                            'unique_id' => implode('|', [$product->id,29]),
+                            'unique_id' => implode('|', [$productObj->id,29]),
                             'text_value' => $materialObj->admin_name,
                             'boolean_value' => null,
                             'integer_value' => null,
