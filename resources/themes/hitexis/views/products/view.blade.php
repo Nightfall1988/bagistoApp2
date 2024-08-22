@@ -10,8 +10,6 @@
 
     $attributeData = collect($customAttributeValues)->filter(fn ($item) => ! empty($item['value']));
 
-
-    // dd($attributeData);
 @endphp
 
 <!-- SEO Meta Content -->
@@ -548,8 +546,8 @@
 
                     this.hasTechniques()
                     this.$emitter.on('configurable-variant-update-sku-event', (newSku) => {
-
                         this.sku = newSku.sku;
+                        console.log(this.sku);
                         this.updateButtonSku(newSku);
                     });
                 },

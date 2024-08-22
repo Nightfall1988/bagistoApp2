@@ -79,13 +79,15 @@ class StrickerApiService {
         // GET OPTIONALS
         $optionalsData = $this->httpClient->get($this->optionalsUrl);
         $optionalsData = json_decode($optionalsData->getBody()->getContents(), true);
-        $this->globalMarkup = $this->markupRepository->where('markup_type', 'global')->first();
 
         // // TESTING DATA - RESPONSE FROM JSON FILED
         // $jsonP = file_get_contents('storage\app\private\productstest.json');
         // $productsData = json_decode($jsonP, true);
         // $jsonO = file_get_contents('storage\app\private\optionalstest.json');
         // $optionalsData = json_decode($jsonO, true);
+
+        // MARKUP
+        $this->globalMarkup = $this->markupRepository->where('markup_type', 'global')->first();
 
         $products = $this->getProductsWithOptionals($productsData, $optionalsData);
         $this->updateProducts($products);

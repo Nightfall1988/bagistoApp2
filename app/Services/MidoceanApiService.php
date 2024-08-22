@@ -297,7 +297,7 @@ class MidoceanApiService {
             }
 
             // URLKEY
-            $urlKey = strtolower($apiProduct->product_name . '-' . $apiProduct->variants[$i]->sku);
+            $urlKey = !isset($apiProduct->product_name) ? strtolower($apiProduct->master_code . '-' . $apiProduct->variants[$i]->sku) : strtolower($apiProduct->product_name . '-' . $apiProduct->variants[$i]->sku);
             $urlKey = preg_replace('/[^a-z0-9]+/', '-', $urlKey);
             $urlKey = trim($urlKey, '-');
             $urlKey = strtolower($urlKey);
@@ -308,7 +308,7 @@ class MidoceanApiService {
 
             $variants[$productVariant->id] = [
                 "sku" => $apiProduct->variants[$i]->sku,
-                "name" => $apiProduct->product_name,
+                "name" => $apiProduct->product_name ?? $apiProduct->master_code,
                 "cost" => $cost,
                 "price" => $price,
                 "weight" => $apiProduct->net_weight ?? 0,

@@ -10,8 +10,6 @@
 
     $attributeData = collect($customAttributeValues)->filter(fn ($item) => ! empty($item['value']));
 
-
-    // dd($attributeData);
 @endphp
 
 <!-- SEO Meta Content -->
@@ -425,7 +423,6 @@
 
                                     {!! view_render_event('bagisto.shop.products.view.add_to_cart.after', ['product' => $product]) !!}
                                 </div>
-
                                     <div id='additional-info' class="mt-8">
                                         <!-- Existing content -->
                                         <div class="grid grid-cols-2 gap-4 text-lg text-zinc-500 max-1180:text-sm">
@@ -549,7 +546,6 @@
 
                     this.hasTechniques()
                     this.$emitter.on('configurable-variant-update-sku-event', (newSku) => {
-
                         this.sku = newSku.sku;
                         this.updateButtonSku(newSku);
                     });

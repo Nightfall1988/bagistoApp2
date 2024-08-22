@@ -135,11 +135,12 @@ class PrintCalculatorImportService {
         $path = 'storage' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'private' . DIRECTORY_SEPARATOR;
         $xmlPrintData = simplexml_load_file($path . 'Xindao.V2.PrintData-en-gb-C36797.xml');
         $xmlPriceData = simplexml_load_file($path . 'Xindao.V2.ProductPrices-en-gb-C36797.xml');
-        
+
         // Convert XML price data to associative array
         $productPrices = [];
+
         foreach ($xmlPriceData->Product as $product) {
-            $productPrices[(string)$product->ItemCode] = [
+            $productPrices[(string)$product->ModelCode] = [
                 'Qty1' => (string)$product->Qty1,
                 'Qty2' => (string)$product->Qty2,
                 'Qty3' => (string)$product->Qty3,
@@ -155,10 +156,11 @@ class PrintCalculatorImportService {
                 // Add other quantities and prices if needed
             ];    
         }
-    
+
+
         // Extract quantity-price pairs
         $printQtyPricePairs = $this->getQuantityPricePairsXDConnects($productPrices);
-        
+
         // Retrieve all products in one batch to minimize queries
         $prodReferences = array_keys($productPrices);
         $products = $this->productRepository
@@ -170,7 +172,7 @@ class PrintCalculatorImportService {
         $tracker->start();
     
         foreach ($xmlPrintData->Product as $printProduct) {
-            $prodReference = (string)$printProduct->ItemCode;
+            $prodReference = (string)$printProduct->ModelCode;
             $product = $products->get($prodReference);
     
             if ($product) {
