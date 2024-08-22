@@ -429,7 +429,7 @@
                                             <!-- Material Attribute -->
                                             @if($product->getAttribute('material'))
                                                 <div class="flex items-center">
-                                                    <p class="text-base text-black font-medium">@lang('shop::app.products.view.material'):</p>
+                                                    <p class="text-base text-black font-medium">@lang('shop::app.products.view.material'):&nbsp</p>
                                                     <p class="ml-2 text-base text-zinc-500">{{ $product->getAttribute('material') }}</p>
                                                 </div>
                                             @endif
@@ -437,7 +437,7 @@
                                             <!-- Dimensions Attribute -->
                                             @if($product->getAttribute('dimensions'))
                                                 <div class="flex items-center">
-                                                    <p class="text-base text-black font-medium">@lang('shop::app.products.view.dimensions'):</p>
+                                                    <p class="text-base text-black font-medium">@lang('shop::app.products.view.dimensions'):&nbsp</p>
                                                     <p class="ml-2 text-base text-zinc-500">{{ $product->getAttribute('dimensions') }}</p>
                                                 </div>
                                             @endif
