@@ -66,26 +66,26 @@ class StrickerApiService {
             'headers' => $headers
         ]);
 
-        // $request = $this->httpClient->get($this->authUrl);
-        // $authToken = json_decode($request->getBody()->getContents())->Token;
+        $request = $this->httpClient->get($this->authUrl);
+        $authToken = json_decode($request->getBody()->getContents())->Token;
 
-        // $this->url = $this->url . $authToken . '&lang=en';
-        // $this->optionalsUrl = $this->optionalsUrl . $authToken . '&lang=en';
+        $this->url = $this->url . $authToken . '&lang=en';
+        $this->optionalsUrl = $this->optionalsUrl . $authToken . '&lang=en';
 
-        // // GET PRODUCTS
-        // $request = $this->httpClient->get($this->url);
-        // $productsData = json_decode($request->getBody()->getContents(), true);
+        // GET PRODUCTS
+        $request = $this->httpClient->get($this->url);
+        $productsData = json_decode($request->getBody()->getContents(), true);
 
-        // // GET OPTIONALS
-        // $optionalsData = $this->httpClient->get($this->optionalsUrl);
-        // $optionalsData = json_decode($optionalsData->getBody()->getContents(), true);
+        // GET OPTIONALS
+        $optionalsData = $this->httpClient->get($this->optionalsUrl);
+        $optionalsData = json_decode($optionalsData->getBody()->getContents(), true);
         $this->globalMarkup = $this->markupRepository->where('markup_type', 'global')->first();
 
         // // TESTING DATA - RESPONSE FROM JSON FILED
-        $jsonP = file_get_contents('storage\app\private\productstest.json');
-        $productsData = json_decode($jsonP, true);
-        $jsonO = file_get_contents('storage\app\private\optionalstest.json');
-        $optionalsData = json_decode($jsonO, true);
+        // $jsonP = file_get_contents('storage\app\private\productstest.json');
+        // $productsData = json_decode($jsonP, true);
+        // $jsonO = file_get_contents('storage\app\private\optionalstest.json');
+        // $optionalsData = json_decode($jsonO, true);
 
         $products = $this->getProductsWithOptionals($productsData, $optionalsData);
         $this->updateProducts($products);
