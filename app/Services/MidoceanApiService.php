@@ -346,7 +346,7 @@ class MidoceanApiService {
             $price = $this->markupRepository->calculatePrice($cost, $this->globalMarkup);
             $productVariant->markup()->attach($this->globalMarkup->id);
 
-            $urlKey = strtolower($apiProduct->product_name . '-' . $apiProduct->variants[$i]->sku);
+            $urlKey = !isset($apiProduct->product_name) ? strtolower($apiProduct->master_code . '-' . $apiProduct->variants[$i]->sku) : strtolower($apiProduct->product_name . '-' . $apiProduct->variants[$i]->sku);
             $urlKey = preg_replace('/[^a-z0-9]+/', '-', $urlKey);
             $urlKey = trim($urlKey, '-');
             $urlKey = strtolower($urlKey);
@@ -470,6 +470,8 @@ class MidoceanApiService {
         $productSubCategory = preg_replace('/[^a-z0-9]+/', '', strtolower($apiProduct->variants[0]->category_level2)) ?? ', ';
 
         $urlKey = strtolower($apiProduct->product_name . '-' . $product->sku);
+        $urlKey = !isset($apiProduct->product_name) ? strtolower($apiProduct->master_code . '-' . $apiProduct->variants[$i]->sku) : strtolower($apiProduct->product_name . '-' . $apiProduct->variants[$i]->sku);
+
         $urlKey = preg_replace('/[^a-z0-9]+/', '-', $urlKey);
         $urlKey = trim($urlKey, '-');
         $urlKey = strtolower($urlKey);
@@ -617,6 +619,7 @@ class MidoceanApiService {
         $productClass = $apiProduct->variants[0]->product_class ?? '';
         $brand = $apiProduct->variants[0]->brand ?? '';
         $shortDescriptions = $apiProduct->variants[0]->short_description ?? '';
+        $urlKey = !isset($apiProduct->product_name) ? strtolower($apiProduct->master_code . '-' . $apiProduct->variants[0]->sku) : strtolower($apiProduct->product_name . '-' . $apiProduct->variants[0]->sku);
 
         $meta_title = "$name $productClass $brand";
         $meta_description = "$shortDescriptions";
@@ -629,7 +632,7 @@ class MidoceanApiService {
             'sku' => $productSku,
             "product_number" => $apiProduct->master_id,
             "name" => (!isset($apiProduct->product_name)) ? 'no name' : $apiProduct->product_name,
-            "url_key" => (!isset($apiProduct->product_name)) ? '' : $urlKey,
+            "url_key" => $urlKey,
             "short_description" => (isset($apiProduct->short_description)) ? '<p>' . $apiProduct->short_description . '</p>' : '',
             "description" => (isset($apiProduct->long_description)) ? '<p>' . $apiProduct->long_description . '</p>'  : '',
             "meta_title" => $meta_title,
