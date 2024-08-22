@@ -28,7 +28,7 @@ class PrintCalculatorImportService {
     public function importPrintData() {
         ini_set('memory_limit', '1G');
 
-        // $this->importStrickerPrintData();
+        $this->importStrickerPrintData();
         $this->importXDConnectsPrintData();
     }
 
