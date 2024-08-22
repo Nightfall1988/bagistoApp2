@@ -470,7 +470,7 @@ class MidoceanApiService {
         $productSubCategory = preg_replace('/[^a-z0-9]+/', '', strtolower($apiProduct->variants[0]->category_level2)) ?? ', ';
 
         $urlKey = strtolower($apiProduct->product_name . '-' . $product->sku);
-        $urlKey = !isset($apiProduct->product_name) ? strtolower($apiProduct->master_code . '-' . $apiProduct->variants[$i]->sku) : strtolower($apiProduct->product_name . '-' . $apiProduct->variants[$i]->sku);
+        $urlKey = !isset($apiProduct->product_name) ? strtolower($apiProduct->master_code . '-' . $apiProduct->variants[0]->sku) : strtolower($apiProduct->product_name . '-' . $apiProduct->variants[0]->sku);
 
         $urlKey = preg_replace('/[^a-z0-9]+/', '-', $urlKey);
         $urlKey = trim($urlKey, '-');
