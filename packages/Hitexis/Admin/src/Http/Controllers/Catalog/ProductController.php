@@ -39,8 +39,8 @@ class ProductController extends Controller
         protected ProductDownloadableSampleRepository $productDownloadableSampleRepository,
         protected ProductInventoryRepository $productInventoryRepository,
     ) {
-        // $this->hitexisProductRepository = $hitexisProductRepository;
-        // $this->inventorySourceRepository = $inventorySourceRepository;
+        $this->hitexisProductRepository = $hitexisProductRepository;
+        $this->inventorySourceRepository = $inventorySourceRepository;
     }
     /**
      * Display a listing of the resource.

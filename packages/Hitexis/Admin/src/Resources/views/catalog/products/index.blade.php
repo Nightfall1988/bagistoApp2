@@ -1,6 +1,5 @@
 <x-admin::layouts>
     <x-slot:title>
-        zzzzzzzzzzzzzzz
 
         @lang('admin::app.catalog.products.index.title')
     </x-slot>

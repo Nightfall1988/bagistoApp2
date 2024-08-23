@@ -287,6 +287,7 @@ class HitexisProductRepository extends Repository
      */
     public function searchFromDatabase(array $params = [])
     {
+        dd($params);
         $params = array_merge([
             'status'               => 1,
             'visible_individually' => 1,
@@ -545,7 +546,7 @@ class HitexisProductRepository extends Repository
     public function getCategoryProducts($params = [])
     {
         $customerGroup = $this->customerRepository->getCurrentGroup();
-
+    
         $query = $this->with([
             'attribute_family',
             'images',
@@ -557,7 +558,7 @@ class HitexisProductRepository extends Repository
             'variants'
         ])->scopeQuery(function ($query) use ($params, $customerGroup) {
             $prefix = DB::getTablePrefix();
-
+    
             $qb = $query->distinct()
                 ->select('products.*')
                 ->leftJoin('products as variants', DB::raw('COALESCE(' . $prefix . 'variants.parent_id, ' . $prefix . 'variants.id)'), '=', 'products.id')
@@ -566,81 +567,100 @@ class HitexisProductRepository extends Repository
                         ->where('product_price_indices.customer_group_id', $customerGroup->id);
                 })
                 ->leftJoin('product_categories', 'products.id', 'product_categories.product_id');
-
+    
             $descriptionAlias1 = 'description_9_product_attribute_values';
             $descriptionAlias2 = 'description_10_product_attribute_values';
-
+    
             $qb->leftJoin('product_attribute_values as ' . $descriptionAlias1, function ($join) use ($descriptionAlias1) {
                 $join->on('products.id', '=', $descriptionAlias1 . '.product_id')
                     ->where($descriptionAlias1 . '.attribute_id', 9);
             });
-
+    
             $qb->leftJoin('product_attribute_values as ' . $descriptionAlias2, function ($join) use ($descriptionAlias2) {
                 $join->on('products.id', '=', $descriptionAlias2 . '.product_id')
                     ->where($descriptionAlias2 . '.attribute_id', 10);
             });
-
+    
             $visibleIndividuallyAlias = 'visible_individually_product_attribute_values';
             $qb->leftJoin('product_attribute_values as ' . $visibleIndividuallyAlias, function ($join) use ($visibleIndividuallyAlias) {
                 $join->on('products.id', '=', $visibleIndividuallyAlias . '.product_id')
                     ->where($visibleIndividuallyAlias . '.attribute_id', 7)
                     ->where($visibleIndividuallyAlias . '.boolean_value', 1);
             });
-
+    
             $nameAlias = 'name_product_attribute_values';
             $qb->leftJoin('product_attribute_values as ' . $nameAlias, function ($join) use ($nameAlias) {
                 $join->on('products.id', '=', $nameAlias . '.product_id')
-                    ->where($nameAlias . '.attribute_id', 2); 
+                    ->where($nameAlias . '.attribute_id', 2);
             });
-
+    
+            // Filter by category
             if (!empty($params['category_id'])) {
                 $qb->where('product_categories.category_id', $params['category_id']);
             }
-
+    
+            // Filter by color
             if (!empty($params['color'])) {
                 $colorIds = explode(',', $params['color']);
                 $colorAlias = 'color_product_attribute_values';
-
+    
                 $qb->leftJoin('product_attribute_values as ' . $colorAlias, function ($join) use ($colorAlias) {
                     $join->on('products.id', '=', $colorAlias . '.product_id')
                         ->where($colorAlias . '.attribute_id', 23);
                 });
-
+    
                 $variantColorAlias = 'variant_color_product_attribute_values';
                 $qb->leftJoin('product_attribute_values as ' . $variantColorAlias, function ($join) use ($variantColorAlias) {
                     $join->on('variants.id', '=', $variantColorAlias . '.product_id')
-                        ->where($variantColorAlias . '.attribute_id', 23); // Adjust this attribute_id if necessary
+                        ->where($variantColorAlias . '.attribute_id', 23);
                 });
-
+    
                 $qb->where(function ($query) use ($colorAlias, $variantColorAlias, $colorIds) {
                     $query->whereIn($colorAlias . '.integer_value', $colorIds)
                         ->orWhereIn($variantColorAlias . '.integer_value', $colorIds);
                 });
             }
-
+    
+            // Filter by size
             if (!empty($params['size'])) {
                 $sizeIds = explode(',', $params['size']);
                 $sizeAlias = 'size_product_attribute_values';
-
+    
                 $qb->leftJoin('product_attribute_values as ' . $sizeAlias, function ($join) use ($sizeAlias) {
                     $join->on('products.id', '=', $sizeAlias . '.product_id')
                         ->where($sizeAlias . '.attribute_id', 24);
                 });
-
+    
                 $variantSizeAlias = 'variant_size_product_attribute_values';
                 $qb->leftJoin('product_attribute_values as ' . $variantSizeAlias, function ($join) use ($variantSizeAlias) {
                     $join->on('variants.id', '=', $variantSizeAlias . '.product_id')
                         ->where($variantSizeAlias . '.attribute_id', 24);
                 });
-
+    
                 $qb->where(function ($query) use ($sizeAlias, $variantSizeAlias, $sizeIds) {
                     $query->whereIn($sizeAlias . '.integer_value', $sizeIds)
                         ->orWhereIn($variantSizeAlias . '.integer_value', $sizeIds);
                 });
             }
-
+    
+            // Filter by price range
+            if (!empty($params['price'])) {
+                $priceRange = explode(',', $params['price']);
+                $minPrice = isset($priceRange[0]) ? floatval($priceRange[0]) : 0;
+                $maxPrice = isset($priceRange[1]) ? floatval($priceRange[1]) : null;
+    
+                $qb->where(function ($query) use ($minPrice, $maxPrice) {
+                    $query->where('product_price_indices.min_price', '>=', $minPrice);
+                    if ($maxPrice !== null) {
+                        $query->where('product_price_indices.min_price', '<=', $maxPrice);
+                    }
+                });
+            }
+    
+            // Ensure only visible products are included
             $qb->where($visibleIndividuallyAlias . '.boolean_value', 1);
-
+    
+            // Sorting
             $sortOptions = $this->getSortOptions($params);
             if ($sortOptions['order'] != 'rand') {
                 $attribute = $this->attributeRepository->findOneByField('code', $sortOptions['sort']);
@@ -662,12 +682,12 @@ class HitexisProductRepository extends Repository
             } else {
                 return $qb->inRandomOrder();
             }
-
+    
             return $qb->groupBy('products.id');
         });
-
+    
         $limit = $this->getPerPageLimit($params);
-
+    
         return $query->paginate($limit);
     }
 }
