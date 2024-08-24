@@ -27,10 +27,10 @@ class HitexisAdminServiceProvider extends AdminServiceProvider
         Blade::anonymousComponentPath(__DIR__.'/../Resources/views/components', 'hitexis-admin');
         // dd(\Hitexis\Admin\Http\Controllers\Catalog\ProductController::class);
 
-        // $this->app->bind(
-        //     \Webkul\Admin\Http\Controllers\Catalog\ProductController::class,
-        //     \Hitexis\Admin\Http\Controllers\Catalog\ProductController::class
-        // );
+        $this->app->bind(
+            // \Webkul\Admin\Http\Controllers\Catalog\ProductController::class,
+            \Hitexis\Admin\Http\Controllers\Catalog\ProductController::class
+        );
 
         $this->composeView();
 
