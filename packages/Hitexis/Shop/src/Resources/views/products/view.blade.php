@@ -441,6 +441,10 @@
                                                     <p class="ml-2 text-base text-zinc-500">{{ $product->getAttribute('dimensions') }}</p>
                                                 </div>
                                             @endif
+                                            <div class="flex items-center">
+                                                <p class="text-base text-black font-medium">SKU:</p>
+                                                <p class="ml-2 text-base text-zinc-500">{{ $product->sku }}</p>
+                                            </div>
                                         </div>
                                     </div>
 
