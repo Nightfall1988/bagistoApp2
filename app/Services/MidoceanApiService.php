@@ -298,9 +298,11 @@ class MidoceanApiService {
 
             // URLKEY
             $urlKey = !isset($apiProduct->product_name) ? strtolower($apiProduct->master_code . '-' . $apiProduct->variants[$i]->sku) : strtolower($apiProduct->product_name . '-' . $apiProduct->variants[$i]->sku);
-            $urlKey = preg_replace('/[^a-z0-9]+/', '-', $urlKey);
             $urlKey = trim($urlKey, '-');
             $urlKey = strtolower($urlKey);
+            $urlKey = preg_replace('/\s+/', '-', $urlKey);
+            $urlKey = preg_replace('/[^a-z0-9-]+/', '-', strtolower($urlKey));
+
             $name = $product['Name'];
             $cost = $priceList[$apiProduct->variants[$i]->sku] ?? 0;
 
@@ -347,9 +349,15 @@ class MidoceanApiService {
             $productVariant->markup()->attach($this->globalMarkup->id);
 
             $urlKey = !isset($apiProduct->product_name) ? strtolower($apiProduct->master_code . '-' . $apiProduct->variants[$i]->sku) : strtolower($apiProduct->product_name . '-' . $apiProduct->variants[$i]->sku);
-            $urlKey = preg_replace('/[^a-z0-9]+/', '-', $urlKey);
             $urlKey = trim($urlKey, '-');
             $urlKey = strtolower($urlKey);
+            $urlKey = preg_replace('/\s+/', '-', $urlKey);
+            $urlKey = preg_replace('/[^a-z0-9-]+/', '-', strtolower($urlKey));
+            $price = $this->markupRepository->calculatePrice($cost, $this->globalMarkup);
+
+            $meta_title = "$apiProduct->product_name $apiProduct->product_class $apiProduct->brand";
+            $meta_description = "$apiProduct->short_description";
+            $meta_keywords = "$apiProduct->product_name, $apiProduct->brand, $productCategory, $productSubCategory, $apiProduct->product_class";
             $price = $this->markupRepository->calculatePrice($cost, $this->globalMarkup);
 
             $superAttributes = [
@@ -362,9 +370,9 @@ class MidoceanApiService {
                 "url_key" => $urlKey,
                 "short_description" => (isset($apiProduct->short_description)) ? '<p>' . $apiProduct->short_description . '</p>' : '',
                 "description" => (isset($apiProduct->long_description)) ? '<p>' . $apiProduct->long_description . '</p>'  : '',
-                "meta_title" =>  "",
-                "meta_keywords" => "",
-                "meta_description" => "",
+                "meta_title" =>  $meta_title,
+                "meta_keywords" => $meta_keywords,
+                "meta_description" => $meta_description,
                 "material" => $materialObj->admin_name ?? '',
                 "tax_category_id" => "1",
                 "dimensions" => $dimensionsObj->admin_name ?? '',
@@ -470,9 +478,8 @@ class MidoceanApiService {
         $productSubCategory = preg_replace('/[^a-z0-9]+/', '', strtolower($apiProduct->variants[0]->category_level2)) ?? ', ';
 
         $urlKey = strtolower($apiProduct->product_name . '-' . $product->sku);
-        $urlKey = !isset($apiProduct->product_name) ? strtolower($apiProduct->master_code . '-' . $apiProduct->variants[0]->sku) : strtolower($apiProduct->product_name . '-' . $apiProduct->variants[0]->sku);
-
-        $urlKey = preg_replace('/[^a-z0-9]+/', '-', $urlKey);
+        $urlKey = preg_replace('/\s+/', '-', $urlKey);
+        $urlKey = preg_replace('/[^a-z0-9-]+/', '-', strtolower($urlKey));
         $urlKey = trim($urlKey, '-');
         $urlKey = strtolower($urlKey);
 
@@ -601,7 +608,8 @@ class MidoceanApiService {
         }
 
         $urlKey = isset($apiProduct->product_name) ? $apiProduct->product_name  . '-' . $apiProduct->master_id : $apiProduct->master_id; 
-        $urlKey = preg_replace('/[^a-z0-9]+/', '-', $urlKey);
+        $urlKey = preg_replace('/\s+/', '-', $urlKey);
+        $urlKey = preg_replace('/[^a-z0-9-]+/', '-', strtolower($urlKey));
         $urlKey = trim($urlKey, '-');
         $urlKey = strtolower($urlKey);
 

@@ -287,7 +287,6 @@ class HitexisProductRepository extends Repository
      */
     public function searchFromDatabase(array $params = [])
     {
-        dd($params);
         $params = array_merge([
             'status'               => 1,
             'visible_individually' => 1,

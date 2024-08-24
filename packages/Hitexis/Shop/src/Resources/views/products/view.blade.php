@@ -68,8 +68,6 @@
         <x-shop::shimmer.products.view />
     </v-product>
 
-
-
     <div>
         @if (sizeof($product->wholesales)> 0)
             <ul class="mt-5">
@@ -429,22 +427,25 @@
                                             <!-- Material Attribute -->
                                             @if($product->getAttribute('material'))
                                                 <div class="flex items-center">
-                                                    <p class="text-base text-black font-medium">@lang('shop::app.products.view.material'):</p>
+                                                    <p class="text-base text-black font-medium">@lang('shop::app.products.view.material'):&nbsp</p>
                                                     <p class="ml-2 text-base text-zinc-500">{{ $product->getAttribute('material') }}</p>
                                                 </div>
+                                                <br>
                                             @endif
-                                        <br>
                                             <!-- Dimensions Attribute -->
                                             @if($product->getAttribute('dimensions'))
                                                 <div class="flex items-center">
                                                     <p class="text-base text-black font-medium">@lang('shop::app.products.view.dimensions'):</p>
                                                     <p class="ml-2 text-base text-zinc-500">{{ $product->getAttribute('dimensions') }}</p>
                                                 </div>
+                                                <br>
                                             @endif
-                                            <div class="flex items-center">
-                                                <p class="text-base text-black font-medium">SKU:</p>
-                                                <p class="ml-2 text-base text-zinc-500">{{ $product->sku }}</p>
-                                            </div>
+                                                <!-- SKU Attribute -->
+                                                <div class="flex items-center">
+                                                    <p class="text-base text-black font-medium">SKU:</p>
+                                                    <p class="ml-2 text-base text-zinc-500">{{ $product->sku }}</p>
+                                                </div>
+                                            <br>
                                         </div>
                                     </div>
 
