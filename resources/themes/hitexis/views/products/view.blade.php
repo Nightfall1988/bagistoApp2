@@ -437,10 +437,15 @@
                                             <!-- Dimensions Attribute -->
                                             @if($product->getAttribute('dimensions'))
                                                 <div class="flex items-center">
-                                                    <p class="text-base text-black font-medium">@lang('shop::app.products.view.dimensions'):&nbsp</p>
+                                                    <p class="text-base text-black font-medium">@lang('shop::app.products.view.dimensions'):</p>
                                                     <p class="ml-2 text-base text-zinc-500">{{ $product->getAttribute('dimensions') }}</p>
                                                 </div>
                                             @endif
+                                                                                        <!-- Dimensions Attribute -->
+                                                <div class="flex items-center">
+                                                    <p class="text-base text-black font-medium">SKU:</p>
+                                                    <p class="ml-2 text-base text-zinc-500">{{ $product->sku }}</p>
+                                                </div>
                                         </div>
                                     </div>
 
@@ -519,6 +524,89 @@
                 </form>
             </x-shop::form>
                 <!-- Information Section -->
+    <div class="1180:mt-20">
+        <x-shop::tabs
+            position="center"
+            ref="productTabs"
+        >
+            <!-- Description Tab -->
+            {!! view_render_event('bagisto.shop.products.view.description.before', ['product' => $product]) !!}
+
+            <x-shop::tabs.item
+                id="descritpion-tab"
+                class="container mt-[60px] !p-0 max-1180:hidden"
+                :title="trans('shop::app.products.view.description')"
+                :is-selected="true"
+            >
+                <div class="container mt-[60px] max-1180:px-5">
+                    <p class="text-lg text-zinc-500 max-1180:text-sm">
+                        {!! $product->description !!}
+                    </p>
+                </div>
+            </x-shop::tabs.item>
+
+            {!! view_render_event('bagisto.shop.products.view.description.after', ['product' => $product]) !!}
+
+            <!-- Additional Information Tab -->
+            @if(count($attributeData))
+                <x-shop::tabs.item
+                    id="information-tab"
+                    class="container mt-[60px] !p-0 max-1180:hidden"
+                    :title="trans('shop::app.products.view.additional-information')"
+                    :is-selected="false"
+                >
+                    <div class="container mt-[60px] max-1180:px-5">
+                        <div class="mt-8 grid max-w-max grid-cols-[auto_1fr] gap-4">
+                            @foreach ($customAttributeValues as $customAttributeValue)
+                                @if (! empty($customAttributeValue['value']))
+                                    <div class="grid">
+                                        <p class="text-base text-black">
+                                            {!! $customAttributeValue['label'] !!}
+                                        </p>
+                                    </div>
+
+                                    @if ($customAttributeValue['type'] == 'file')
+                                        <a 
+                                            href="{{ Storage::url($product[$customAttributeValue['code']]) }}" 
+                                            download="{{ $customAttributeValue['label'] }}"
+                                        >
+                                            <span class="icon-download text-2xl"></span>
+                                        </a>
+                                    @elseif ($customAttributeValue['type'] == 'image')
+                                        <a 
+                                            href="{{ Storage::url($product[$customAttributeValue['code']]) }}" 
+                                            download="{{ $customAttributeValue['label'] }}"
+                                        >
+                                            <img 
+                                                class="h-5 min-h-5 w-5 min-w-5" 
+                                                src="{{ Storage::url($customAttributeValue['value']) }}" 
+                                            />
+                                        </a>
+                                    @else
+                                        <div class="grid">
+                                            <p class="text-base text-zinc-500">
+                                                {!! $customAttributeValue['value'] !!}
+                                            </p>
+                                        </div>
+                                    @endif
+                                @endif
+                            @endforeach
+                        </div>
+                    </div>
+                </x-shop::tabs.item>
+            @endif
+
+            <!-- Reviews Tab -->
+            <x-shop::tabs.item
+                id="review-tab"
+                class="container mt-[60px] !p-0 max-1180:hidden"
+                :title="trans('shop::app.products.view.review')"
+                :is-selected="false"
+            >
+                @include('hitexis-shop::products.view.reviews')
+            </x-shop::tabs.item>
+        </x-shop::tabs>
+    </div>
 
     <!-- Information Section -->
     <div class="container mt-10 !p-0 max-1180:px-5 1180:hidden">
