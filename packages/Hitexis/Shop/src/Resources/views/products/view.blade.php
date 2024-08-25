@@ -435,18 +435,21 @@
                                             <!-- Dimensions Attribute -->
                                             @if($product->getAttribute('dimensions'))
                                                 <div class="flex items-center">
-                                                    <p class="text-base text-black font-medium">@lang('shop::app.products.view.dimensions'):</p>
+                                                    <p class="text-base text-black font-medium">@lang('shop::app.products.view.dimensions'):&nbsp</p>
                                                     <p class="ml-2 text-base text-zinc-500">{{ $product->getAttribute('dimensions') }}</p>
                                                 </div>
                                                 <br>
                                             @endif
                                                 <!-- SKU Attribute -->
                                                 <div class="flex items-center">
-                                                    <p class="text-base text-black font-medium">SKU:</p>
+                                                    <p class="text-base text-black font-medium">SKU:&nbsp</p>
                                                     <p class="ml-2 text-base text-zinc-500">{{ $product->sku }}</p>
                                                 </div>
                                             <br>
-                                            <p><b>Quantity:</b> <span id="quantity-display">{{ $quantities[$product->sku] ?? 0 }}</span></p>
+                                            <div class="flex items-center">
+                                                <p class="text-base text-black font-medium">Quantity:&nbsp</p>
+                                                <p><span id="quantity-display">{{ $quantities[$product->sku] ?? 0 }}</span></p>
+                                            </div>
 
                                         </div>
                                     </div>
@@ -499,7 +502,7 @@
 
                         @if (isset($product->print_techniques) && $product->print_techniques != '[]')
                             <div>
-                                @include('hitexis-shop::components.printcalculator.printcalculator', ['product' => $product])
+                                @include('shop::components.printcalculator.printcalculator', ['product' => $product])
                             </div>
                         @endif
 
