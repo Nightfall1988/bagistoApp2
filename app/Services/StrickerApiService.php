@@ -174,8 +174,10 @@ class StrickerApiService {
         $yourPrice = isset($mainProductOptionals['YourPrice']) ? $mainProductOptionals['YourPrice'] : 0;
 
         $urlKey = strtolower($mainProductData['Name'] . '-' . $mainProductData['ProdReference']);
-        $urlKey = preg_replace('/[^a-z0-9]+/', '-', $urlKey);
+        $urlKey = preg_replace('/\s+/', '-', $urlKey);
+        $urlKey = preg_replace('/[^a-z0-9-]+/', '-', strtolower($urlKey));
         $urlKey = trim($urlKey, '-');
+        $urlKey = strtolower($urlKey);
 
         $images = [];
         if (isset($mainProductOptionals['OptionalImage1'])) {
@@ -228,7 +230,7 @@ class StrickerApiService {
             "height" => $mainProductData['BoxHeightMM'] / 10 ?? '',
             "weight" => $mainProductData['Weight'],
             "new" => "1",
-            "visible_individually" => "1",
+            "visible_individually" => $cost == 0 ? "0" : "1",
             "status" => "1",
             "featured" => "1",
             "guest_checkout" => "1",
@@ -356,8 +358,10 @@ class StrickerApiService {
         }
 
         $urlKey = strtolower($productData['optionals'][0]['Name'] . '-' . $productData['optionals'][0]['Sku']);
-        $urlKey = preg_replace('/[^a-z0-9]+/', '-', $urlKey);
+        $urlKey = preg_replace('/\s+/', '-', $urlKey);
+        $urlKey = preg_replace('/[^a-z0-9-]+/', '-', strtolower($urlKey));
         $urlKey = trim($urlKey, '-');
+        $urlKey = strtolower($urlKey);
 
         $cost = isset($productData['optionals'][0]['Price1']) ? $productData['optionals'][0]['Price1'] : 0;
         $yourPrice = isset($mainProductOptionals['YourPrice']) ? $mainProductOptionals['YourPrice'] : 0;
@@ -407,7 +411,7 @@ class StrickerApiService {
             "special_price_from" => "",
             "special_price_to" => "",
             "new" => "1",
-            "visible_individually" => "1",
+            "visible_individually" => $cost == 0 ? "0" : "1",
             "status" => "1",
             "featured" => "1",
             "guest_checkout" => "1",
@@ -650,8 +654,10 @@ class StrickerApiService {
                 ], uniqueBy: ['product_id', 'attribute_id']);
     
                 $urlKey = strtolower($foundOptional['Name'] . '-' . $foundOptional['Sku']);
-                $urlKey = preg_replace('/[^a-z0-9]+/', '-', $urlKey);
+                $urlKey = preg_replace('/\s+/', '-', $urlKey);
+                $urlKey = preg_replace('/[^a-z0-9-]+/', '-', strtolower($urlKey));
                 $urlKey = trim($urlKey, '-');
+                $urlKey = strtolower($urlKey);
     
                 $cost = isset($foundOptional['Price1']) ? $foundOptional['Price1'] : 0;
                 $yourPrice = isset($mainProductOptionals['YourPrice']) ? $mainProductOptionals['YourPrice'] : 0;

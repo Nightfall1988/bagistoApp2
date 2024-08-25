@@ -44,114 +44,114 @@
         </div>
     </script>
 </div>
-    <script type="module">
-        app.component('v-print-calculator', {
-            template: '#v-print-calculator-template',
+<script type="module">
+    app.component('v-print-calculator', {
+        template: '#v-print-calculator-template',
 
-            props: ['product'],
+        props: ['product'],
 
-            data() {
-                return {
-                    selectedTechnique: '',
-                    currentTechnique: null,
-                    techniquesData: [],
-                };
+        data() {
+            return {
+                selectedTechnique: '',
+                currentTechnique: null,
+                techniquesData: [],
+            };
+        },
+
+        computed: {
+            uniqueDescriptions() {
+                const descriptionsSet = new Set();
+                this.product.print_techniques.forEach(technique => {
+                    descriptionsSet.add(technique.description);
+                });
+                return Array.from(descriptionsSet);
+            }
+        },
+
+        watch: {
+            selectedTechnique() {
+                this.updateCurrentTechnique();
+            },
+        },
+
+        methods: {
+            updateCurrentTechnique() {
+                this.currentTechnique = this.product.print_techniques.find(
+                    technique => technique.description === this.selectedTechnique
+                );
+                this.calculatePrices();
             },
 
-            computed: {
-                uniqueDescriptions() {
-                    const descriptionsSet = new Set();
-                    this.product.print_techniques.forEach(technique => {
-                        descriptionsSet.add(technique.description);
-                    });
-                    return Array.from(descriptionsSet);
-                }
+            calculatePrices() {
+                const quantity = this.getQuantityFromFieldQty();
+                if (!quantity) return;
+
+                this.$axios.get('{{ route('printcontroller.api.print.calculate') }}', {
+                    params: {
+                        'product_id': this.product.id,
+                        'quantity': quantity,
+                        'type': this.selectedTechnique
+                    }
+                })
+                .then(response => {
+                    if (response && response.data) {
+                        this.techniquesData = [{
+                            product_name: response.data.product_name,
+                            print_technique: response.data.print_technique,
+                            quantity: response.data.quantity,
+                            setup_cost: response.data.setup_cost,
+                            total_price: response.data.total_price,
+                            technique_print_fee: response.data.technique_print_fee,
+                            price: response.data.price,
+                            print_fee: response.data.print_fee
+                        }];
+                    }
+                })
+                .catch(error => {
+                    if (error.response) {
+                        if ([400, 422].includes(error.response.status)) {
+                            this.$emitter.emit('add-flash', { type: 'warning', message: error.response.data.data ? error.response.data.data.message : 'An error occurred' });
+                            return;
+                        }
+                        this.$emitter.emit('add-flash', { type: 'error', message: error.response.data.message });
+                    } else if (error.request) {
+                        console.error('No response received:', error.request);
+                        this.$emitter.emit('add-flash', { type: 'error', message: 'No response from the server. Please try again later.' });
+                    } else {
+                        console.error('Error', error.message);
+                        this.$emitter.emit('add-flash', { type: 'error', message: 'An error occurred while making the request.' });
+                    }
+                });
             },
 
-            watch: {
-                selectedTechnique() {
+            getQuantityFromFieldQty() {
+                const qtyField = document.querySelector('#field-qty input[type="hidden"]');
+                return qtyField ? qtyField.value : null;
+            },
+
+            observeQuantityChange() {
+                const qtyField = document.querySelector('#field-qty input[type="hidden"]');
+                if (!qtyField) return;
+
+                const observer = new MutationObserver(() => {
                     this.updateCurrentTechnique();
-                },
-            },
+                });
 
-            methods: {
-                updateCurrentTechnique() {
-                    this.currentTechnique = this.product.print_techniques.find(
-                        technique => technique.description === this.selectedTechnique
-                    );
-                    this.calculatePrices();
-                },
+                observer.observe(qtyField, {
+                    attributes: true,
+                    attributeFilter: ['value']
+                });
+            }
+        },
 
-                calculatePrices() {
-                    const quantity = this.getQuantityFromFieldQty();
-                    if (!quantity) return;
+        mounted() {
+            this.observeQuantityChange();
 
-                    this.$axios.get('{{ route('printcontroller.api.print.calculate') }}', {
-                        params: {
-                            'product_id': this.product.id,
-                            'quantity': quantity,
-                            'type': this.selectedTechnique
-                        }
-                    })
-                    .then(response => {
-                        if (response && response.data) {
-                            this.techniquesData = [{
-                                product_name: response.data.product_name,
-                                print_technique: response.data.print_technique,
-                                quantity: response.data.quantity,
-                                setup_cost: response.data.setup_cost,
-                                total_price: response.data.total_price,
-                                technique_print_fee: response.data.technique_print_fee,
-                                price: response.data.price,
-                                print_fee: response.data.print_fee
-                            }];
-                        }
-                    })
-                    .catch(error => {
-                        if (error.response) {
-                            if ([400, 422].includes(error.response.status)) {
-                                this.$emitter.emit('add-flash', { type: 'warning', message: error.response.data.data ? error.response.data.data.message : 'An error occurred' });
-                                return;
-                            }
-                            this.$emitter.emit('add-flash', { type: 'error', message: error.response.data.message });
-                        } else if (error.request) {
-                            console.error('No response received:', error.request);
-                            this.$emitter.emit('add-flash', { type: 'error', message: 'No response from the server. Please try again later.' });
-                        } else {
-                            console.error('Error', error.message);
-                            this.$emitter.emit('add-flash', { type: 'error', message: 'An error occurred while making the request.' });
-                        }
-                    });
-                },
-
-                getQuantityFromFieldQty() {
-                    const qtyField = document.querySelector('#field-qty input[type="hidden"]');
-                    return qtyField ? qtyField.value : null;
-                },
-
-                observeQuantityChange() {
-                    const qtyField = document.querySelector('#field-qty input[type="hidden"]');
-                    if (!qtyField) return;
-
-                    const observer = new MutationObserver(() => {
-                        this.updateCurrentTechnique();
-                    });
-
-                    observer.observe(qtyField, {
-                        attributes: true,
-                        attributeFilter: ['value']
-                    });
-                }
-            },
-
-            mounted() {
-                this.observeQuantityChange();
-
-                if (this.product.print_techniques.length > 0) {
-                    this.selectedTechnique = this.product.print_techniques[0].description;
-                    this.updateCurrentTechnique();
-                }
-            },
-        });
-    </script>
+            if (this.product.print_techniques.length > 0) {
+                this.selectedTechnique = this.product.print_techniques[0].description;
+                this.updateCurrentTechnique();
+            }
+        },
+    });
+</script>
 @endpush

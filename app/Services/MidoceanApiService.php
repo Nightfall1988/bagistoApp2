@@ -477,6 +477,7 @@ class MidoceanApiService {
         $productCategory = preg_replace('/[^a-z0-9]+/', '', strtolower($apiProduct->variants[0]->category_level1)) ?? ', ';
         $productSubCategory = preg_replace('/[^a-z0-9]+/', '', strtolower($apiProduct->variants[0]->category_level2)) ?? ', ';
 
+
         $urlKey = strtolower($apiProduct->product_name . '-' . $product->sku);
         $urlKey = preg_replace('/\s+/', '-', $urlKey);
         $urlKey = preg_replace('/[^a-z0-9-]+/', '-', strtolower($urlKey));
@@ -507,7 +508,7 @@ class MidoceanApiService {
             "special_price_from" => "",
             "special_price_to" => "",
             "new" => "1",
-            "visible_individually" => "1",
+            "visible_individually" => $cost == 0 ? "0" : "1",
             "status" => "1",
             "featured" => "1",
             "guest_checkout" => "1",
@@ -657,7 +658,7 @@ class MidoceanApiService {
             "height" => $apiProduct->height ?? '',
             "weight" => $apiProduct->net_weight ?? 0,
             "new" => "1",
-            "visible_individually" => "1",
+            "visible_individually" => $cost == 0 ? "0" : "1",
             "status" => "1",
             "featured" => "1",
             "guest_checkout" => "1",

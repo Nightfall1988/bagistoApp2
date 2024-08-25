@@ -239,8 +239,10 @@ class XDConnectsApiService {
                 $tempPaths[] = $imageData['tempPaths'];
 
                 $urlKey = strtolower((string)$variant->ItemName . '-' . (string)$variant->ItemCode);
-                $urlKey = preg_replace('/[^a-z0-9]+/', '-', $urlKey);
+                $urlKey = preg_replace('/\s+/', '-', $urlKey);
+                $urlKey = preg_replace('/[^a-z0-9-]+/', '-', strtolower($urlKey));
                 $urlKey = trim($urlKey, '-');
+                $urlKey = strtolower($urlKey);
                 $cost = (string)$priceDataList[(string)$variant->ItemCode]->ItemPriceNet_Qty1 ?? '';
                 $price = $this->markupRepository->calculatePrice($cost, $this->globalMarkup);
 
@@ -281,8 +283,10 @@ class XDConnectsApiService {
                 ]);
 
                 $urlKey = strtolower((string)$variant->ItemName . '-' . (string)$variant->ItemCode);
-                $urlKey = preg_replace('/[^a-z0-9]+/', '-', $urlKey);
-                $urlKey = trim($urlKey, '-');    
+                $urlKey = preg_replace('/\s+/', '-', $urlKey);
+                $urlKey = preg_replace('/[^a-z0-9-]+/', '-', strtolower($urlKey));
+                $urlKey = trim($urlKey, '-');
+                $urlKey = strtolower($urlKey);
                 $cost = (string)$priceDataList[(string)$variant->ItemCode]->ItemPriceNet_Qty1 ?? '';
                 $price = $this->markupRepository->calculatePrice($cost, $this->globalMarkup);
 
@@ -339,9 +343,11 @@ class XDConnectsApiService {
             }
 
             $urlKey = strtolower((string)$mainProduct->ItemName . '-' . (string)$mainProduct->ModelCode) . '-main';
-            $urlKey = preg_replace('/[^a-z0-9]+/', '-', $urlKey);
-            $urlKey = trim($urlKey, '-');    
-            $cost = (string)$priceDataList[(string)$mainProduct->ItemCode]->ItemPriceNet_Qty1 ?? '';
+            $urlKey = preg_replace('/\s+/', '-', $urlKey);
+            $urlKey = preg_replace('/[^a-z0-9-]+/', '-', strtolower($urlKey));
+            $urlKey = trim($urlKey, '-');
+            $urlKey = strtolower($urlKey);
+            $cost = (string)$priceDataList[(string)$mainProduct->ItemCode]->ItemPriceNet_Qty1 ?? 0;
             $price = $this->markupRepository->calculatePrice($cost, $this->globalMarkup);
 
             $superAttributes = [
@@ -367,7 +373,7 @@ class XDConnectsApiService {
                 "special_price_from" => "",
                 "special_price_to" => "",
                 "new" => "1",
-                "visible_individually" => "1",
+                "visible_individually" => $cost == 0 ? "0" : "1",
                 "status" => "1",
                 "featured" => "1",
                 "guest_checkout" => "1",
@@ -538,7 +544,11 @@ class XDConnectsApiService {
         $search = ['.', '\'', ' ', '"', ','];
         $replace = '-';
         $urlKey = strtolower(str_replace($search, $replace, $urlKey));
-        $cost = (string)$priceDataList[(string)$product->ItemCode]->ItemPriceNet_Qty1 ?? '';
+        $urlKey = preg_replace('/\s+/', '-', $urlKey);
+        $urlKey = preg_replace('/[^a-z0-9-]+/', '-', strtolower($urlKey));
+        $urlKey = trim($urlKey, '-');
+        $urlKey = strtolower($urlKey);
+        $cost = (string)$priceDataList[(string)$product->ItemCode]->ItemPriceNet_Qty1 ?? 0;
         $price = $this->markupRepository->calculatePrice($cost, $this->globalMarkup);
 
         $superAttributes = [
@@ -564,7 +574,7 @@ class XDConnectsApiService {
             "special_price_from" => "",
             "special_price_to" => "",
             "new" => "1",
-            "visible_individually" => "1",
+            "visible_individually" => $cost == 0 ? "0" : "1",
             "status" => "1",
             "featured" => "1",
             "guest_checkout" => "1",
