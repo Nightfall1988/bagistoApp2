@@ -380,7 +380,7 @@
 
                                 {!! view_render_event('bagisto.shop.products.short_description.after', ['product' => $product]) !!}
 
-                                @include('shop::products.view.types.configurable')
+                                @include('hitexis-shop::products.view.types.configurable')
 
                                 @include('shop::products.view.types.grouped')
 
@@ -446,6 +446,8 @@
                                                     <p class="ml-2 text-base text-zinc-500">{{ $product->sku }}</p>
                                                 </div>
                                             <br>
+                                            <p><b>Quantity:</b> <span id="quantity-display">{{ $quantities[$product->sku] ?? 0 }}</span></p>
+
                                         </div>
                                     </div>
 
@@ -706,6 +708,8 @@
         </script>
 
         <script type="module">
+            const quantities = @json($quantities);
+            
             app.component('v-product', {
                 template: '#v-product-template',
 
@@ -724,17 +728,22 @@
 
                             buyNow: false,
                         },
+
+                        quantity: quantities['{{ $product->sku }}'] || 0,
                     }
                 },
 
                 mounted() {
 
                     this.hasTechniques()
+                    this.updateQuantity();
+
                     this.$emitter.on('configurable-variant-update-sku-event', (newSku) => {
                         this.sku = newSku.sku;
-                        console.log(this.sku);
                         this.updateButtonSku(newSku);
+                        this.updateQuantity();
                     });
+
                 },
 
                 methods: {
@@ -742,6 +751,13 @@
                     hasTechniques() {
                         console.log(this.product);
                             
+                    },
+
+                    updateQuantity() {
+                        const quantityDisplay = document.getElementById('quantity-display');
+                        console.log(this.sku); // Debugging to ensure correct SKU is being used
+                        this.quantity = quantities[this.sku] || 0; // Access quantity based on current SKU
+                        quantityDisplay.textContent = this.quantity;
                     },
 
                     updateButtonSku(sku) {

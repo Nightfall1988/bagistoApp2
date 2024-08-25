@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Webkul\Category\Repositories\CategoryRepository;
 use Webkul\Marketing\Repositories\URLRewriteRepository;
 use Hitexis\Product\Repositories\HitexisProductRepository;
+use Hitexis\Product\Repositories\ProductInventoryRepository;
 use Webkul\Theme\Repositories\ThemeCustomizationRepository;
 use Webkul\Shop\Http\Controllers\ProductsCategoriesProxyController as ProductsCategoriesBaseController;
 
@@ -28,6 +29,7 @@ class HitexisProductsCategoriesProxyController extends Controller
         protected HitexisProductRepository $productRepository,
         protected ThemeCustomizationRepository $themeCustomizationRepository,
         protected URLRewriteRepository $urlRewriteRepository,
+        protected ProductInventoryRepository $inventoryRepository
     ) {
     }
 
@@ -38,6 +40,7 @@ class HitexisProductsCategoriesProxyController extends Controller
      */
     public function index(Request $request)
     {
+        $quantities = [];
 
         $slugOrURLKey = urldecode(trim($request->getPathInfo(), '/'));
 
@@ -84,11 +87,19 @@ class HitexisProductsCategoriesProxyController extends Controller
 
             visitor()->visit($product);
 
+            if ($product->type == 'simple') {
+                $quantities[$product->sku] = $product->totalQuantity();
+            } elseif ($product->type == 'configurable') {
+                foreach ($product->variants as $variant) {
+                    $quantities[$variant->sku] = $variant->totalQuantity();
+                }
+            }
+
             if (empty($product->print_techniques)) {
-                return view('hitexis-shop::products.view', compact('product'));
+                return view('hitexis-shop::products.view', compact('product', 'quantities'));
             } else {
                 $techniques = $product->print_techniques;
-                return view('hitexis-shop::products.view', compact('product', 'techniques'));
+                return view('hitexis-shop::products.view', compact('product', 'techniques', 'quantities'));
             }
         }
 

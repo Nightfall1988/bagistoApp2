@@ -355,7 +355,7 @@ class MidoceanApiService {
             $urlKey = preg_replace('/[^a-z0-9-]+/', '-', strtolower($urlKey));
             $price = $this->markupRepository->calculatePrice($cost, $this->globalMarkup);
 
-            $meta_title = "$apiProduct->product_name $apiProduct->product_class $apiProduct->brand";
+            $meta_title = !isset($apiProduct->product_name) ? "$apiProduct->product_name $apiProduct->product_class $apiProduct->brand" : "$apiProduct->product_class $apiProduct->brand";
             $meta_description = "$apiProduct->short_description";
             $meta_keywords = "$apiProduct->product_name, $apiProduct->brand, $productCategory, $productSubCategory, $apiProduct->product_class";
             $price = $this->markupRepository->calculatePrice($cost, $this->globalMarkup);
