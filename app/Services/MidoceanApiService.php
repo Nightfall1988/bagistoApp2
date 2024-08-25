@@ -608,12 +608,6 @@ class MidoceanApiService {
             $product->markup()->attach($this->globalMarkup->id);
         }
 
-        $urlKey = isset($apiProduct->product_name) ? $apiProduct->product_name  . '-' . $apiProduct->master_id : $apiProduct->master_id; 
-        $urlKey = preg_replace('/\s+/', '-', $urlKey);
-        $urlKey = preg_replace('/[^a-z0-9-]+/', '-', strtolower($urlKey));
-        $urlKey = trim($urlKey, '-');
-        $urlKey = strtolower($urlKey);
-
         $images = [];
         if (isset($mainVariant->digital_assets)) {
             $imageData = $this->productImageRepository->uploadImportedImagesMidocean($mainVariant->digital_assets, $product);
@@ -629,6 +623,11 @@ class MidoceanApiService {
         $brand = $apiProduct->variants[0]->brand ?? '';
         $shortDescriptions = $apiProduct->variants[0]->short_description ?? '';
         $urlKey = !isset($apiProduct->product_name) ? strtolower($apiProduct->master_code . '-' . $apiProduct->variants[0]->sku) : strtolower($apiProduct->product_name . '-' . $apiProduct->variants[0]->sku);
+        $urlKey = isset($apiProduct->product_name) ? $apiProduct->product_name  . '-' . $apiProduct->master_id : $apiProduct->master_id; 
+        $urlKey = preg_replace('/\s+/', '-', $urlKey);
+        $urlKey = preg_replace('/[^a-z0-9-]+/', '-', strtolower($urlKey));
+        $urlKey = trim($urlKey, '-');
+        $urlKey = strtolower($urlKey);
 
         $meta_title = "$name $productClass $brand";
         $meta_description = "$shortDescriptions";
