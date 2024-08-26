@@ -45,7 +45,7 @@ return [
                 'weight' => 'Weight',
                 'width' => 'Width',
                 'material' => 'Material',
-                'dimensions' => 'Dimensions'
+                'dimensions' => 'Dimensions',
             ],
             'attribute-options' => [
                 'black' => 'Black',
@@ -371,6 +371,8 @@ return [
             'lunchware' => 'Lunchware',
             'power-banks' => 'Power banks',
             'ball-pens' => 'Ball Pens',
+            'eye-wear' => 'Eye wear',
+            'windproof-umbrellas' => 'Windproof Umbrellas',
         ],
     ],
     'installer' => [

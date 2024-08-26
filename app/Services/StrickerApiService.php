@@ -172,7 +172,6 @@ class StrickerApiService {
 
         $cost = isset($mainProductOptionals['Price1']) ? $mainProductOptionals['Price1'] : 0;
         $yourPrice = isset($mainProductOptionals['YourPrice']) ? $mainProductOptionals['YourPrice'] : 0;
-
         $urlKey = strtolower($mainProductData['Name'] . '-' . $mainProductData['ProdReference']);
         $urlKey = preg_replace('/\s+/', '-', $urlKey);
         $urlKey = preg_replace('/[^a-z0-9-]+/', '-', strtolower($urlKey));

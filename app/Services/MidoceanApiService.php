@@ -477,16 +477,23 @@ class MidoceanApiService {
         $productCategory = preg_replace('/[^a-z0-9]+/', '', strtolower($apiProduct->variants[0]->category_level1)) ?? ', ';
         $productSubCategory = preg_replace('/[^a-z0-9]+/', '', strtolower($apiProduct->variants[0]->category_level2)) ?? ', ';
 
-
-        $urlKey = !isset($apiProduct->product_name) ? strtolower($apiProduct->master_code . '-' . $apiProduct->variants[$i]->sku) : strtolower($apiProduct->product_name . '-' . $apiProduct->variants[$i]->sku);
+        if (isset($apiProduct->product_name) && !empty($apiProduct->product_name)) {
+            $meta_title = "$apiProduct->product_name $apiProduct->product_class $apiProduct->brand";
+            $meta_keywords = "$apiProduct->product_name, $apiProduct->brand, $productCategory, $productSubCategory, $apiProduct->product_class";
+            $urlKey = strtolower($apiProduct->product_name . '-' . $apiProduct->master_code);
+        } else {
+            $meta_title = "$apiProduct->master_id $apiProduct->product_class $apiProduct->brand";
+            $meta_description = "$apiProduct->short_description";
+            $meta_keywords = "$apiProduct->master_id, $apiProduct->brand, $productCategory, $productSubCategory, $apiProduct->product_class";
+            $urlKey = strtolower($apiProduct->master_id . '-' . $apiProduct->master_code);
+        }
+        
         $urlKey = preg_replace('/\s+/', '-', $urlKey);
         $urlKey = preg_replace('/[^a-z0-9-]+/', '-', strtolower($urlKey));
         $urlKey = trim($urlKey, '-');
         $urlKey = strtolower($urlKey);
 
-        $meta_title = "$apiProduct->product_name $apiProduct->product_class $apiProduct->brand";
         $meta_description = "$apiProduct->short_description";
-        $meta_keywords = "$apiProduct->product_name, $apiProduct->brand, $productCategory, $productSubCategory, $apiProduct->product_class";
         $price = $this->markupRepository->calculatePrice($cost, $this->globalMarkup);
 
         $superAttributes = [
@@ -508,7 +515,7 @@ class MidoceanApiService {
             "special_price_from" => "",
             "special_price_to" => "",
             "new" => "1",
-            "visible_individually" => $cost == 0 ? "0" : "1",
+            "visible_individually" => ($cost == 0 || !isset($apiProduct->product_name) || empty($apiProduct->product_name)) ? "0" : "1",
             "status" => "1",
             "featured" => "1",
             "guest_checkout" => "1",
