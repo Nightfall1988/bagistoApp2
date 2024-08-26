@@ -194,13 +194,13 @@ class StrickerApiService {
             }
         }
 
-        $productCategory = preg_replace('/[^a-z0-9]+/i', '', strtolower($mainProductOptionals['Type'])) ?? '';
-        $productSubCategory = preg_replace('/[^a-z0-9]+/i', '', strtolower($mainProductOptionals['SubType'])) ?? '';
-        $material = preg_replace('/[^a-z0-9]+/i', '', strtolower($mainProductOptionals['Materials'])) ?? '';
-        $dimensions = preg_replace('/[^a-z0-9]+/i', '', strtolower($mainProductOptionals['CombinedSizes'])) ?? '';
-        $brand = preg_replace('/[^a-z0-9]+/i', '', strtolower($mainProductOptionals['Brand'])) ?? '';
-        $name = preg_replace('/[^a-z0-9 ]+/i', '', strtolower($mainProductOptionals['Name'])) ?? '';
-        $components = preg_replace('/[^a-z0-9]+/i', '', strtolower($mainProductOptionals['ProductComponents'])) ?? '';
+        $productCategory = $mainProductOptionals['Type'] ?? '';
+        $productSubCategory = $mainProductOptionals['SubType'] ?? '';
+        $material = $mainProductOptionals['Materials'] ?? '';
+        $dimensions = $mainProductOptionals['CombinedSizes'] ?? '';
+        $brand = $mainProductOptionals['Brand'] ?? '';
+        $name = $mainProductOptionals['Name'] ?? '';
+        $components = $mainProductOptionals['ProductComponents'] ?? '';
 
         $meta_title = "$material $name $components $brand";
         $meta_description = $mainProductOptionals['ShortDescription'];
@@ -376,14 +376,13 @@ class StrickerApiService {
                 $categories = $this->categoryImportService->importStrickerCategories($productData['optionals'][0], $this->categoryMapper->midocean_to_stricker_category, $this->categoryMapper->midocean_to_stricker_subcategory);
             }
         }
-        $productCategory = preg_replace('/[^a-z0-9]+/', '', strtolower($productData['optionals'][0]['Type'])) ?? '';
-        $productSubCategory = preg_replace('/[^a-z0-9]+/', '', strtolower($productData['optionals'][0]['SubType'])) ?? '';
-        $material = preg_replace('/[^a-z0-9]+/', '', strtolower($productData['optionals'][0]['Materials'])) ?? '';
-        $dimensions = preg_replace('/[^a-z0-9]+/', '', strtolower($productData['optionals'][0]['CombinedSizes'])) ?? '';
-        
-        $brand = preg_replace('/[^a-z0-9]+/', '', strtolower($productData['optionals'][0]['Brand'])) ?? '';
-        $name = preg_replace('/[^a-z0-9]+/', '', strtolower($productData['optionals'][0]['Name'])) ?? '';
-        $components = preg_replace('/[^a-z0-9]+/', '', strtolower($productData['optionals'][0]['ProductComponents'])) ?? '';
+        $productCategory = $productData['optionals'][0]['Type'] ?? '';
+        $productSubCategory = $productData['optionals'][0]['SubType'] ?? '';
+        $material = $productData['optionals'][0]['Materials'] ?? '';
+        $dimensions = $productData['optionals'][0]['CombinedSizes'] ?? '';
+        $brand = $productData['optionals'][0]['Brand'] ?? '';
+        $name = $productData['optionals'][0]['Name'] ?? '';
+        $components = $productData['optionals'][0]['ProductComponents'] ?? '';
 
         $meta_title = "$material $name $components $brand";
         $meta_description = $productData['optionals'][0]['ShortDescription'];
@@ -627,7 +626,7 @@ class StrickerApiService {
                     if (!$materialObj) {
                         {
                             $materialObj = $this->attributeOptionRepository->create([
-                                'admin_name' => ucfirst(trim($material)),
+                                'admin_name' => ucfirst(trim($foundOptional['Materials'])),
                                 'attribute_id' => 29,
                             ]);
         
@@ -710,6 +709,17 @@ class StrickerApiService {
                     }
                 }
 
+                $name = $foundOptional['Name'];
+                $components = $foundOptional['ProductComponents'];
+                $brand = $foundOptional['Brand'];
+                $productCategory = $foundOptional['Type'];
+                $productSubCategory = $foundOptional['SubType'];
+
+                $meta_title = "$materialObj->admin_name $name $components $brand";
+                $meta_description = $foundOptional['ShortDescription'];
+                $meta_keywords = "$materialObj->admin_name, $name, $components, $brand, $productCategory, $productSubCategory";
+                $price = $this->markupRepository->calculatePrice($cost, $this->globalMarkup);
+
                 $superAttributes = [
                     '_method' => 'PUT',
                     "channel" => "default",
@@ -722,11 +732,9 @@ class StrickerApiService {
                     "weight" => $foundOptional['Weight'] ?? 0,
                     "short_description" =>(isset($foundOptional['ShortDescription'])) ? 'no description provided' : '<p>' . $foundOptional['ShortDescription'] . '</p>',
                     "description" => (isset($foundOptional['Description'])) ? 'no description provided' : '<p>' . $foundOptional['Description'] . '</p>',
-                    "meta_title" => "",
-                    "meta_keywords" => "",
-                    "meta_description" => "",
-                    "meta_description" => "",
-                    "meta_description" => "",       
+                    "meta_title" =>  $meta_title,
+                    "meta_keywords" => $meta_keywords,
+                    "meta_description" => $meta_description,
                     'cost' => $cost,
                     "material" => $materialObj->admin_name ?? '',
                     "tax_category_id" => "1",

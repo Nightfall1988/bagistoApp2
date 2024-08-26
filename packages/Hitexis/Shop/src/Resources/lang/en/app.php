@@ -69,40 +69,8 @@ return [
             'verify-failed'               => 'We cannot verify your mail account.',
         ],
 
-        'account' => [
-            'home' => 'Home',
-
-            'profile'   => [
-                'confirm-password'        => 'Confirm Password',
-                'current-password'        => 'Current Password',
-                'delete'                  => 'Delete',
-                'delete-failed'           => 'Error encountered while deleting customer.',
-                'delete-profile'          => 'Delete Profile',
-                'delete-success'          => 'Customer deleted successfully',
-                'dob'                     => 'Date of Birth',
-                'edit'                    => 'Edit',
-                'edit-profile'            => 'Edit Profile',
-                'edit-success'            => 'Profile Updated Successfully',
-                'email'                   => 'Email',
-                'enter-password'          => 'Enter Your password',
-                'female'                  => 'Female',
-                'first-name'              => 'First Name',
-                'gender'                  => 'Gender',
-                'last-name'               => 'Last Name',
-                'male'                    => 'Male',
-                'new-password'            => 'New Password',
-                'order-pending'           => 'Cannot delete customer account because some Order(s) are pending or processing state.',
-                'other'                   => 'Other',
-                'phone'                   => 'Phone',
-                'save'                    => 'Save',
-                'select-gender'           => 'Select Gender',
-                'subscribe-to-newsletter' => 'Subscribe to newsletter',
-                'title'                   => 'Profile',
-                'unmatch'                 => 'The old password does not match.',
-                'wrong-password'          => 'Wrong Password !',
-            ],
-
-            'addresses' => [
+        'addresses' => [
+            'index' => [
                 'add-address'      => 'Add Address',
                 'address-1'        => 'Address 1',
                 'address-2'        => 'Address 2',
@@ -125,188 +93,48 @@ return [
                 'post-code'        => 'Post Code',
                 'save'             => 'Save',
                 'security-warning' => 'Suspicious activity found!!!',
-                'select-country'   => 'Select Country',
                 'set-as-default'   => 'Set as Default',
                 'state'            => 'State',
                 'street-address'   => 'Street Address',
                 'title'            => 'Address',
-                'vat-id'           => 'Vat ID',
+                'update-success'   => 'Address have been updated successfully.',
             ],
 
-            'orders' => [
-                'action'      => 'Action',
-                'action-view' => 'View',
-                'empty-order' => 'You have not ordered any product yet',
-                'order'       => 'Order',
-                'order-date'  => 'Order Date',
-                'order-id'    => 'Order ID',
-                'title'       => 'Orders',
-                'total'       => 'Total',
-
-                'status' => [
-                    'title' => 'Status',
-
-                    'options' => [
-                        'canceled'        => 'Canceled',
-                        'closed'          => 'Closed',
-                        'completed'       => 'Completed',
-                        'fraud'           => 'Fraud',
-                        'pending'         => 'Pending',
-                        'pending-payment' => 'Pending Payment',
-                        'processing'      => 'Processing',
-                    ],
-                ],
-
-                'view' => [
-                    'billing-address'    => 'Billing Address',
-                    'cancel-btn-title'   => 'Cancel',
-                    'cancel-confirm-msg' => 'Are you sure you want to cancel this order ?',
-                    'cancel-error'       => 'Your order can not be canceled.',
-                    'cancel-success'     => 'Your order has been canceled',
-                    'page-title'         => 'Order #:order_id',
-                    'payment-method'     => 'Payment Method',
-                    'shipping-address'   => 'Shipping Address',
-                    'shipping-method'    => 'Shipping Method',
-                    'title'              => 'View',
-                    'total'              => 'Total',
-
-                    'information' => [
-                        'discount'          => 'Discount',
-                        'grand-total'       => 'Grand Total',
-                        'info'              => 'Information',
-                        'item-canceled'     => 'Canceled (:qty_canceled)',
-                        'item-invoice'      => 'Invoiced (:qty_invoiced)',
-                        'item-ordered'      => 'Ordered (:qty_ordered)',
-                        'item-refunded'     => 'Refunded (:qty_refunded)',
-                        'item-shipped'      => 'shipped (:qty_shipped)',
-                        'item-status'       => 'Item Status',
-                        'placed-on'         => 'Placed On',
-                        'price'             => 'Price',
-                        'product-name'      => 'Name',
-                        'shipping-handling' => 'Shipping & Handling',
-                        'sku'               => 'SKU',
-                        'subtotal'          => 'Subtotal',
-                        'tax'               => 'Tax',
-                        'tax-amount'        => 'Tax Amount',
-                        'tax-percent'       => 'Tax Percent',
-                        'total-due'         => 'Total Due',
-                        'total-paid'        => 'Total Paid',
-                        'total-refunded'    => 'Total Refunded',
-                    ],
-
-                    'invoices' => [
-                        'discount'           => 'Discount',
-                        'grand-total'        => 'Grand Total',
-                        'individual-invoice' => 'Invoice #:invoice_id',
-                        'invoices'           => 'Invoices',
-                        'price'              => 'Price',
-                        'print'              => 'Print',
-                        'product-name'       => 'Name',
-                        'products-ordered'   => 'Products Ordered',
-                        'qty'                => 'Qty',
-                        'shipping-handling'  => 'Shipping & Handling',
-                        'sku'                => 'SKU',
-                        'subtotal'           => 'Subtotal',
-                        'tax'                => 'Tax',
-                        'tax-amount'         => 'Tax Amount',
-                    ],
-
-                    'shipments' => [
-                        'individual-shipment' => 'Shipment #:shipment_id',
-                        'product-name'        => 'Name',
-                        'qty'                 => 'Qty',
-                        'shipments'           => 'Shipments',
-                        'sku'                 => 'SKU',
-                        'subtotal'            => 'Subtotal',
-                        'tracking-number'     => 'Tracking Number',
-                    ],
-
-                    'refunds' => [
-                        'adjustment-fee'    => 'Adjustment Fee',
-                        'adjustment-refund' => 'Adjustment Refund',
-                        'discount'          => 'Discount',
-                        'grand-total'       => 'Grand Total',
-                        'individual-refund' => 'Refund #:refund_id',
-                        'no-result-found'   => 'We could not find any records.',
-                        'price'             => 'Price',
-                        'product-name'      => 'Name',
-                        'qty'               => 'Qty',
-                        'refunds'           => 'Refunds',
-                        'shipping-handling' => 'Shipping & Handling',
-                        'sku'               => 'SKU',
-                        'subtotal'          => 'Subtotal',
-                        'tax'               => 'Tax',
-                        'tax-amount'        => 'Tax Amount',
-                    ],
-                ],
-
-                'invoice-pdf' => [
-                    'bank-details'      => 'Bank Details',
-                    'bill-to'           => 'Bill to',
-                    'contact'           => 'Contact',
-                    'contact-number'    => 'Contact Number',
-                    'date'              => 'Invoice Date',
-                    'discount'          => 'Discount',
-                    'grand-total'       => 'Grand Total',
-                    'invoice'           => 'Invoice',
-                    'invoice-id'        => 'Invoice ID',
-                    'order-date'        => 'Order Date',
-                    'order-id'          => 'Order ID',
-                    'payment-method'    => 'Payment Method',
-                    'payment-terms'     => 'Payment Terms',
-                    'price'             => 'Price',
-                    'product-name'      => 'Product Name',
-                    'qty'               => 'Quantity',
-                    'ship-to'           => 'Ship to',
-                    'shipping-handling' => 'Shipping Handling',
-                    'shipping-method'   => 'Shipping Method',
-                    'sku'               => 'SKU',
-                    'subtotal'          => 'Subtotal',
-                    'tax'               => 'Tax',
-                    'tax-amount'        => 'Tax Amount',
-                    'vat-number'        => 'Vat Number',
-                ],
+            'create' => [
+                'add-address'    => 'Add Address',
+                'city'           => 'City',
+                'company-name'   => 'Company Name',
+                'country'        => 'Country',
+                'email'          => 'Email',
+                'first-name'     => 'First Name',
+                'last-name'      => 'Last Name',
+                'phone'          => 'Phone',
+                'post-code'      => 'Post Code',
+                'save'           => 'Save',
+                'select-country' => 'Select Country',
+                'set-as-default' => 'Set as Default',
+                'state'          => 'State',
+                'street-address' => 'Street Address',
+                'title'          => 'Address',
+                'vat-id'         => 'Vat ID',
             ],
 
-            'reviews'    => [
-                'empty-review' => 'You have not reviewed any product yet',
-                'title'        => 'Reviews',
-            ],
-
-            'downloadable-products' => [
-                'available'           => 'Available',
-                'completed'           => 'Completed',
-                'date'                => 'Date',
-                'download-error'      => 'Download link has been expired.',
-                'expired'             => 'Expired',
-                'empty-product'       => 'You don’t have a product to download',
-                'name'                => 'Downloadable Products',
-                'orderId'             => 'Order Id',
-                'pending'             => 'Pending',
-                'payment-error'       => 'Payment has not been done for this download.',
-                'records-found'       => 'Record(s) found',
-                'remaining-downloads' => 'Remaining Downloads',
-                'status'              => 'Status',
-                'title'               => 'Title',
-            ],
-
-            'wishlist' => [
-                'color'              => 'Color',
-                'delete-all'         => 'Delete All',
-                'empty'              => 'No products were added to the wishlist page.',
-                'move-to-cart'       => 'Move To Cart',
-                'moved'              => 'Item successfully moved To cart',
-                'moved-success'      => 'Item Successfully Moved to Cart',
-                'page-title'         => 'Wishlist',
-                'product-removed'    => 'Product Is No More Available As Removed By Admin',
-                'profile'            => 'Profile',
-                'remove'             => 'Remove',
-                'remove-all-success' => 'All the items from your wishlist have been removed',
-                'remove-fail'        => 'Item Cannot Be Removed From Wishlist',
-                'removed'            => 'Item Successfully Removed From Wishlist',
-                'see-details'        => 'See Details',
-                'success'            => 'Item Successfully Added To Wishlist',
-                'title'              => 'Wishlist',
+            'edit' => [
+                'city'           => 'City',
+                'company-name'   => 'Company Name',
+                'country'        => 'Country',
+                'edit'           => 'Edit',
+                'email'          => 'Email',
+                'first-name'     => 'First Name',
+                'last-name'      => 'Last Name',
+                'phone'          => 'Phone',
+                'post-code'      => 'Post Code',
+                'save'           => 'Save',
+                'select-country' => 'Select Country',
+                'state'          => 'State',
+                'street-address' => 'Street Address',
+                'title'          => 'Address',
+                'vat-id'         => 'Vat ID',
             ],
         ],
     ],
@@ -352,6 +180,13 @@ return [
                 'welcome'           => 'Welcome',
                 'welcome-guest'     => 'Welcome Guest',
                 'wishlist'          => 'Wishlist',
+                'desktop' => [
+                    'top' => [
+                        'default-locale' => 'Default locale',
+                        'offer'          => 'Get UPTO 40% OFF on your 1st order',
+                        'shop-now'       => 'SHOP NOW',
+                    ],
+                ],
             ],
 
             'footer' => [
@@ -376,35 +211,49 @@ return [
 
         'datagrid' => [
             'toolbar' => [
-                'mass-actions' => [
-                    'select-action' => 'Select Action',
-                    'select-option' => 'Select Option',
-                    'submit'        => 'Submit',
-                ],
+                'length-of' => ':length of',
+                'results'   => ':total Results',
+                'selected'  => ':total Selected',
 
-                'filter' => [
-                    'title' => 'Filter',
+                'mass-actions' => [
+                    'must-select-a-mass-action'        => 'You must select a mass action.',
+                    'must-select-a-mass-action-option' => 'You must select a mass action\'s option.',
+                    'no-records-selected'              => 'No records have been selected.',
+                    'select-action'                    => 'Select Action',
                 ],
 
                 'search' => [
                     'title' => 'Search',
                 ],
-            ],
 
-            'filters' => [
-                'title' => 'Apply Filters',
+                'filter' => [
+                    'apply-filter' => 'Apply Filters',
+                    'title'        => 'Filter',
 
-                'dropdown' => [
-                    'searchable' => [
-                        'atleast-two-chars' => 'Type atleast 2 characters...',
-                        'no-results'        => 'No result found...',
+                    'dropdown' => [
+                        'select' => 'Select',
+
+                        'searchable' => [
+                            'at-least-two-chars' => 'Type at-least 2 characters...',
+                            'no-results'         => 'No result found...',
+                        ],
                     ],
+
+                    'custom-filters' => [
+                        'clear-all' => 'Clear All',
+                ],
                 ],
 
-                'custom-filters' => [
-                    'clear-all' => 'Clear All',
-                    'title'     => 'Custom Filters',
-                ],
+                'date-options' => [
+                    'last-month'        => 'Last Month',
+                    'last-six-months'   => 'Last 6 Months',
+                    'last-three-months' => 'Last 3 Months',
+                    'this-month'        => 'This Month',
+                    'this-week'         => 'This Week',
+                    'this-year'         => 'This Year',
+                    'today'             => 'Today',
+                    'yesterday'         => 'Yesterday',
+                    ],
 
                 'date-options' => [
                     'last-month'        => 'Last Month',
@@ -422,9 +271,12 @@ return [
                 'actions'              => 'Actions',
                 'next-page'            => 'Next Page',
                 'no-records-available' => 'No Records Available.',
+                'of'                   => 'of :total entries',
                 'page-navigation'      => 'Page Navigation',
                 'page-number'          => 'Page Number',
                 'previous-page'        => 'Previous Page',
+                'showing'              => 'Showing :firstItem',
+                'to'                   => 'to :lastItem',
             ],
         ],
 
@@ -514,6 +366,7 @@ return [
 
                 'bundle' => [
                     'none' => 'None',
+                    'total-amount' => 'Total Amount',
                 ],
 
                 'downloadable' => [
@@ -747,14 +600,17 @@ return [
             ],
 
             'summary' => [
-                'cart-summary'        => 'Cart Summary',
-                'delivery-charges'    => 'Delivery Charges',
-                'discount-amount'     => 'Discount Amount',
-                'grand-total'         => 'Grand Total',
-                'place-order'         => 'Place Order',
-                'proceed-to-checkout' => 'Proceed To Checkout',
-                'sub-total'           => 'Subtotal',
-                'tax'                 => 'Tax',
+                'cart-summary'              => 'Cart Summary',
+                'delivery-charges'          => 'Delivery Charges',
+                'discount-amount'           => 'Discount Amount',
+                'delivery-charges-excl-tax' => 'Delivery Charges (Excl. Tax)',
+                'delivery-charges-incl-tax' => 'Delivery Charges (Incl. Tax)',
+                'delivery-charges'          => 'Delivery Charges',
+                'grand-total'               => 'Grand Total',
+                'place-order'               => 'Place Order',
+                'proceed-to-checkout'       => 'Proceed To Checkout',
+                'sub-total'                 => 'Subtotal',
+                'tax'                       => 'Tax',
                 'cart-summary'              => 'Cart Summary',
                 'delivery-charges-excl-tax' => 'Delivery Charges (Excl. Tax)',
                 'delivery-charges-incl-tax' => 'Delivery Charges (Incl. Tax)',
@@ -767,6 +623,7 @@ return [
                 'sub-total-incl-tax'        => 'Subtotal (Incl. Tax)',
                 'sub-total'                 => 'Subtotal',
                 'tax'                       => 'Tax',
+                
 
                 'estimate-shipping' => [
                     'country'        => 'Country',
@@ -865,13 +722,14 @@ return [
         'contact' => [
             'title'               => 'Contact us',
             'name'                => 'Name',
-            'about'               => 'Please fill out the form to contact us',
-            'email'               => 'E-mail',
+            'about'               => 'Jot us a note, and we’ll get back to you as quickly as possible',
+            'email'               => 'Email',
             'phone-number'        => 'Phone number',
-            'desc'                => 'Your query or request',
-            'describe-here'       => 'Tell us whats up!',
-            'submit'              => 'Send',
+            'desc'                => ' What’s on your mind?',
+            'describe-here'       => 'Describe Here',
+            'submit'              => 'Submit',
             'contact-us-title'    => 'Contact us',
+            'message'             => 'Message',
         ]
     ],
 
@@ -974,6 +832,14 @@ return [
             ],
         ],
 
+        'contact-us' => [
+            'contact-from'    => 'via Website Contact Form',
+            'reply-to-mail'   => 'please reply to this email.',
+            'reach-via-phone' => 'Alternatively, you can reach us by phone at',
+            'inquiry-from'    => 'Inquiry from',
+            'to'              => 'To contact',
+        ],
+
         'orders' => [
             'created' => [
                 'greeting' => 'Thanks for your Order :order_id placed on :created_at',
@@ -1031,6 +897,13 @@ return [
             'subtotal'          => 'Subtotal',
             'tax'               => 'Tax',
             'tracking-number'   => 'Tracking Number : :tracking_number',
+            'excl-tax'                   => 'Excl. Tax: ',
+            'shipping-handling-excl-tax' => 'Shipping Handling (Excl. Tax)',
+            'shipping-handling-incl-tax' => 'Shipping Handling (Incl. Tax)',
+            'shipping-handling'          => 'Shipping Handling',
+            'subtotal-excl-tax'          => 'Subtotal (Excl. Tax)',
+            'subtotal-incl-tax'          => 'Subtotal (Incl. Tax)',
+
         ],
     ],
 ];

@@ -290,6 +290,10 @@ class XDConnectsApiService {
                 $cost = (string)$priceDataList[(string)$variant->ItemCode]->ItemPriceNet_Qty1 ?? '';
                 $price = $this->markupRepository->calculatePrice($cost, $this->globalMarkup);
 
+                $meta_title =  (string)$variant->ItemCode . " " . $variant->ItemName;
+                $meta_description = (string)$variant->ShortDescription;
+                $meta_keywords = (string)"$variant->ItemName,  $variant->MainCategory, $variant->SubCategory";
+
                 $superAttributes = [
                     '_method' => 'PUT',
                     "channel" => "default",
@@ -301,11 +305,9 @@ class XDConnectsApiService {
                     "weight" => (string)$variant->ItemWeightNetGr * 1000 ?? 0,
                     "short_description" => '<p>' . (string)$variant->ShortDescription . '</p>' ?? '',
                     "description" => '<p>' . (string)$variant->LongDescription . '</p>' ?? '',
-                    "meta_title" => "",
-                    "meta_keywords" => "",
-                    "meta_description" => "",
-                    "meta_description" => "",
-                    "meta_description" => "",       
+                    "meta_title" => $meta_title,
+                    "meta_keywords" => $meta_keywords,
+                    "meta_description" => $meta_description,
                     'price' => $price,
                     'cost' => $cost,
                     "special_price" => "",
@@ -350,6 +352,10 @@ class XDConnectsApiService {
             $cost = (string)$priceDataList[(string)$mainProduct->ItemCode]->ItemPriceNet_Qty1 ?? 0;
             $price = $this->markupRepository->calculatePrice($cost, $this->globalMarkup);
 
+            $meta_title =  (string)$variant->ItemCode . " " . $variant->ItemName;
+            $meta_description = (string)$variant->ShortDescription;
+            $meta_keywords = (string)"$variant->ItemName,  $variant->MainCategory, $variant->SubCategory";
+
             $superAttributes = [
                 '_method' => 'PUT',
                 "channel" => "default",
@@ -362,11 +368,9 @@ class XDConnectsApiService {
                 "short_description" => '<p>' . (string)$mainProduct->ShortDescription . '</p>' ?? 'no description provided',
                 "description" => '<p>' . (string)$mainProduct->LongDescription . '</p>' ?? 'no description provided',
                 "tax_category_id" => "1",
-                "meta_title" => "",
-                "meta_keywords" => "",
-                "meta_description" => "",
-                "meta_description" => "",
-                "meta_description" => "",       
+                "meta_title" => $meta_title,
+                "meta_keywords" => $meta_keywords,
+                "meta_description" => $meta_description, 
                 'price' => $price,
                 'cost' => $cost,
                 "special_price" => "",
@@ -550,6 +554,10 @@ class XDConnectsApiService {
         $urlKey = strtolower($urlKey);
         $cost = (string)$priceDataList[(string)$product->ItemCode]->ItemPriceNet_Qty1 ?? 0;
         $price = $this->markupRepository->calculatePrice($cost, $this->globalMarkup);
+        
+        $meta_title =  (string)$product->ItemCode . " " . $product->ItemName;
+        $meta_description = (string)$product->ShortDescription;
+        $meta_keywords = (string)"$product->ItemName,  $product->MainCategory, $product->SubCategory";
 
         $superAttributes = [
             '_method' => 'PUT',
@@ -563,11 +571,9 @@ class XDConnectsApiService {
             "short_description" => '<p>' . (string)$product->ShortDescription . '</p>' ?? '',
             "description" => '<p>' . (string)$product->LongDescription . '</p>' ?? '',
             "tax_category_id" => "1",
-            "meta_title" => "",
-            "meta_keywords" => "",
-            "meta_description" => "",
-            "meta_description" => "",
-            "meta_description" => "",       
+            "meta_title" => $meta_title ,
+            "meta_keywords" => $meta_keywords ,
+            "meta_description" => $meta_description,
             'price' => $price,
             'cost' => $cost,
             "special_price" => "",
