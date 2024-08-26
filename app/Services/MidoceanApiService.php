@@ -357,7 +357,7 @@ class MidoceanApiService {
 
             $meta_title =  (!isset($apiProduct->product_name)) ? '' : "$apiProduct->product_name $apiProduct->product_class $apiProduct->brand";
             $meta_description = "$apiProduct->short_description";
-            $meta_keywords = "$apiProduct->product_name, $apiProduct->brand, $productCategory, $productSubCategory, $apiProduct->product_class";
+            $meta_keywords = (!isset($apiProduct->product_name)) ? '' : "$apiProduct->product_name, $apiProduct->brand, $productCategory, $productSubCategory, $apiProduct->product_class";
             $price = $this->markupRepository->calculatePrice($cost, $this->globalMarkup);
 
             $superAttributes = [
