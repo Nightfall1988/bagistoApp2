@@ -3421,6 +3421,14 @@ return [
                         'title'             => 'Custom Scripts',
                         'title-info'        => 'Custom scripts are personalized pieces of code created to add specific functions or features to software, enhancing its capabilities uniquely.',
                     ],
+
+                    'settings' => [
+                        'compare-options'     => 'Compare options',
+                        'image-search-option' => 'Image Search Option',
+                        'title'               => 'Settings',
+                        'title-info'          => 'Settings refer to configurable choices that control how a system, application, or device behaves, tailored to user preferences and requirements.',
+                        'wishlist-options'    => 'Wishlist options',
+                    ],
                 ],
 
                 'design' => [
