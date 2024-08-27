@@ -96,6 +96,7 @@ class MarkupRepository extends Repository implements MarkupContract
             if ($product->type == 'simple') {
                 $productFlat = ProductFlat::where('product_id',  $product->id)->first();
                 $newPrice = $cost->float_value + $priceMarkup;
+                $newPrice = round($newPrice, 2);
                 $product->markup()->attach($markup->id);
 
                 $price->float_value = $newPrice;
@@ -122,6 +123,7 @@ class MarkupRepository extends Repository implements MarkupContract
                         $product->markup()->attach($markup->id);
                         $productFlat = ProductFlat::where('product_id',  $product->id)->first();
                         $newPrice = $cost->float_value + $priceMarkup;
+                        $newPrice = round($newPrice, 2);
 
                         $price->float_value = $newPrice;
                         $price->save();
@@ -164,6 +166,7 @@ class MarkupRepository extends Repository implements MarkupContract
             $product->markup()->detach($markup->id);
             $productFlat = ProductFlat::where('product_id', $product->id)->first();
             $newPrice = $price->float_value - $priceMarkup;
+            $newPrice = round($newPrice, 2);
 
             if ($productFlat) {
                 $productFlat->price = $newPrice;
@@ -188,9 +191,11 @@ class MarkupRepository extends Repository implements MarkupContract
                 $productVar->markup()->detach($markup->id);
                 $productFlat = ProductFlat::where('product_id',  $productVar->id)->first();
                 $newPrice = $price->float_value - $priceMarkup;
-                $price = $newPrice;
+                $price = round($newPrice, 2);
+
                 if ($productFlat) {
                     $price->float_value = $newPrice;
+
                     $price->save();
 
                     $productFlat->price = $newPrice;
@@ -209,6 +214,8 @@ class MarkupRepository extends Repository implements MarkupContract
             $product->markup()->detach($markup->id);
             $productFlat = ProductFlat::where('product_id',  $product->id)->first();
             $newPrice = $price->float_value - $priceMarkup;
+            $newPrice = round($newPrice, 2);
+
             if ($productFlat) {
                 $price->float_value = $newPrice;
                 $price->save();
@@ -221,9 +228,9 @@ class MarkupRepository extends Repository implements MarkupContract
 
     public function calculatePrice($cost, $markup = null) {
         if (!$markup) {
-            return $cost;
+            return round($cost, 2);
         } else {
-            return $cost + $cost * ($markup->percentage/100);
+            return round($cost + $cost * ($markup->percentage/100), 2);
         }
     }
 }

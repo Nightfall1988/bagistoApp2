@@ -218,8 +218,8 @@ class StrickerApiService {
             "meta_title" => $meta_title,
             "meta_keywords" => $meta_keywords,
             "meta_description" => $meta_description,
-            'price' => $price,
-            'cost' => $cost,
+            'price' => round($price, 2),
+            'cost' => round($cost, 2),
             "tax_category_id" => "1",
             "special_price" => "",
             "special_price_from" => "",
@@ -406,8 +406,8 @@ class StrickerApiService {
             "meta_keywords" => $meta_keywords,
             "meta_description" => $meta_description,
             "tax_category_id" => "1",
-            'price' => $price,
-            'cost' => $cost,
+            'price' => round($price, 2),
+            'cost' => round($cost, 2),
             "special_price" => "",
             "special_price_from" => "",
             "special_price_to" => "",
@@ -424,6 +424,7 @@ class StrickerApiService {
             'images' =>  $images,
             'categories' =>  $categories,
         ];
+
         if ($colorId != '') {
             $superAttributes['color'] = $colorId;
         }
@@ -667,8 +668,8 @@ class StrickerApiService {
                 $variants[$variant->id] = [
                     "sku" => $foundOptional['Sku'],
                     "name" => $foundOptional['Name'],
-                    'price' => $price,
-                    'cost' => $cost,
+                    'price' => round($price, 2),
+                    'cost' => round($cost, 2),
                     "weight" => $foundOptional['Weight'] ?? 0,
                     "status" => "1",
                     "new" => "1",
@@ -730,14 +731,14 @@ class StrickerApiService {
                     "product_number" =>  $foundOptional['ProdReference'] . '-' . $foundOptional['Sku'],
                     "name" =>  $foundOptional['Name'],
                     "url_key" => $urlKey,                    
-                    'price' => $cost,
+                    'price' => round($price, 2),
+                    'cost' => round($cost, 2),
                     "weight" => $foundOptional['Weight'] ?? 0,
                     "short_description" =>(isset($foundOptional['ShortDescription'])) ? 'no description provided' : '<p>' . $foundOptional['ShortDescription'] . '</p>',
                     "description" => (isset($foundOptional['Description'])) ? 'no description provided' : '<p>' . $foundOptional['Description'] . '</p>',
                     "meta_title" =>  $meta_title,
                     "meta_keywords" => $meta_keywords,
                     "meta_description" => $meta_description,
-                    'cost' => $cost,
                     "material" => $materialObj->admin_name ?? '',
                     "tax_category_id" => "1",
                     "dimensions" => $dimensionsObj->admin_name ?? '',

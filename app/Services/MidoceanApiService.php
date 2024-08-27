@@ -305,14 +305,14 @@ class MidoceanApiService {
 
             $name = $product['Name'];
             $cost = $priceList[$apiProduct->variants[$i]->sku] ?? 0;
-
+            $cost = round($cost, 2);
             $price = $this->markupRepository->calculatePrice($cost, $this->globalMarkup);
 
             $variants[$productVariant->id] = [
                 "sku" => $apiProduct->variants[$i]->sku,
                 "name" => $apiProduct->product_name ?? $apiProduct->master_code,
-                "cost" => $cost,
-                "price" => $price,
+                'price' => round($price, 2),
+                'cost' => round($cost, 2),
                 "weight" => $apiProduct->net_weight ?? 0,
                 "status" => "1",
                 "new" => "1",
@@ -345,6 +345,8 @@ class MidoceanApiService {
             ]);
 
             $cost = $priceList[$apiProduct->variants[$i]->sku] ?? 0;
+            $cost = round($cost, 2);
+
             $price = $this->markupRepository->calculatePrice($cost, $this->globalMarkup);
             $productVariant->markup()->attach($this->globalMarkup->id);
 
@@ -353,6 +355,7 @@ class MidoceanApiService {
             $urlKey = strtolower($urlKey);
             $urlKey = preg_replace('/\s+/', '-', $urlKey);
             $urlKey = preg_replace('/[^a-z0-9-]+/', '-', strtolower($urlKey));
+
             $price = $this->markupRepository->calculatePrice($cost, $this->globalMarkup);
 
             $meta_title =  (!isset($apiProduct->product_name)) ? '' : "$apiProduct->product_name $apiProduct->product_class $apiProduct->brand";
@@ -376,8 +379,8 @@ class MidoceanApiService {
                 "material" => $materialObj->admin_name ?? '',
                 "tax_category_id" => "1",
                 "dimensions" => $dimensionsObj->admin_name ?? '',
-                'price' => $price,
-                'cost' => $cost,
+                'price' => round($price, 2),
+                'cost' => round($cost, 2),
                 "special_price" => "",
                 "special_price_from" => "",
                 "special_price_to" => "",
@@ -492,6 +495,7 @@ class MidoceanApiService {
         $urlKey = preg_replace('/[^a-z0-9-]+/', '-', strtolower($urlKey));
         $urlKey = trim($urlKey, '-');
         $urlKey = strtolower($urlKey);
+        $cost = round($cost, 2);
 
         $meta_description = "$apiProduct->short_description";
         $price = $this->markupRepository->calculatePrice($cost, $this->globalMarkup);
@@ -509,8 +513,8 @@ class MidoceanApiService {
             "meta_keywords" => $meta_keywords,
             "meta_description" => $meta_description,
             "tax_category_id" => "1",
-            'price' => $price,
-            'cost' => $cost,
+            'price' => round($price, 2),
+            'cost' => round($cost, 2),
             "special_price" => "",
             "special_price_from" => "",
             "special_price_to" => "",
@@ -611,6 +615,8 @@ class MidoceanApiService {
 
         $productSku = $product->sku ?? '';
         $cost = isset($priceList[$productSku]) ? $priceList[$productSku] : 0;
+        $cost = round($cost, 2);
+
         if ($this->globalMarkup) {
             $product->markup()->attach($this->globalMarkup->id);
         }
@@ -653,8 +659,8 @@ class MidoceanApiService {
             "meta_title" => $meta_title,
             "meta_keywords" => $meta_keywords,
             "meta_description" => $meta_description,
-            'price' => $price,
-            'cost' => $cost,
+            'price' => round($price, 2),
+            'cost' => round($cost, 2),
             "tax_category_id" => "1",
             "special_price" => "",
             "special_price_from" => "",

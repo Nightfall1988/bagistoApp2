@@ -94,6 +94,7 @@
                     }
                 })
                 .then(response => {
+
                     if (response && response.data) {
                         this.techniquesData = [{
                             product_name: response.data.product_name,

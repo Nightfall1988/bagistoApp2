@@ -38,8 +38,6 @@ class PrintCalculatorController extends Controller
             'type' => 'required|string',
         ]);
 
-        // dd($request->quantity);
-
         $product = $this->productRepository->find($request->product_id);
 
         $techniques = $this->printRepository
