@@ -356,6 +356,8 @@ class StrickerApiService {
             }
         }
 
+        $categories = [];
+
         $urlKey = strtolower($productData['optionals'][0]['Name'] . '-' . $productData['optionals'][0]['Sku']);
         $urlKey = preg_replace('/\s+/', '-', $urlKey);
         $urlKey = preg_replace('/[^a-z0-9-]+/', '-', strtolower($urlKey));
@@ -375,6 +377,7 @@ class StrickerApiService {
                 $categories = $this->categoryImportService->importStrickerCategories($productData['optionals'][0], $this->categoryMapper->midocean_to_stricker_category, $this->categoryMapper->midocean_to_stricker_subcategory);
             }
         }
+
         $productCategory = $productData['optionals'][0]['Type'] ?? '';
         $productSubCategory = $productData['optionals'][0]['SubType'] ?? '';
         $material = $productData['optionals'][0]['Materials'] ?? '';
