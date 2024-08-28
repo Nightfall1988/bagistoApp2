@@ -173,9 +173,7 @@ class PrintCalculatorImportService {
     
         foreach ($xmlPrintData->Product as $printProduct) {
             $prodReference = (string)$printProduct->ModelCode;
-            $product = $products->get($prodReference);
-    
-            if ($product) {
+
                 foreach ($printQtyPricePairs as $pair) {
                     $technique = $this->printTechniqueRepository->create([
                         'pricing_type' => '',
