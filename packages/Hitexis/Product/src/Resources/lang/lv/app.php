@@ -25,8 +25,8 @@ return [
 
     'sort-by'  => [
         'options' => [
-            'cheapest-first'  => 'Lētākais pirmais',
-            'expensive-first' => 'Dārgākais pirmais',
+            'cheapest-first'  => 'No mazākās cenas',
+            'expensive-first' => 'No lielākās cenas',
             'from-a-z'        => 'No A-Z',
             'from-z-a'        => 'No Z-A',
             'latest-first'    => 'Jaunākie pirmie',

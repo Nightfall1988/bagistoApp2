@@ -192,7 +192,7 @@ return [
                 'about-us'               => 'Par mums',
                 'contact-us'             => 'Sazinies ar mums',
                 'currency'               => 'Valūta',
-                'customer-service'       => 'Klientu apkalpošana',
+                'customer-service'       => 'Kontakti',
                 'email'                  => 'Epasts',
                 'footer-text'            => '© Autortiesības 2024 - :current_year, Logoprint.lv | Visas tiesības aizsargātas.',
                 'locale'                 => 'Lokalizācija',
@@ -215,8 +215,8 @@ return [
                 'selected'  => ':total Selected',
 
                 'mass-actions' => [
-                    'must-select-a-mass-action'        => 'You must select a mass action.',
-                    'must-select-a-mass-action-option' => 'You must select a mass action\'s option.',
+                    'must-select-a-mass-action'        => 'Jums ir jāizvēlas masu darbība.',
+                    'must-select-a-mass-action-option' => 'Jums ir jāizvēlas masu darbības opcija.',
                     'no-records-selected'              => 'Nav atlasīts neviens ieraksts.',
                     'select-action'                    => 'Atlasiet Darbību',
                 ],
@@ -313,11 +313,11 @@ return [
         'range-slider' => [
             'max-range' => 'Maksimālais diapazons',
             'min-range' => 'Minimālais diapazons',
-            'range'     => 'Range:',
+            'range'     => 'Diapazons:',
         ],
 
         'carousel' => [
-            'image-slide' => 'Image Slide',
+            'image-slide' => 'Attēla slaids',
             'next'        => 'Nākamais',
             'previous'    => 'Iepriekšējais',
         ],
@@ -335,7 +335,7 @@ return [
             ],
 
             'configurable' => [
-                'as-low-as' => 'Tik zemu kā',
+                'as-low-as' => '',
             ],
         ],
 
@@ -456,14 +456,14 @@ return [
             ],
 
             'results' => [
-                'analysed-keywords' => 'Analysed Keywords:',
+                'analysed-keywords' => 'Analizētie atslēgvārdi:',
             ],
         ],
     ],
 
     'compare' => [
         'already-added'      => 'Prece jau ir pievienota salīdzināšanas sarakstam',
-        'delete-all'         => 'Izdzēsti visu',
+        'delete-all'         => 'Izdzēst visu',
         'empty-text'         => 'Jūsu salīdzināšanas sarakstā nav nevienas preces',
         'item-add-success'   => 'Prece ir veiksmīgi pievienota, lai salīdzinātu sarakstu',
         'product-compare'    => 'Produktu salīdzinājums',
@@ -522,7 +522,7 @@ return [
             'missing-fields'            => 'Šim produktam nav aizpildīti daži obligātie lauki.',
             'missing-options'           => 'Šim produktam trūkst iespēju.',
             'paypal-payment-cancelled'  => 'Paypal maksājums ir atcelts.',
-            'qty-missing'               => 'Vismaz vienam produktam jābūt vairāk nekā 1 daudzumam.',
+            'qty-missing'               => 'Vismaz vienam produktam jābūt vairāk nekā 1 daudzumam.',
             'return-to-shop'            => 'Atgriezties uz veikalu',
             'rule-applied'              => 'Ir piemērots groza noteikums',
             'select-hourly-duration'    => 'Select a slot duration of one hour.',
@@ -533,7 +533,7 @@ return [
             'mini-cart' => [
                 'continue-to-checkout' => 'Turpiniet uz Grozu',
                 'empty-cart'           => 'Jūsu grozs ir tukšs',
-                'excl-tax'             => 'Bez Tax:',
+                'excl-tax'             => 'Bez PVN:',
                 'offer-on-orders'      => 'Saņemat atlaidi pirmajam pasūtījumam',
                 'remove'               => 'Noņemt',
                 'see-details'          => 'Skatīt detaļas',
@@ -545,7 +545,7 @@ return [
             'index' => [
                 'bagisto'                  => 'Bagisto',
                 'cart'                     => 'Grozs',
-                'continue-shopping'        => 'Turpināt iepirkšanosg',
+                'continue-shopping'        => 'Turpināt iepirkšanos',
                 'empty-product'            => 'Jūsu grozā nav neviena produkta.',
                 'home'                     => 'Sākums',
                 'items-selected'           => ':count Atlasītie vienumi',
@@ -595,9 +595,9 @@ return [
                 'shopping-cart'        => 'Iepirkumu grozs',
                 'subtotal'             => 'Starpsumma',
                 'view-cart'            => 'Skatīt grozu',
-                'excl-task'            => 'Bez tax: '
+                'excl-task'            => 'Bez PVN: '
             ],
-            
+
             'summary' => [
                 'cart-summary'              => 'Groza kopsavilkums',
                 'delivery-charges'          => 'Piegādes maksas',
@@ -617,7 +617,7 @@ return [
                 'discount-amount'           => 'Atlaides summa',
                 'grand-total'               => 'Kopsumma',
                 'place-order'               => 'Veiciet pasūtījumu',
-                'proceed-to-checkout'       => 'Proceed To Checkout',
+                'proceed-to-checkout'       => 'Noformēt pasūtījumu',
                 'sub-total-excl-tax'        => 'Starpsumma (bez PVN)',
                 'sub-total-incl-tax'        => 'Starpsumma (Ar PVN)',
                 'sub-total'                 => 'Starpsumma',

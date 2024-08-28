@@ -501,8 +501,8 @@
                         </div>
 
                         @if (isset($product->print_techniques) && $product->print_techniques != '[]')
-                            <div>
-                                @include('shop::components.printcalculator.printcalculator', ['product' => $product])
+                            <div class='mt-8'>
+                                @include('hitexis-shop::components.printcalculator.printcalculator', ['product' => $product])
                             </div>
                         @endif
 

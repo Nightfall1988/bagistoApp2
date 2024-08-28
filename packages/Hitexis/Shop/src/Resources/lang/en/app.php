@@ -136,6 +136,10 @@ return [
                 'title'          => 'Address',
                 'vat-id'         => 'Vat ID',
             ],
+
+            'account' => [
+                'home' => 'Home'
+            ]
         ],
     ],
 
