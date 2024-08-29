@@ -169,7 +169,7 @@ class MidoceanApiService {
             } elseif (sizeof(explode('-', $variant->sku)) == 3 && !in_array(explode('-', $variant->sku)[2], $capacities)) {
             
 
-                $sizes = ['L', 'S', 'M', 'XS', 'XL', 'XXS', 'XXL', '3XS', '3XL', 'XXXS', 'XXXL'];
+                $sizes = ['L', 'S', 'M', 'XS', 'XL', 'XXS', 'XXL', '3XS', '3XL', '4XL', '5XL','4XS', '5XS', 'XXXS', 'XXXL'];
                 $sizeName = explode('-',$variant->sku)[2];
 
                 if (in_array($sizeName, $sizes)) {
@@ -262,7 +262,7 @@ class MidoceanApiService {
                 }
             } elseif (sizeof(explode('-', $apiProduct->variants[$i]->sku)) == 3 && !in_array(explode('-', $apiProduct->variants[$i]->sku)[2], $capacities)) {
             
-                $sizes = ['L', 'S', 'M', 'XS', 'XL', 'XXS', 'XXL', '3XS', '3XL', 'XXXS', 'XXXL'];
+                $sizes = ['L', 'S', 'M', 'XS', 'XL', 'XXS', 'XXL', '3XS', '3XL', '4XL', '5XL','4XS', '5XS', 'XXXS', 'XXXL'];
                 $sizeName = explode('-',$apiProduct->variants[$i]->sku)[2];
                 $result = $this->attributeOptionRepository->getOption($sizeName);
 

@@ -28,7 +28,7 @@ class PrintCalculatorImportService {
     public function importPrintData() {
         ini_set('memory_limit', '1G');
 
-        $this->importStrickerPrintData();
+        // $this->importStrickerPrintData();
         $this->importXDConnectsPrintData();
     }
 
@@ -158,10 +158,8 @@ class PrintCalculatorImportService {
         }
 
 
-        // Extract quantity-price pairs
         $printQtyPricePairs = $this->getQuantityPricePairsXDConnects($productPrices);
 
-        // Retrieve all products in one batch to minimize queries
         $prodReferences = array_keys($productPrices);
         $products = $this->productRepository
             ->whereIn('sku', $prodReferences)
@@ -173,7 +171,9 @@ class PrintCalculatorImportService {
     
         foreach ($xmlPrintData->Product as $printProduct) {
             $prodReference = (string)$printProduct->ModelCode;
+            $product = $products->get($prodReference);
 
+            if ($product) {
                 foreach ($printQtyPricePairs as $pair) {
                     $technique = $this->printTechniqueRepository->create([
                         'pricing_type' => '',
@@ -192,12 +192,12 @@ class PrintCalculatorImportService {
                         'product_id' => $product->id
                     ]);
                 }
-                $tracker->advance();
             }
+            $tracker->advance();
         }
-    
         $tracker->finish();
     }
+    
 
     public function getQuantityPricePairs($customization) {
         $resultArray = [];
