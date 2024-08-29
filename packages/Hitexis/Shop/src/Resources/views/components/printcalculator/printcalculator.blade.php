@@ -84,50 +84,41 @@
 
             calculatePrices() {
                 const quantity = this.getQuantityFromFieldQty();
-                if (!quantity) return;
+                if (!quantity || !this.currentTechnique) return;
 
-                this.$axios.get('{{ route('printcontroller.api.print.calculate') }}', {
-                    params: {
-                        'product_id': this.product.id,
-                        'quantity': quantity,
-                        'type': this.selectedTechnique
-                    }
-                })
-                .then(response => {
+                // Parse the pricing data from JSON
+                let pricingData = [];
+                try {
+                    pricingData = JSON.parse(this.currentTechnique.pricing_data);
+                } catch (error) {
+                    console.error('Error parsing pricing data:', error);
+                    return;
+                }
 
-                    if (response && response.data) {
-                        this.techniquesData = [{
-                            product_name: response.data.product_name,
-                            print_technique: response.data.print_technique,
-                            quantity: response.data.quantity,
-                            setup_cost: response.data.setup_cost,
-                            total_price: response.data.total_price,
-                            technique_print_fee: response.data.technique_print_fee,
-                            price: response.data.price,
-                            print_fee: response.data.print_fee
-                        }];
-                    }
-                })
-                .catch(error => {
-                    if (error.response) {
-                        if ([400, 422].includes(error.response.status)) {
-                            this.$emitter.emit('add-flash', { type: 'warning', message: error.response.data.data ? error.response.data.data.message : 'An error occurred' });
-                            return;
-                        }
-                        this.$emitter.emit('add-flash', { type: 'error', message: error.response.data.message });
-                    } else if (error.request) {
-                        console.error('No response received:', error.request);
-                        this.$emitter.emit('add-flash', { type: 'error', message: 'No response from the server. Please try again later.' });
-                    } else {
-                        console.error('Error', error.message);
-                        this.$emitter.emit('add-flash', { type: 'error', message: 'An error occurred while making the request.' });
-                    }
-                });
+                // Find the applicable price for the given quantity
+                const applicablePrice = pricingData
+                    .filter(priceData => quantity >= priceData.MinQt)
+                    .sort((a, b) => b.MinQt - a.MinQt)[0];
+
+                if (applicablePrice) {
+                    this.techniquesData = [{
+                        product_name: this.product.name,
+                        print_technique: this.currentTechnique.description,
+                        quantity: quantity,
+                        setup_cost: 0, // Placeholder, adjust if needed
+                        total_price: applicablePrice.Price * quantity,
+                        technique_print_fee: applicablePrice.Price,
+                        price: applicablePrice.Price,
+                        print_fee: 0 // Placeholder, adjust if needed
+                    }];
+                } else {
+                    this.techniquesData = [];
+                }
             },
 
             getQuantityFromFieldQty() {
                 const qtyField = document.querySelector('#field-qty input[type="hidden"]');
-                return qtyField ? qtyField.value : null;
+                return qtyField ? parseInt(qtyField.value, 10) : null;
             },
 
             observeQuantityChange() {

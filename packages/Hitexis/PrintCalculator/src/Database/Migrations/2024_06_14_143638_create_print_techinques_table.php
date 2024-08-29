@@ -23,14 +23,13 @@ return new class extends Migration
             $table->string('range_id');
             $table->string('area_from');
             $table->string('area_to');
-            $table->string('minimum_quantity');
-            $table->string('price');
-            $table->string('next_price');
+            $table->longtext('pricing_data');
             $table->boolean('default');
             $table->unsignedInteger('product_id');
             $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
             $table->timestamps();
         });
+        
     }
 
     /**
