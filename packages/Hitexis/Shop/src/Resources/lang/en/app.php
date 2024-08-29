@@ -70,6 +70,8 @@ return [
         ],
 
         'account' => [
+            'home' => 'Home',
+
             'addresses' => [
                     'add-address'      => 'Add Address',
                     'address-1'        => 'Address 1',
