@@ -658,19 +658,7 @@ return [
             'select-hourly-duration'    => 'Select a slot duration of one hour.',
             'success-remove'            => 'Prece ir veiksmīgi izņemta no groza.',
             'suspended-account-message' => 'Jūsu konta darbība ir apturēta.',
-
-                        
-            'mini-cart' => [
-                'continue-to-checkout' => 'Turpiniet uz Grozu',
-                'empty-cart'           => 'Jūsu grozs ir tukšs',
-                'excl-tax'             => 'Bez PVN:',
-                'offer-on-orders'      => 'Saņemat atlaidi pirmajam pasūtījumam',
-                'remove'               => 'Noņemt',
-                'see-details'          => 'Skatīt detaļas',
-                'shopping-cart'        => 'Iepirkumu grozs',
-                'subtotal'             => 'Starpsumma',
-                'view-cart'            => 'Skatīt grozu',
-            ],
+            'excl-tax'                  => 'Bez PVN:',
 
             'index' => [
                 'bagisto'                  => 'Bagisto',
@@ -816,7 +804,7 @@ return [
                 'processing'       => 'Apstrāde',
                 'sub-total'        => 'Starpsumma',
                 'tax'              => 'PVN',
-                'excl-tax'                   => 'Bez PVN: ',
+                'excl-tax'         => 'Bez PVN: ',
             ],
         ],
 
