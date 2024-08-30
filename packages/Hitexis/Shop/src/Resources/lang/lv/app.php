@@ -713,7 +713,7 @@ return [
                 'shopping-cart'        => 'Iepirkumu grozs',
                 'subtotal'             => 'Starpsumma',
                 'view-cart'            => 'Skatīt grozu',
-                'excl-task'            => 'Bez PVN: '
+                'excl-tax'            => 'Bez PVN: '
             ],
 
             'summary' => [
