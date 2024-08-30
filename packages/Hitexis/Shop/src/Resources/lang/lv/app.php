@@ -679,6 +679,7 @@ return [
             ],
 
             'summary' => [
+                'test-123'                  => 'Test123',
                 'cart-summary'              => 'Groza kopsavilkums',
                 'delivery-charges'          => 'Piegādes maksas',
                 'discount-amount'           => 'Atlaides summa',
