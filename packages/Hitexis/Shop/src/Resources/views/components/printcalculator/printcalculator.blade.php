@@ -21,12 +21,12 @@
                 <table class="w-full bg-gray-50 border-separate border-spacing-0">
                     <thead class="bg-indigo-100 text-midnightBlue uppercase text-sm">
                         <tr>
-                            <th class="px-6 py-3 border-b-2 border-indigo-700">Product Name</th>
-                            <th class="px-6 py-3 border-b-2 border-indigo-700">Technique</th>
-                            <th class="px-6 py-3 border-b-2 border-indigo-700">Quantity</th>
-                            <th class="px-6 py-3 border-b-2 border-indigo-700">Price</th>
-                            <th class="px-6 py-3 border-b-2 border-indigo-700">Technique Print Fee</th>
-                            <th class="px-6 py-3 border-b-2 border-indigo-700">Total Price</th>
+                            <th class="px-6 py-3 border-b-2 border-indigo-700">@lang('shop::app.products.view.calculator.product-name')</th>
+                            <th class="px-6 py-3 border-b-2 border-indigo-700">@lang('shop::app.products.view.calculator.technique')</th>
+                            <th class="px-6 py-3 border-b-2 border-indigo-700">@lang('shop::app.products.view.calculator.quantity')</th>
+                            <th class="px-6 py-3 border-b-2 border-indigo-700">@lang('shop::app.products.view.calculator.price')</th>
+                            <th class="px-6 py-3 border-b-2 border-indigo-700">@lang('shop::app.products.view.calculator.print-fee')</th>
+                            <th class="px-6 py-3 border-b-2 border-indigo-700">@lang('shop::app.products.view.calculator.total-price')</th>
                         </tr>
                     </thead>
                     <tbody class="text-gray-700">
@@ -36,7 +36,7 @@
                             <td class="px-6 py-4 border-b border-gray-200">@{{ technique.quantity }}</td>
                             <td class="px-6 py-4 border-b border-gray-200">@{{ technique.price }}</td>
                             <td class="px-6 py-4 border-b border-gray-200">@{{ technique.technique_print_fee }}</td>
-                            <td class="px-6 py-4 border-b border-gray-200">@{{ technique.total_price }}</td>
+                            <td class="px-6 py-4 border-b border-gray-200">@{{ parseFloat(technique.total_price).toFixed(2) }}</td>
                         </tr>
                     </tbody>
                 </table>
