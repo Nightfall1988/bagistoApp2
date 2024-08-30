@@ -29,3 +29,7 @@ package-lock.json
 /vendor
 yarn.lock
 yarn-error.log
+# Ignore specific generated files
+public/themes/shop/hitexis/build/manifest.json
+public/themes/shop/hitexis/build/assets/*.js
+public/themes/shop/hitexis/build/assets/*.css

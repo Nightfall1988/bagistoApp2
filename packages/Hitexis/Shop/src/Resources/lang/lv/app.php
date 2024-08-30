@@ -140,6 +140,41 @@ return [
             ],
         ],
 
+        'account' => [
+            'profile' => [
+                'add-address'      => 'Pievienot adresi',
+                'address-1'        => 'Adrese 1',
+                'address-2'        => 'Adrese 2',
+                'city'             => 'Pilsēta',
+                'company-name'     => 'Uzņēmuma nosaukums',
+                'country'          => 'Valsts',
+                'create-success'   => 'Adrese ir veiksmīgi pievienota.',
+                'default-address'  => 'Noklusējuma adrese',
+                'default-delete'   => 'Noklusējuma adresi nevar mainīt.',
+                'delete'           => 'Dzēst',
+                'delete-success'   => 'Adrese veiksmīgi izdzēsta',
+                'edit'             => 'Rediģēt',
+                'edit-address'     => 'Rediģēt adresi',
+                'edit-success'     => 'Adrese ir veiksmīgi atjaunināta.',
+                'email'            => 'Epasts',
+                'empty-address'    => 'You have not added an address to your account yet.',
+                'first-name'       => 'Vārds',
+                'last-name'        => 'Uzvārds',
+                'gender'           => 'dzimums',
+                'dob'              => 'Dzimšanas datums',
+                'phone'            => 'Tālrunis',
+                'post-code'        => 'Pasta indekss',
+                'save'             => 'Saglabāt',
+                'security-warning' => 'Atrasta aizdomīga darbība!!!',
+                'set-as-default'   => 'Iestatīt kā noklusējumu',
+                'state'            => 'Rajons',
+                'street-address'   => 'Iela',
+                'title'            => 'Adrese',
+                'delete-profile'   => 'Dzēst profilu',
+                'update-success'   => 'Adrese ir veiksmīgi atjaunināta.',
+            ]
+        ],
+
         'addresses' => [
             'index' => [
                 'add-address'      => 'Pievienot adresi',
@@ -588,6 +623,15 @@ return [
                 'info'                 => 'Iespējojiet Mini Cart iestatījumus, lai parādītu mini grozu un rādītu Mini Cart piedāvājuma informāciju, lai ātri piekļūtu groza informācijai un akcijām.',
                 'mini-cart-offer-info' => 'Mini groza piedāvājuma informācija',
                 'title'                => 'Mini Grozs',
+                'continue-to-checkout' => 'Turpiniet uz Grozu',
+                'empty-cart'           => 'Jūsu grozs ir tukšs',
+                'offer-on-orders'      => 'Saņemat atlaidi pirmajam pasūtījumam',
+                'remove'               => 'Noņemt',
+                'see-details'          => 'Skatīt detaļas',
+                'shopping-cart'        => 'Iepirkumu grozs',
+                'subtotal'             => 'Starpsumma',
+                'view-cart'            => 'Skatīt grozu',
+                'excl-task'            => 'Bez PVN: '
             ],
         ],
         
