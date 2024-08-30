@@ -816,6 +816,7 @@ return [
                 'processing'       => 'Apstrāde',
                 'sub-total'        => 'Starpsumma',
                 'tax'              => 'PVN',
+                'excl-tax'                   => 'Bez PVN: ',
             ],
         ],
 
