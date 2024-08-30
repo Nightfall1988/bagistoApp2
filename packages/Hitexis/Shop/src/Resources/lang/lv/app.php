@@ -426,6 +426,15 @@ return [
             'our-clients'                  => "Mūsu klienti",
             'material'                     => "Materiāls",
             'dimensions'                   => "Izmēri",
+
+            'calculator' => [
+                'price'                    => 'Cena',
+                'product-name'             => 'Preces nosaukums',
+                'quantity'                 => 'Daudzums',
+                'technique'                => 'Drukas tips',
+                'print-fee'                => 'Drukas cena',
+                'total-price'              => 'Kopā',
+            ],
             
             
             'type' => [
