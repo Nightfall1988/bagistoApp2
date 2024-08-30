@@ -100,6 +100,8 @@ return [
                 'street-address'   => 'Iela',
                 'title'            => 'Adrese',
                 'update-success'   => 'Adrese ir veiksmīgi atjaunināta.',
+                'vat-id'           => 'PVN Nr',
+                'select-country'   => 'Izvēlēties valsti'
             ],
 
             'create' => [
@@ -172,6 +174,8 @@ return [
                 'title'            => 'Adrese',
                 'delete-profile'   => 'Dzēst profilu',
                 'update-success'   => 'Adrese ir veiksmīgi atjaunināta.',
+                'vat-id'           => 'PVN Nr',
+                'select-country'   => 'Izvēlēties valsti'
             ]
         ],
 
@@ -204,6 +208,8 @@ return [
                 'street-address'   => 'Iela',
                 'title'            => 'Adrese',
                 'update-success'   => 'Adrese ir veiksmīgi atjaunināta.',
+                'vat-id'           => 'PVN Nr',
+                'select-country'   => 'Izvēlēties valsti'
             ],
 
             'create' => [

@@ -100,6 +100,8 @@ return [
                 'street-address'   => 'Iela',
                 'title'            => 'Adrese',
                 'update-success'   => 'Adrese ir veiksmīgi atjaunināta.',
+                'vat-id'           => 'PVN Nr',
+                'select-country'   => 'Izvēlēties valsti'
             ],
 
             'create' => [
@@ -169,6 +171,8 @@ return [
                 'street-address'   => 'Iela',
                 'title'            => 'Adrese',
                 'update-success'   => 'Adrese ir veiksmīgi atjaunināta.',
+                'vat-id'           => 'PVN Nr',
+                'select-country'   => 'Izvēlēties valsti'
             ],
 
             'create' => [
