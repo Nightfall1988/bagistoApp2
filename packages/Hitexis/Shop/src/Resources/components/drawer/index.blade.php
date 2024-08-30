@@ -111,7 +111,6 @@
                                     >
                                         Default Header
                                     </slot>
-
                                     <!-- Content Slot -->
                                     <slot name="content"></slot>
 

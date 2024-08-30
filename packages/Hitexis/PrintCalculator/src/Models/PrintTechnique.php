@@ -36,6 +36,7 @@ class PrintTechnique extends BasePrintTechnique implements PrintTechniqueContrac
         'price',
         'next_price',
         'default',
+        'pricing_data',
         'product_id'
     ];
 

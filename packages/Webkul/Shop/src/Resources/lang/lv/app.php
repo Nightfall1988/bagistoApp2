@@ -69,10 +69,11 @@ return [
             'verify-failed'               => 'Mēs nevaram verificēt jūsu pasta kontu.',
         ],
 
-	'account' => [
-	    'home'		   => 'Sākums',
-	    'addresses' => [
-		'add-address'      => 'Pievienot adresi',
+        'account' => [
+            'home'                 => 'Sākums',
+
+            'addresses' => [
+                'add-address'      => 'Pievienot adresi',
                 'address-1'        => 'Adrese 1',
                 'address-2'        => 'Adrese 2',
                 'city'             => 'Pilsēta',
@@ -99,9 +100,6 @@ return [
                 'street-address'   => 'Iela',
                 'title'            => 'Adrese',
                 'update-success'   => 'Adrese ir veiksmīgi atjaunināta.',
-		'vat-id'	   => 'PVN Nr',
-		'select-country'   => 'Izvēlēties valsti'
-
             ],
 
             'create' => [

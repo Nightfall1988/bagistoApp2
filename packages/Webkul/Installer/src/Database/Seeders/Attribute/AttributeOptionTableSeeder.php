@@ -94,23 +94,78 @@ class AttributeOptionTableSeeder extends Seeder
                     'locale'              => $locale,
                     'label'               => trans('installer::app.seeders.attribute.attribute-options.white', [], $locale),
                     'attribute_option_id' => 5,
-                ], [
+                ],
+                [
                     'locale'              => $locale,
-                    'label'               => trans('installer::app.seeders.attribute.attribute-options.s', [], $locale),
+                    'label'               => trans('installer::app.seeders.attribute.attribute-options.xs', [], $locale),
                     'attribute_option_id' => 6,
-                ], [
+                ],
+                [
+                    'locale'              => $locale,
+                    'label'               => trans('installer::app.seeders.attribute.attribute-options.xxs', [], $locale),
+                    'attribute_option_id' => 7,
+                ],
+                [
+                    'locale'              => $locale,
+                    'label'               => trans('installer::app.seeders.attribute.attribute-options.xxxs', [], $locale),
+                    'attribute_option_id' => 8,
+                ],
+                [
+                    'locale'              => $locale,
+                    'label'               => trans('installer::app.seeders.attribute.attribute-options.3xs', [], $locale),
+                    'attribute_option_id' => 10,
+                ],
+                [
+                    'locale'              => $locale,
+                    'label'               => trans('installer::app.seeders.attribute.attribute-options.4xs', [], $locale),
+                    'attribute_option_id' => 11,
+                ],
+                [
+                    'locale'              => $locale,
+                    'label'               => trans('installer::app.seeders.attribute.attribute-options.5xs', [], $locale),
+                    'attribute_option_id' => 12,
+                ],
+                [
                     'locale'              => $locale,
                     'label'               => trans('installer::app.seeders.attribute.attribute-options.m', [], $locale),
-                    'attribute_option_id' => 7,
-                ], [
+                    'attribute_option_id' => 13,
+                ], 
+                [
                     'locale'              => $locale,
                     'label'               => trans('installer::app.seeders.attribute.attribute-options.l', [], $locale),
-                    'attribute_option_id' => 8,
-                ], [
+                    'attribute_option_id' => 14,
+                ],
+                [
                     'locale'              => $locale,
                     'label'               => trans('installer::app.seeders.attribute.attribute-options.xl', [], $locale),
-                    'attribute_option_id' => 9,
+                    'attribute_option_id' => 15,
                 ],
+                [
+                    'locale'              => $locale,
+                    'label'               => trans('installer::app.seeders.attribute.attribute-options.xxl', [], $locale),
+                    'attribute_option_id' => 16,
+                ],
+                [
+                    'locale'              => $locale,
+                    'label'               => trans('installer::app.seeders.attribute.attribute-options.xxxl', [], $locale),
+                    'attribute_option_id' => 17,
+                ],
+                [
+                    'locale'              => $locale,
+                    'label'               => trans('installer::app.seeders.attribute.attribute-options.3xl', [], $locale),
+                    'attribute_option_id' => 18,
+                ],
+                [
+                    'locale'              => $locale,
+                    'label'               => trans('installer::app.seeders.attribute.attribute-options.4xl', [], $locale),
+                    'attribute_option_id' => 19,
+                ],
+                [
+                    'locale'              => $locale,
+                    'label'               => trans('installer::app.seeders.attribute.attribute-options.5xl', [], $locale),
+                    'attribute_option_id' => 20,
+                ],
+
             ]);
         }
     }
