@@ -761,6 +761,7 @@ return [
                 'processing'       => 'Apstrāde',
                 'sub-total'        => 'Starpsumma',
                 'tax'              => 'PVN',
+                'excl-tax'        => 'Bez PVN: '
             ],
         ],
 
@@ -778,6 +779,7 @@ return [
             'remove'          => 'Noņemt kuponu',
             'subtotal'        => 'Starpsumma',
             'success-apply'   => 'Kupona kods ir veiksmīgi pievienots.',
+            'excl-tax'        => 'Bez PVN: '
         ],
 
         'login' => [
