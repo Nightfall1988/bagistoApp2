@@ -101,7 +101,7 @@ return [
                 'title'            => 'Adrese',
                 'update-success'   => 'Adrese ir veiksmīgi atjaunināta.',
                 'vat-id'           => 'PVN Nr',
-                'select-country'   => 'Izvēlēties valsti'
+                'select-country'   => 'Izvēlēties valsti',
             ],
 
             'create' => [
@@ -140,9 +140,7 @@ return [
                 'title'          => 'Adrese',
                 'vat-id'         => 'PVN Nr',
             ],
-        ],
 
-        'account' => [
             'profile' => [
                 'add-address'      => 'Pievienot adresi',
                 'address-1'        => 'Adrese 1',
@@ -160,6 +158,7 @@ return [
                 'edit-success'     => 'Adrese ir veiksmīgi atjaunināta.',
                 'email'            => 'Epasts',
                 'empty-address'    => 'You have not added an address to your account yet.',
+                'enter-password'   => 'Ievadiet paroli',
                 'first-name'       => 'Vārds',
                 'last-name'        => 'Uzvārds',
                 'gender'           => 'dzimums',
@@ -176,7 +175,8 @@ return [
                 'update-success'   => 'Adrese ir veiksmīgi atjaunināta.',
                 'vat-id'           => 'PVN Nr',
                 'select-country'   => 'Izvēlēties valsti'
-            ]
+            ],
+            
         ],
 
         'addresses' => [

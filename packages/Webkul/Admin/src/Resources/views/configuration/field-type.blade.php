@@ -47,7 +47,7 @@
     field-data="{{ json_encode($field) }}"
     info="{{ trans($field['info'] ?? '') }}"
     is-require="{{ $isRequired }}"
-    label="{{ trans($field['title']) }}"
+    {{-- label="{{ trans($field['title']) }}" --}}
     name="{{ $name }}"
     src="{{ Storage::url(core()->getConfigData($nameKey, $currentChannel->code, $currentLocale->code)) }}"
     validations="{{ $validations }}"
