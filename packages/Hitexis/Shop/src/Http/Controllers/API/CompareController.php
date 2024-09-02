@@ -4,9 +4,9 @@ namespace Hitexis\Shop\Http\Controllers\API;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Http\Response;
-use Hitexis\Customer\Repositories\CompareItemRepository;
+use Webkul\Customer\Repositories\CompareItemRepository;
 use Hitexis\Product\Repositories\HitexisProductRepository as ProductRepository;
-use Hitexis\Shop\Http\Resources\CompareItemResource;
+use Webkul\Shop\Http\Resources\CompareItemResource;
 
 class CompareController extends APIController
 {
