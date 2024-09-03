@@ -297,7 +297,7 @@ class XDConnectsApiService {
                 $superAttributes = [
                     '_method' => 'PUT',
                     "channel" => "default",
-                    "locale" => "en",
+                    "locale" => "all",
                     'sku' => (string)$variant->ItemCode,
                     "product_number" => (string)$variant->ModelCode . '-' . (string)$variant->ItemCode,
                     "name" => (!isset($variant->ItemName)) ? 'no name' : (string)$variant->ItemName,
@@ -359,7 +359,7 @@ class XDConnectsApiService {
             $superAttributes = [
                 '_method' => 'PUT',
                 "channel" => "default",
-                "locale" => "en",
+                "locale" => "all",
                 'sku' => (string)$productObj->sku,
                 "product_number" => (string)$mainProduct->ModelCode . '-' . (string)$productObj->sku,
                 "name" => (!isset($mainProduct->ItemName)) ? 'no name' : (string)$mainProduct->ItemName,
@@ -562,7 +562,7 @@ class XDConnectsApiService {
         $superAttributes = [
             '_method' => 'PUT',
             "channel" => "default",
-            "locale" => "en",
+            "locale" => "all",
             'sku' => (string)$product->ItemCode,
             "product_number" => (string)$product->ModelCode . '-' . (string)$product->ItemCode,
             "name" => (!isset($product->ItemName)) ? 'no name' : (string)$product->ItemName,

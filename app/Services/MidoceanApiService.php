@@ -376,7 +376,7 @@ class MidoceanApiService {
             $superAttributes = [
                 '_method' => 'PUT',
                 "channel" => "default",
-                "locale" => "en",
+                "locale" => "all",
                 'sku' => $apiProduct->variants[$i]->sku,
                 "product_number" => $apiProduct->master_id . '-' . $apiProduct->variants[$i]->sku, //
                 "name" => (!isset($apiProduct->product_name)) ? 'no name' : $apiProduct->product_name,
@@ -515,7 +515,7 @@ class MidoceanApiService {
 
         $superAttributes = [
             "channel" => "default",
-            "locale" => "en",
+            "locale" => "all",
             'sku' => $product->sku,
             "product_number" => $apiProduct->master_id, //
             "name" => (!isset($apiProduct->product_name)) ? 'no name' : $apiProduct->product_name,
@@ -662,7 +662,7 @@ class MidoceanApiService {
 
         $superAttributes = [
             "channel" => "default",
-            "locale" => "en",
+            "locale" => "all",
             'sku' => $productSku,
             "product_number" => $apiProduct->master_id,
             "name" => (!isset($apiProduct->product_name)) ? 'no name' : $apiProduct->product_name,

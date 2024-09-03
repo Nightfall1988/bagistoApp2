@@ -208,7 +208,7 @@ class StrickerApiService {
 
         $superAttributes = [
             "channel" => "default",
-            "locale" => "en",
+            "locale" => "all",
             'sku' => $mainProductData['ProdReference'],
             "product_number" => $mainProductData['ProdReference'],
             "name" => (!isset($mainProductData['Name'])) ? 'no name' : $mainProductOptionals['Name'],
@@ -394,7 +394,7 @@ class StrickerApiService {
         $superAttributes = [
             '_method' => 'PUT',
             "channel" => "default",
-            "locale" => "en",
+            "locale" => "all",
             'sku' => $productObj->sku,
             "product_number" =>  $productData['optionals'][0]['ProdReference'] . '-' . $productObj->sku,
             "name" =>  $productData['optionals'][0]['Name'],
@@ -726,7 +726,7 @@ class StrickerApiService {
                 $superAttributes = [
                     '_method' => 'PUT',
                     "channel" => "default",
-                    "locale" => "en",
+                    "locale" => "all",
                     'sku' => $foundOptional['Sku'],
                     "product_number" =>  $foundOptional['ProdReference'] . '-' . $foundOptional['Sku'],
                     "name" =>  $foundOptional['Name'],
