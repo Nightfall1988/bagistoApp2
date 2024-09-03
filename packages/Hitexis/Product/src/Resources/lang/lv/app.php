@@ -14,13 +14,13 @@ return [
     ],
 
     'datagrid' => [
-        'copy-of-slug'                  => 'copy-of-:value',
-        'copy-of'                       => 'Copy Of :value',
+        'copy-of-slug'                  => 'kopija-:value',
+        'copy-of'                       => 'Kopija :value',
         'variant-already-exist-message' => 'Variants ar tādām pašām atribūtu opcijām jau pastāv.',
     ],
 
     'response' => [
-        'product-can-not-be-copied' => 'Products of type :type can not be copied',
+        'product-can-not-be-copied' => 'Šī tipa prece :type nevar būt kopēta',
     ],
 
     'sort-by'  => [
@@ -36,7 +36,7 @@ return [
 
     'type'     => [
         'abstract'     => [
-            'offers' => 'Pirkt :qty for :price each and save :discount',
+            'offers' => 'Pirkt :qty for :price katru un ietaupi :discount',
         ],
 
         'bundle'       => 'Paka',
