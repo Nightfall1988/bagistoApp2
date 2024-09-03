@@ -261,7 +261,7 @@
                         <x-shop::form.control-group.control
                             type="text"
                             name="postcode"
-                            rules="{{ core()->isPostCodeRequired() ? 'required' : '' }}|numeric"
+                            rules="{{ core()->isPostCodeRequired() ? 'required' : '' }}"
                             :value="old('postcode')"
                             :label="trans('shop::app.customers.account.addresses.post-code')"
                             :placeholder="trans('shop::app.customers.account.addresses.post-code')"

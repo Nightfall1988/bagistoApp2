@@ -48,6 +48,7 @@ class MidoceanApiService {
         $this->pricesUrl = env('MIDOECAN_PRICES_URL');
         $this->identifier = env('MIDOECAN_IDENTIFIER');
         $this->printUrl = env('MIDOECAN_PRINT_URL');
+        $this->stockUrl = env('MIDOCEAN_STOCK_DATA');
         $this->productImages = [];
         $this->globalMarkup = null;
     }
@@ -65,13 +66,17 @@ class MidoceanApiService {
 
         // GET PRODUCTS
         $request = $this->httpClient->get($this->url);
-
         $response = json_decode($request->getBody()->getContents());
 
         // GET PRICES
         $priceRequest = $this->httpClient->get($this->pricesUrl);
         $priceData = json_decode($priceRequest->getBody()->getContents(), true);
 
+        // GET STOCK
+        $stockRequest = $this->httpClient->get($this->stockUrl);
+        $stockData = json_decode($stockRequest->getBody()->getContents(), true);
+
+        dd($stockData);
         $priceList = [];
         foreach ($priceData['price'] as $priceItem) {
             $sku = $priceItem['sku'];
@@ -79,8 +84,14 @@ class MidoceanApiService {
             $priceList[$sku] = $price;
         }
 
-        $this->globalMarkup = $this->markupRepository->where('markup_type', 'global')->first();
+        $stockList = [];
+        foreach ($stockData['stock'] as $stockItem) {
+            $sku = $stockItem['sku'];
+            $qty = $stockItem['qty'];
+            $stockList[$sku] = $qty;
+        }
 
+        $this->globalMarkup = $this->markupRepository->where('markup_type', 'global')->first();
         $tracker = new ProgressBar($this->output, count($response));
         $tracker->start();
         // SAVE PRODUCTS AND VARIANTS
@@ -96,12 +107,12 @@ class MidoceanApiService {
             }
 
             if (sizeof($apiProduct->variants) == 1) {
-                $this->createSimpleProduct($mainVariant, $apiProduct, $priceList, $categories);
+                $this->createSimpleProduct($mainVariant, $apiProduct, $priceList, $categories, $stockList);
                 $tracker->advance();
             }
 
             elseif (sizeof($apiProduct->variants) > 1) {
-                $this->createConfigurable($apiProduct->variants, $apiProduct, $priceList,  $categories);
+                $this->createConfigurable($apiProduct->variants, $apiProduct, $priceList,  $categories, $stockList);
                 $tracker->advance();
             }
         }
@@ -110,7 +121,7 @@ class MidoceanApiService {
         $this->output->writeln("\nMidocean product Import finished");
     }
 
-    public function createConfigurable($variantList, $apiProduct, $priceList,  $categories)  {
+    public function createConfigurable($variantList, $apiProduct, $priceList,  $categories, $stockList)  {
         $colorList = [];
         $sizeList = [];
         $variants = [];
@@ -326,7 +337,7 @@ class MidoceanApiService {
                 "description" => (isset($apiProduct->long_description)) ? '<p>' . $apiProduct->long_description . '</p>'  : '',
                 "manage_stock" => "1",
                 "inventories" => [
-                  1 => "10"
+                  1 => $stockList[$apiProduct->variants[$i]->sku]
                 ],
                 'images' => $images
             ];
@@ -396,6 +407,9 @@ class MidoceanApiService {
                 "weight" => $apiProduct->net_weight ?? 0,
                 'categories' => $categories,
                 'images' =>  $images,
+                "inventories" => [
+                    1 => $stockList[$apiProduct->variants[$i]->sku]
+                  ],
             ];
         
             if ($colorId != '') {
@@ -530,7 +544,7 @@ class MidoceanApiService {
             "weight" => $apiProduct->net_weight ?? 0,
             'categories' => $categories,
             'images' =>  $images,
-            'variants' => $variants
+            'variants' => $variants,
         ];
 
         if (isset($apiProduct->dimensions)) {
@@ -604,7 +618,7 @@ class MidoceanApiService {
         $this->markupRepository->addMarkupToPrice($product,$this->globalMarkup);
     }
 
-    public function createSimpleProduct($mainVariant, $apiProduct, $priceList, $categories) {
+    public function createSimpleProduct($mainVariant, $apiProduct, $priceList, $categories, $stockList) {
         $tempAttributes= [];
         $product = $this->productRepository->upserts([
             'channel' => 'default',
@@ -676,8 +690,8 @@ class MidoceanApiService {
             "guest_checkout" => "1",
             "manage_stock" => "1",
             "inventories" => [
-                1 => "100"
-            ],
+                1 => $stockList[$productSku]
+              ],
             'categories' => $categories,
             'images' =>  $images
         ];

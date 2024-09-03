@@ -3825,6 +3825,11 @@ return [
                 'info'  => 'Sales',
                 'title' => 'Sales',
 
+                'shipping' => [
+                    'title' => 'Title',
+                    'info'  => 'Info'
+                ],
+
                 'shipping-setting' => [
                     'info'  => 'Configure shipping settings including Country, State, City, Street Address, Zip Code, Store Name, VAT Number, Contact Number, and Bank Details.',
                     'title' => 'Shipping Settings',
