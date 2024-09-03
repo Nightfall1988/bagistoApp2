@@ -49,6 +49,7 @@ class Installer extends Command
         'hi_IN' => 'Hindi',
         'it'    => 'Italian',
         'ja'    => 'Japanese',
+        'lv'    => 'Latvian',
         'nl'    => 'Dutch',
         'pl'    => 'Polish',
         'pt_BR' => 'Brazilian Portuguese',
@@ -100,9 +101,9 @@ class Installer extends Command
         $this->warn('Step: Seeding basic data for Bagisto kickstart...');
         $this->info(app(BagistoDatabaseSeeder::class)->run([
             'default_locale'     => $applicationDetails['default_locale'] ?? 'en',
-            'allowed_locales'    => $applicationDetails['allowed_locales'] ?? ['en'],
-            'default_currency'   => $applicationDetails['default_currency'] ?? 'USD',
-            'allowed_currencies' => $applicationDetails['allowed_currencies'] ?? ['USD'],
+            'allowed_locales'    => $applicationDetails['allowed_locales'] ?? ['en', 'lv'],
+            'default_currency'   => $applicationDetails['default_currency'] ?? ['USD', 'EUR'],
+            'allowed_currencies' => $applicationDetails['allowed_currencies'] ?? ['USD', 'EUR'],
         ]));
 
         $this->warn('Step: Linking storage directory...');

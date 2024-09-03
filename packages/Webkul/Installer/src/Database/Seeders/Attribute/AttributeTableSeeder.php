@@ -630,7 +630,7 @@ class AttributeTableSeeder extends Seeder
             ],
         ]);
 
-        $locales = $parameters['allowed_locales'] ?? [$defaultLocale];
+        $locales = $parameters['allowed_locales'] ?? config('app.locales');
 
         foreach ($locales as $locale) {
             DB::table('attribute_translations')->insert([

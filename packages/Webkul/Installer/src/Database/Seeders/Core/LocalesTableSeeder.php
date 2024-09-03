@@ -28,7 +28,7 @@ class LocalesTableSeeder extends Seeder
 
         $defaultLocale = $parameters['default_locale'] ?? config('app.locale');
 
-        $locales = $parameters['allowed_locales'] ?? [$defaultLocale];
+        $locales = $parameters['allowed_locales'] ?? config('app.locales');
 
         foreach ($locales as $key => $locale) {
             $logoPath = null;
