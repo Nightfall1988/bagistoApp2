@@ -48,7 +48,7 @@ class MidoceanApiService {
         $this->pricesUrl = env('MIDOECAN_PRICES_URL');
         $this->identifier = env('MIDOECAN_IDENTIFIER');
         $this->printUrl = env('MIDOECAN_PRINT_URL');
-        $this->stockUrl = env('MIDOCEAN_STOCK_DATA');
+        // $this->stockUrl = env('MIDOCEAN_STOCK_DATA');
         $this->productImages = [];
         $this->globalMarkup = null;
     }
@@ -73,10 +73,9 @@ class MidoceanApiService {
         $priceData = json_decode($priceRequest->getBody()->getContents(), true);
 
         // GET STOCK
-        $stockRequest = $this->httpClient->get($this->stockUrl);
-        $stockData = json_decode($stockRequest->getBody()->getContents(), true);
+        // $stockRequest = $this->httpClient->get($this->stockUrl);
+        // $stockData = json_decode($stockRequest->getBody()->getContents(), true);
 
-        dd($stockData);
         $priceList = [];
         foreach ($priceData['price'] as $priceItem) {
             $sku = $priceItem['sku'];
@@ -85,11 +84,11 @@ class MidoceanApiService {
         }
 
         $stockList = [];
-        foreach ($stockData['stock'] as $stockItem) {
-            $sku = $stockItem['sku'];
-            $qty = $stockItem['qty'];
-            $stockList[$sku] = $qty;
-        }
+        // foreach ($stockData['stock'] as $stockItem) {
+        //     $sku = $stockItem['sku'];
+        //     $qty = $stockItem['qty'];
+        //     $stockList[$sku] = $qty;
+        // }
 
         $this->globalMarkup = $this->markupRepository->where('markup_type', 'global')->first();
         $tracker = new ProgressBar($this->output, count($response));
@@ -337,7 +336,7 @@ class MidoceanApiService {
                 "description" => (isset($apiProduct->long_description)) ? '<p>' . $apiProduct->long_description . '</p>'  : '',
                 "manage_stock" => "1",
                 "inventories" => [
-                  1 => $stockList[$apiProduct->variants[$i]->sku]
+                  1 => 10 // $stockList[$apiProduct->variants[$i]->sku]
                 ],
                 'images' => $images
             ];
@@ -408,7 +407,7 @@ class MidoceanApiService {
                 'categories' => $categories,
                 'images' =>  $images,
                 "inventories" => [
-                    1 => $stockList[$apiProduct->variants[$i]->sku]
+                    1 => 10 // $stockList[$apiProduct->variants[$i]->sku]
                   ],
             ];
         
@@ -690,7 +689,7 @@ class MidoceanApiService {
             "guest_checkout" => "1",
             "manage_stock" => "1",
             "inventories" => [
-                1 => $stockList[$productSku]
+                1 => 10 // $stockList[$productSku]
               ],
             'categories' => $categories,
             'images' =>  $images
