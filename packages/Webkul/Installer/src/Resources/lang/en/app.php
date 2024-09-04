@@ -202,6 +202,7 @@ return [
                 'hi_IN' => 'Hindi',
                 'it' => 'Italian',
                 'ja' => 'Japanese',
+                'lv' => 'Latvian',
                 'nl' => 'Dutch',
                 'pl' => 'Polish',
                 'pt_BR' => 'Brazilian Portuguese',
