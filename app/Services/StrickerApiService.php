@@ -14,6 +14,7 @@ use App\Services\CategoryMapper;
 use Hitexis\Markup\Repositories\MarkupRepository;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Hitexis\Product\Repositories\ProductAttributeValueRepository;
+use Webkul\Core\Repositories\LocaleRepository;
 
 class StrickerApiService {
 
@@ -33,7 +34,7 @@ class StrickerApiService {
         CategoryImportService $categoryImportService,
         MarkupRepository $markupRepository,
         CategoryMapper $categoryMapper,
-        
+        protected LocaleRepository $localeRepository
     ) {
         $this->productRepository = $productRepository;
         $this->attributeOptionRepository = $attributeOptionRepository;
@@ -143,6 +144,7 @@ class StrickerApiService {
         $mainProduct = $productData['product']; 
         $productVariants = [];
         $tempAttributes = [];
+        $locales = $this->localeRepository->get();
 
         $productObj = $this->productRepository->upserts([
             'channel' => 'default',
@@ -205,121 +207,123 @@ class StrickerApiService {
         $meta_description = $mainProductOptionals['ShortDescription'];
         $meta_keywords = "$material, $name, $components, $brand, $productCategory, $productSubCategory";
         $price = $this->markupRepository->calculatePrice($cost, $this->globalMarkup);
+        
+        foreach ($locales as $localeObj) {
+            $superAttributes = [
+                "channel" => "default",
+                "locale" => $localeObj->code,
+                'sku' => $mainProductData['ProdReference'],
+                "product_number" => $mainProductData['ProdReference'],
+                "name" => (!isset($mainProductData['Name'])) ? 'no name' : $mainProductOptionals['Name'],
+                "url_key" => $urlKey ?? '',
+                "short_description" =>(!isset($mainProductData['ShortDescription'])) ? 'no description provided' : '<p>' . $mainProductOptionals['ShortDescription'] . '</p>',
+                "description" => (!isset($mainProductData['Description'])) ? 'no description provided' : '<p>' . $mainProductOptionals['Description'] . '</p>',
+                "meta_title" => $meta_title,
+                "meta_keywords" => $meta_keywords,
+                "meta_description" => $meta_description,
+                'price' => round($price, 2),
+                'cost' => round($cost, 2),
+                "tax_category_id" => "1",
+                "special_price" => "",
+                "special_price_from" => "",
+                "special_price_to" => "",          
+                "length" => $mainProductData['BoxLengthMM'] / 10 ?? '',
+                "width" => $mainProductData['BoxWidthMM'] / 10 ?? '',
+                "height" => $mainProductData['BoxHeightMM'] / 10 ?? '',
+                "weight" => $mainProductData['Weight'],
+                "new" => "1",
+                "visible_individually" => $cost == 0 ? "0" : "1",
+                "status" => "1",
+                "featured" => "1",
+                "guest_checkout" => "1",
+                "manage_stock" => "1",
+                "inventories" => [
+                    1 =>  $mainProductData['BoxQuantity'] ?? 0,
+                ],
+                'categories' => $categories,
+                'variants' => $variants,        
+                'images' =>  $images
+            ];
 
-        $superAttributes = [
-            "channel" => "default",
-            "locale" => "all",
-            'sku' => $mainProductData['ProdReference'],
-            "product_number" => $mainProductData['ProdReference'],
-            "name" => (!isset($mainProductData['Name'])) ? 'no name' : $mainProductOptionals['Name'],
-            "url_key" => $urlKey ?? '',
-            "short_description" =>(!isset($mainProductData['ShortDescription'])) ? 'no description provided' : '<p>' . $mainProductOptionals['ShortDescription'] . '</p>',
-            "description" => (!isset($mainProductData['Description'])) ? 'no description provided' : '<p>' . $mainProductOptionals['Description'] . '</p>',
-            "meta_title" => $meta_title,
-            "meta_keywords" => $meta_keywords,
-            "meta_description" => $meta_description,
-            'price' => round($price, 2),
-            'cost' => round($cost, 2),
-            "tax_category_id" => "1",
-            "special_price" => "",
-            "special_price_from" => "",
-            "special_price_to" => "",          
-            "length" => $mainProductData['BoxLengthMM'] / 10 ?? '',
-            "width" => $mainProductData['BoxWidthMM'] / 10 ?? '',
-            "height" => $mainProductData['BoxHeightMM'] / 10 ?? '',
-            "weight" => $mainProductData['Weight'],
-            "new" => "1",
-            "visible_individually" => $cost == 0 ? "0" : "1",
-            "status" => "1",
-            "featured" => "1",
-            "guest_checkout" => "1",
-            "manage_stock" => "1",
-            "inventories" => [
-                1 =>  $mainProductData['BoxQuantity'] ?? 0,
-            ],
-            'categories' => $categories,
-            'variants' => $variants,        
-            'images' =>  $images
-        ];
+            if (isset($material)) {
+                $materialObj = $this->attributeOptionRepository->getOption($material);
+                if ($materialObj) {
+                    $superAttributes['material'] =  $materialObj->admin_name;
+                }
+
+                if (!$materialObj) {
+                    {
+                        $materialObj = $this->attributeOptionRepository->create([
+                            'admin_name' => ucfirst(trim($material)),
+                            'attribute_id' => 29,
+                        ]);
+
+                        $this->productAttributeValueRepository->upsert([
+                            'product_id' => $productObj->id,
+                            'attribute_id' => 29,
+                            "locale" => $localeObj->code,
+                            'channel' => null,
+                            'unique_id' => implode('|', [$productObj->id,29]),
+                            'text_value' => $materialObj->admin_name,
+                            'boolean_value' => null,
+                            'integer_value' => null,
+                            'float_value' => null,
+                            'datetime_value' => null,
+                            'date_value' => null,
+                            'json_value' => null,
+                        ], uniqueBy: ['product_id', 'attribute_id']);
+
+                        $superAttributes['material'] =  $materialObj->admin_name;
+                    }
+                }
+            }
+
+            if (isset($dimensions)) {
+                $dimensionsObj = $this->attributeOptionRepository->getOption($dimensions);
+                
+                if ($dimensionsObj) {
+                    $superAttributes['dimensions'] =  $dimensionsObj->admin_name;
+                }
+
+                if (!$dimensionsObj) {
+                    {
+                        $dimensionsObj = $this->attributeOptionRepository->create([
+                            'admin_name' => ucfirst(trim($dimensions)),
+                            'attribute_id' => 30,
+                        ]);
+
+                        $this->productAttributeValueRepository->upsert([
+                            'product_id' => $productObj->id,
+                            'attribute_id' => 30,
+                            "locale" => $localeObj->code,
+                            'channel' => null,
+                            'unique_id' => implode('|', [$productObj->id,30]),
+                            'text_value' => $dimensionsObj->admin_name ?? '',
+                            'boolean_value' => null,
+                            'integer_value' => null,
+                            'float_value' => null,
+                            'datetime_value' => null,
+                            'date_value' => null,
+                            'json_value' => null,
+                        ], uniqueBy: ['product_id', 'attribute_id']);
+
+                        $superAttributes['dimensions'] =  $dimensionsObj->admin_name;
+                    }
+                }
+            }
+            $productObj = $this->productRepository->updateToShop($superAttributes, $productObj->id, 'id');
+            $this->markupRepository->addMarkupToPrice($productObj,$this->globalMarkup);
+        }
 
         $this->supplierRepository->create([
             'product_id' => $productObj->id,
             'supplier_code' => $this->identifier
         ]);
-
-        if (isset($material)) {
-            $materialObj = $this->attributeOptionRepository->getOption($material);
-            if ($materialObj) {
-                $superAttributes['material'] =  $materialObj->admin_name;
-            }
-
-            if (!$materialObj) {
-                {
-                    $materialObj = $this->attributeOptionRepository->create([
-                        'admin_name' => ucfirst(trim($material)),
-                        'attribute_id' => 29,
-                    ]);
-
-                    $this->productAttributeValueRepository->upsert([
-                        'product_id' => $productObj->id,
-                        'attribute_id' => 29,
-                        'locale' => 'en',
-                        'channel' => null,
-                        'unique_id' => implode('|', [$productObj->id,29]),
-                        'text_value' => $materialObj->admin_name,
-                        'boolean_value' => null,
-                        'integer_value' => null,
-                        'float_value' => null,
-                        'datetime_value' => null,
-                        'date_value' => null,
-                        'json_value' => null,
-                    ], uniqueBy: ['product_id', 'attribute_id']);
-
-                    $superAttributes['material'] =  $materialObj->admin_name;
-                }
-            }
-        }
-
-        if (isset($dimensions)) {
-            $dimensionsObj = $this->attributeOptionRepository->getOption($dimensions);
-            
-            if ($dimensionsObj) {
-                $superAttributes['dimensions'] =  $dimensionsObj->admin_name;
-            }
-
-            if (!$dimensionsObj) {
-                {
-                    $dimensionsObj = $this->attributeOptionRepository->create([
-                        'admin_name' => ucfirst(trim($dimensions)),
-                        'attribute_id' => 30,
-                    ]);
-
-                    $this->productAttributeValueRepository->upsert([
-                        'product_id' => $productObj->id,
-                        'attribute_id' => 30,
-                        'locale' => 'en',
-                        'channel' => null,
-                        'unique_id' => implode('|', [$productObj->id,30]),
-                        'text_value' => $dimensionsObj->admin_name ?? '',
-                        'boolean_value' => null,
-                        'integer_value' => null,
-                        'float_value' => null,
-                        'datetime_value' => null,
-                        'date_value' => null,
-                        'json_value' => null,
-                    ], uniqueBy: ['product_id', 'attribute_id']);
-
-                    $superAttributes['dimensions'] =  $dimensionsObj->admin_name;
-                }
-            }
-        }
-
-        $productObj = $this->productRepository->updateToShop($superAttributes, $productObj->id, 'id');
-        $this->markupRepository->addMarkupToPrice($productObj,$this->globalMarkup);
     }
 
     public function createSimple($productData) {
-        
+        $locales = $this->localeRepository->get();
+
         $productObj = $this->productRepository->upserts([
             'channel' => 'default',
             'attribute_family_id' => '1',
@@ -391,117 +395,119 @@ class StrickerApiService {
         $meta_keywords = "$material, $name, $components, $brand, $productCategory, $productSubCategory";
         $price = $this->markupRepository->calculatePrice($cost, $this->globalMarkup);
 
-        $superAttributes = [
-            '_method' => 'PUT',
-            "channel" => "default",
-            "locale" => "all",
-            'sku' => $productObj->sku,
-            "product_number" =>  $productData['optionals'][0]['ProdReference'] . '-' . $productObj->sku,
-            "name" =>  $productData['optionals'][0]['Name'],
-            "url_key" => $urlKey,                    
-            "weight" => $productData['optionals'][0]['Weight'] ?? 0,
-            "short_description" =>(!isset($productData['optionals'][0]['ShortDescription'])) ? 'no description provided' : '<p>' . $productData['optionals'][0]['ShortDescription'] . '</p>',
-            "description" => (!isset($productData['optionals'][0]['Description'])) ? 'no description provided' : '<p>' . $productData['optionals'][0]['Description'] . '</p>',
-            "meta_title" => $meta_title,
-            "meta_keywords" => $meta_keywords,
-            "meta_description" => $meta_description,
-            "tax_category_id" => "1",
-            'price' => round($price, 2),
-            'cost' => round($cost, 2),
-            "special_price" => "",
-            "special_price_from" => "",
-            "special_price_to" => "",
-            "new" => "1",
-            "visible_individually" => $cost == 0 ? "0" : "1",
-            "status" => "1",
-            "featured" => "1",
-            "guest_checkout" => "1",
-            "manage_stock" => "1",       
-            "length" =>$productData['optionals'][0]['BoxLengthMM'] / 10 ?? '',
-            "width" =>$productData['optionals'][0]['BoxWidthMM'] / 10 ?? '',
-            "height" => $productData['optionals'][0]['BoxHeightMM'] / 10 ?? '',
-            "weight" => $productData['optionals'][0]['Weight'],
-            'images' =>  $images,
-            'categories' =>  $categories,
-        ];
-
-        if ($colorId != '') {
-            $superAttributes['color'] = $colorId;
-        }
-
-        if ($sizeId != '') {
-            $superAttributes['size'] = $sizeId;
-        }
-
-        if (isset($material)) {
-            $materialObj = $this->attributeOptionRepository->getOption($material);
-            if ($materialObj) {
-                $superAttributes['material'] =  $materialObj->admin_name;
+        foreach ($locales as $localeObj) {
+            $superAttributes = [
+                '_method' => 'PUT',
+                "channel" => "default",
+                "locale" => $localeObj->code,
+                'sku' => $productObj->sku,
+                "product_number" =>  $productData['optionals'][0]['ProdReference'] . '-' . $productObj->sku,
+                "name" =>  $productData['optionals'][0]['Name'],
+                "url_key" => $urlKey,                    
+                "weight" => $productData['optionals'][0]['Weight'] ?? 0,
+                "short_description" =>(!isset($productData['optionals'][0]['ShortDescription'])) ? 'no description provided' : '<p>' . $productData['optionals'][0]['ShortDescription'] . '</p>',
+                "description" => (!isset($productData['optionals'][0]['Description'])) ? 'no description provided' : '<p>' . $productData['optionals'][0]['Description'] . '</p>',
+                "meta_title" => $meta_title,
+                "meta_keywords" => $meta_keywords,
+                "meta_description" => $meta_description,
+                "tax_category_id" => "1",
+                'price' => round($price, 2),
+                'cost' => round($cost, 2),
+                "special_price" => "",
+                "special_price_from" => "",
+                "special_price_to" => "",
+                "new" => "1",
+                "visible_individually" => $cost == 0 ? "0" : "1",
+                "status" => "1",
+                "featured" => "1",
+                "guest_checkout" => "1",
+                "manage_stock" => "1",       
+                "length" =>$productData['optionals'][0]['BoxLengthMM'] / 10 ?? '',
+                "width" =>$productData['optionals'][0]['BoxWidthMM'] / 10 ?? '',
+                "height" => $productData['optionals'][0]['BoxHeightMM'] / 10 ?? '',
+                "weight" => $productData['optionals'][0]['Weight'],
+                'images' =>  $images,
+                'categories' =>  $categories,
+            ];
+    
+            if ($colorId != '') {
+                $superAttributes['color'] = $colorId;
             }
-
-            if (!$materialObj) {
-                {
-                    $materialObj = $this->attributeOptionRepository->create([
-                        'admin_name' => ucfirst(trim($material)),
-                        'attribute_id' => 29,
-                    ]);
-
-                    $this->productAttributeValueRepository->upsert([
-                        'product_id' => $productObj->id,
-                        'attribute_id' => 29,
-                        'locale' => 'en',
-                        'channel' => null,
-                        'unique_id' => implode('|', [$productObj->id,29]),
-                        'text_value' => $materialObj->admin_name,
-                        'boolean_value' => null,
-                        'integer_value' => null,
-                        'float_value' => null,
-                        'datetime_value' => null,
-                        'date_value' => null,
-                        'json_value' => null,
-                    ], uniqueBy: ['product_id', 'attribute_id']);
-
+    
+            if ($sizeId != '') {
+                $superAttributes['size'] = $sizeId;
+            }
+    
+            if (isset($material)) {
+                $materialObj = $this->attributeOptionRepository->getOption($material);
+                if ($materialObj) {
                     $superAttributes['material'] =  $materialObj->admin_name;
                 }
-            }
-        }
-
-        if (isset($dimensions)) {
-            $dimensionsObj = $this->attributeOptionRepository->getOption($dimensions);
-            
-            if ($dimensionsObj) {
-                $superAttributes['dimensions'] =  $dimensionsObj->admin_name;
-            }
-
-            if (!$dimensionsObj) {
-                {
-                    $dimensionsObj = $this->attributeOptionRepository->create([
-                        'admin_name' => ucfirst(trim($dimensions)),
-                        'attribute_id' => 30,
-                    ]);
-
-                    $this->productAttributeValueRepository->upsert([
-                        'product_id' => $productObj->id,
-                        'attribute_id' => 30,
-                        'locale' => 'en',
-                        'channel' => null,
-                        'unique_id' => implode('|', [$productObj->id,30]),
-                        'text_value' => $dimensionsObj->admin_name ?? '',
-                        'boolean_value' => null,
-                        'integer_value' => null,
-                        'float_value' => null,
-                        'datetime_value' => null,
-                        'date_value' => null,
-                        'json_value' => null,
-                    ], uniqueBy: ['product_id', 'attribute_id']);
-
-                    $superAttributes['dimensions'] =  $dimensionsObj->admin_name;
+    
+                if (!$materialObj) {
+                    {
+                        $materialObj = $this->attributeOptionRepository->create([
+                            'admin_name' => ucfirst(trim($material)),
+                            'attribute_id' => 29,
+                        ]);
+    
+                        $this->productAttributeValueRepository->upsert([
+                            'product_id' => $productObj->id,
+                            'attribute_id' => 29,
+                            "locale" => $localeObj->code,
+                            'channel' => null,
+                            'unique_id' => implode('|', [$productObj->id,29]),
+                            'text_value' => $materialObj->admin_name,
+                            'boolean_value' => null,
+                            'integer_value' => null,
+                            'float_value' => null,
+                            'datetime_value' => null,
+                            'date_value' => null,
+                            'json_value' => null,
+                        ], uniqueBy: ['product_id', 'attribute_id']);
+    
+                        $superAttributes['material'] =  $materialObj->admin_name;
+                    }
                 }
             }
-        }
+    
+            if (isset($dimensions)) {
+                $dimensionsObj = $this->attributeOptionRepository->getOption($dimensions);
+                
+                if ($dimensionsObj) {
+                    $superAttributes['dimensions'] =  $dimensionsObj->admin_name;
+                }
+    
+                if (!$dimensionsObj) {
+                    {
+                        $dimensionsObj = $this->attributeOptionRepository->create([
+                            'admin_name' => ucfirst(trim($dimensions)),
+                            'attribute_id' => 30,
+                        ]);
+    
+                        $this->productAttributeValueRepository->upsert([
+                            'product_id' => $productObj->id,
+                            'attribute_id' => 30,
+                            "locale" => $localeObj->code,
+                            'channel' => null,
+                            'unique_id' => implode('|', [$productObj->id,30]),
+                            'text_value' => $dimensionsObj->admin_name ?? '',
+                            'boolean_value' => null,
+                            'integer_value' => null,
+                            'float_value' => null,
+                            'datetime_value' => null,
+                            'date_value' => null,
+                            'json_value' => null,
+                        ], uniqueBy: ['product_id', 'attribute_id']);
+    
+                        $superAttributes['dimensions'] =  $dimensionsObj->admin_name;
+                    }
+                }
+            }
+    
+            $productObj = $this->productRepository->updateToShop($superAttributes, $productObj->id, 'id');
+            $this->markupRepository->addMarkupToPrice($productObj,$this->globalMarkup);        }
 
-        $productObj = $this->productRepository->updateToShop($superAttributes, $productObj->id, 'id');
-        $this->markupRepository->addMarkupToPrice($productObj,$this->globalMarkup);
 
     }
 
@@ -511,7 +517,7 @@ class StrickerApiService {
     }
 
     public function getProductVariant($optionals, $mainProduct, $productVariants) {
-
+        $locales = $this->localeRepository->get();
         $tempAttributes = [];
         $categories = [];
 
@@ -527,61 +533,83 @@ class StrickerApiService {
                 }
             }
         
-            if ($foundOptional) {
-                if (isset($foundOptional['ColorDesc1'])) {
-                    $colorObj = $this->attributeOptionRepository->getOption($foundOptional['ColorDesc1']);
-                    if ($colorObj && !in_array($colorObj->id,$tempAttributes)) {
-                        $colorId = $colorObj->id;
-                        $tempAttributes[] = $colorId;
-                    }
-    
-                    if (!$colorObj) {
-                        {
-                            $colorObj = $this->attributeOptionRepository->create([
-                                'admin_name' => ucfirst(trim($foundOptional['ColorDesc1'])),
-                                'attribute_id' => 23,
-                            ]);
-        
+            foreach ($locales as $localeObj) {
+                if ($foundOptional) {
+                    if (isset($foundOptional['ColorDesc1'])) {
+                        $colorObj = $this->attributeOptionRepository->getOption($foundOptional['ColorDesc1']);
+                        if ($colorObj && !in_array($colorObj->id,$tempAttributes)) {
                             $colorId = $colorObj->id;
-                            $colorIds[] = $colorId;
                             $tempAttributes[] = $colorId;
                         }
-                    }
-                }
-
-                if (isset($foundOptional['Materials'])) {
-                    $materialObj = $this->attributeOptionRepository->getOption($foundOptional['Materials']);
-                    if ($materialObj && !in_array($materialObj->id,$tempAttributes)) {
-                        $materialId = $materialObj->id;
-                        $tempAttributes[] = $materialId;
-                    }
-    
-                    if (!$materialObj) {
-                        {
-                            $materialObj = $this->attributeOptionRepository->create([
-                                'admin_name' => ucfirst(trim($foundOptional['Materials'])),
-                                'attribute_id' => 29,
-                            ]);
         
-                            $materialId = $materialObj->id;
-                            $materialIds[] = $materialId;
-                            $tempAttributes[] = $materialId;
+                        if (!$colorObj) {
+                            {
+                                $colorObj = $this->attributeOptionRepository->create([
+                                    'admin_name' => ucfirst(trim($foundOptional['ColorDesc1'])),
+                                    'attribute_id' => 23,
+                                ]);
+            
+                                $colorId = $colorObj->id;
+                                $colorIds[] = $colorId;
+                                $tempAttributes[] = $colorId;
+                            }
                         }
                     }
-                }
     
-                if (isset($foundOptional['Size'])) {
-                    $sizeObj = $this->attributeOptionRepository->getOption((string)$foundOptional['Size']);
-    
-                    if ($sizeObj && !in_array($sizeObj->id,$tempAttributes)) {
-                        $sizeId = $sizeObj->id;
-                        $tempAttributes[] = $sizeId;
+                    if (isset($foundOptional['Materials'])) {
+                        $materialObj = $this->attributeOptionRepository->getOption($foundOptional['Materials']);
+                        if ($materialObj && !in_array($materialObj->id,$tempAttributes)) {
+                            $materialId = $materialObj->id;
+                            $tempAttributes[] = $materialId;
+                        }
+        
+                        if (!$materialObj) {
+                            {
+                                $materialObj = $this->attributeOptionRepository->create([
+                                    'admin_name' => ucfirst(trim($foundOptional['Materials'])),
+                                    'attribute_id' => 29,
+                                ]);
+            
+                                $materialId = $materialObj->id;
+                                $materialIds[] = $materialId;
+                                $tempAttributes[] = $materialId;
+                            }
+                        }
                     }
-    
-                    if (!$sizeObj && !in_array($foundOptional['Size'],$tempAttributes)) {
-                        {
+        
+                    if (isset($foundOptional['Size'])) {
+                        $sizeObj = $this->attributeOptionRepository->getOption((string)$foundOptional['Size']);
+        
+                        if ($sizeObj && !in_array($sizeObj->id,$tempAttributes)) {
+                            $sizeId = $sizeObj->id;
+                            $tempAttributes[] = $sizeId;
+                        }
+        
+                        if (!$sizeObj && !in_array($foundOptional['Size'],$tempAttributes)) {
+                            {
+                                $sizeObj = $this->attributeOptionRepository->create([
+                                    'admin_name' => ucfirst(trim($foundOptional['Size'])),
+                                    'attribute_id' => 24,
+                                ]);
+            
+                                $sizeId = $sizeObj->id;
+                                $sizeIds[] = $sizeId;
+                                $tempAttributes[] = $sizeId;
+                            }
+                        }
+                    } elseif (sizeof(explode('-', $foundOptional['Sku'])) == 3) {
+                        $sizeName = explode('-', $foundOptional['Sku'])[2];
+        
+                        $sizeObj = $this->attributeOptionRepository->getOption($sizeName);
+        
+                        if ($sizeObj && !in_array($sizeObj->id,$tempAttributes)) {
+                            $sizeId = $sizeObj->id;
+                            $tempAttributes[] = $sizeId;
+                        }
+        
+                        if (!$sizeObj) {
                             $sizeObj = $this->attributeOptionRepository->create([
-                                'admin_name' => ucfirst(trim($foundOptional['Size'])),
+                                'admin_name' => $sizeName,
                                 'attribute_id' => 24,
                             ]);
         
@@ -590,195 +618,175 @@ class StrickerApiService {
                             $tempAttributes[] = $sizeId;
                         }
                     }
-                } elseif (sizeof(explode('-', $foundOptional['Sku'])) == 3) {
-                    $sizeName = explode('-', $foundOptional['Sku'])[2];
-    
-                    $sizeObj = $this->attributeOptionRepository->getOption($sizeName);
-    
-                    if ($sizeObj && !in_array($sizeObj->id,$tempAttributes)) {
-                        $sizeId = $sizeObj->id;
-                        $tempAttributes[] = $sizeId;
-                    }
-    
-                    if (!$sizeObj) {
-                        $sizeObj = $this->attributeOptionRepository->create([
-                            'admin_name' => $sizeName,
-                            'attribute_id' => 24,
-                        ]);
-    
-                        $sizeId = $sizeObj->id;
-                        $sizeIds[] = $sizeId;
-                        $tempAttributes[] = $sizeId;
-                    }
-                }
-                
-                if (isset($foundOptional['OptionalImage1'])) {
-                    $imageList = $this->productImageRepository->assignImage($foundOptional['OptionalImage1']);
-                    if ($imageList != 0) {
-                        $images['files'] = $imageList['files'];
-                    }
-                }
-
-                if ($foundOptional['Materials']) {
-                    $materialObj = $this->attributeOptionRepository->getOption($foundOptional['Materials']);
-                    if ($materialObj && !in_array($materialObj->id,$tempAttributes)) {
-                        $materialId = $materialObj->id;
-                        $tempAttributes[] = $materialId;
-                    }
-        
-                    if (!$materialObj) {
-                        {
-                            $materialObj = $this->attributeOptionRepository->create([
-                                'admin_name' => ucfirst(trim($foundOptional['Materials'])),
-                                'attribute_id' => 29,
-                            ]);
-        
-                            $materialId = $materialObj->id;
-                            $materialIds[] = $materialId;
-                            $tempAttributes[] = $materialId;
+                    
+                    if (isset($foundOptional['OptionalImage1'])) {
+                        $imageList = $this->productImageRepository->assignImage($foundOptional['OptionalImage1']);
+                        if ($imageList != 0) {
+                            $images['files'] = $imageList['files'];
                         }
                     }
-                }
+    
+                    if ($foundOptional['Materials']) {
+                        $materialObj = $this->attributeOptionRepository->getOption($foundOptional['Materials']);
+                        if ($materialObj && !in_array($materialObj->id,$tempAttributes)) {
+                            $materialId = $materialObj->id;
+                            $tempAttributes[] = $materialId;
+                        }
+            
+                        if (!$materialObj) {
+                            {
+                                $materialObj = $this->attributeOptionRepository->create([
+                                    'admin_name' => ucfirst(trim($foundOptional['Materials'])),
+                                    'attribute_id' => 29,
+                                ]);
+            
+                                $materialId = $materialObj->id;
+                                $materialIds[] = $materialId;
+                                $tempAttributes[] = $materialId;
+                            }
+                        }
+                    }
+            
+                    $this->productAttributeValueRepository->upsert([
+                        'product_id' => $variant->id,
+                        'attribute_id' => 29,
+                        'locale' => $localeObj->code,
+                        'channel' => null,
+                        'unique_id' => implode('|', [$variant->id,29]),
+                        'text_value' => $materialObj->admin_name ?? '',
+                        'boolean_value' => null,
+                        'integer_value' => null,
+                        'float_value' => null,
+                        'datetime_value' => null,
+                        'date_value' => null,
+                        'json_value' => null,
+                    ], uniqueBy: ['product_id', 'attribute_id']);
         
-                $this->productAttributeValueRepository->upsert([
-                    'product_id' => $variant->id,
-                    'attribute_id' => 29,
-                    'locale' => 'en',
-                    'channel' => null,
-                    'unique_id' => implode('|', [$variant->id,29]),
-                    'text_value' => $materialObj->admin_name ?? '',
-                    'boolean_value' => null,
-                    'integer_value' => null,
-                    'float_value' => null,
-                    'datetime_value' => null,
-                    'date_value' => null,
-                    'json_value' => null,
-                ], uniqueBy: ['product_id', 'attribute_id']);
-    
-                $urlKey = strtolower($foundOptional['Name'] . '-' . $foundOptional['Sku']);
-                $urlKey = preg_replace('/\s+/', '-', $urlKey);
-                $urlKey = preg_replace('/[^a-z0-9-]+/', '-', strtolower($urlKey));
-                $urlKey = trim($urlKey, '-');
-                $urlKey = strtolower($urlKey);
-    
-                $cost = isset($foundOptional['Price1']) ? $foundOptional['Price1'] : 0;
-                $yourPrice = isset($mainProductOptionals['YourPrice']) ? $mainProductOptionals['YourPrice'] : 0;
-                $price = $this->markupRepository->calculatePrice($cost, $this->globalMarkup);
-
-                $variants[$variant->id] = [
-                    "sku" => $foundOptional['Sku'],
-                    "name" => $foundOptional['Name'],
-                    'price' => round($price, 2),
-                    'cost' => round($cost, 2),
-                    "weight" => $foundOptional['Weight'] ?? 0,
-                    "status" => "1",
-                    "new" => "1",
-                    "visible_individually" => "0",
-                    "featured" => "1",
-                    "guest_checkout" => "1",
-                    "product_number" =>  $foundOptional['ProdReference'] . '-' . $foundOptional['Sku'],
-                    "url_key" => $urlKey,
-                    "short_description" =>(!isset($foundOptional['ShortDescription'])) ? 'no description provided' : '<p>' . $foundOptional['ShortDescription'] . '</p>',
-                    "description" => (!isset($foundOptional['Description'])) ? 'no description provided' : '<p>' . $foundOptional['Description'] . '</p>',
-                    "manage_stock" => "1",
-                    "inventories" => [
-                        1 =>  $foundOptional['BoxQuantity'] ?? 0,
-                    ],
-                    'images' => $images
-                ];
-                
-                if ($foundOptional['HasSizes'] != false) {
-                    $sizeObj = $this->attributeOptionRepository->getOption($foundOptional['Size']);
-                    if ($sizeObj) {
-                        $variants[$variant->id]['size'] = $sizeObj->id;
-                    }
-                }
-
-                if ($foundOptional['HasColors'] != false) {
-                    $colorObj = $this->attributeOptionRepository->getOption($foundOptional['ColorDesc1']);
-                    if ($colorObj) {
-                        $variants[$variant->id]['color'] = $colorObj->id;
-                    }
-                }
-    
-                $this->supplierRepository->create([
-                    'product_id' => $variant->id,
-                    'supplier_code' => $this->identifier
-                ]);
-
-                if(isset($foundOptional['Type']) && $foundOptional['Type']!= '') {
-                    if (array_key_exists($foundOptional['Type'], $this->categoryMapper->midocean_to_stricker_category)) {
-                        $categories = $this->categoryImportService->importStrickerCategories($foundOptional, $this->categoryMapper->midocean_to_stricker_category, $this->categoryMapper->midocean_to_stricker_subcategory);
-                    }
-                }
-
-                $name = $foundOptional['Name'];
-                $components = $foundOptional['ProductComponents'];
-                $brand = $foundOptional['Brand'];
-                $productCategory = $foundOptional['Type'];
-                $productSubCategory = $foundOptional['SubType'];
-
-                $meta_title = "$materialObj->admin_name $name $components $brand";
-                $meta_description = $foundOptional['ShortDescription'];
-                $meta_keywords = "$materialObj->admin_name, $name, $components, $brand, $productCategory, $productSubCategory";
-                $price = $this->markupRepository->calculatePrice($cost, $this->globalMarkup);
-
-                $superAttributes = [
-                    '_method' => 'PUT',
-                    "channel" => "default",
-                    "locale" => "all",
-                    'sku' => $foundOptional['Sku'],
-                    "product_number" =>  $foundOptional['ProdReference'] . '-' . $foundOptional['Sku'],
-                    "name" =>  $foundOptional['Name'],
-                    "url_key" => $urlKey,                    
-                    'price' => round($price, 2),
-                    'cost' => round($cost, 2),
-                    "weight" => $foundOptional['Weight'] ?? 0,
-                    "short_description" =>(isset($foundOptional['ShortDescription'])) ? 'no description provided' : '<p>' . $foundOptional['ShortDescription'] . '</p>',
-                    "description" => (isset($foundOptional['Description'])) ? 'no description provided' : '<p>' . $foundOptional['Description'] . '</p>',
-                    "meta_title" =>  $meta_title,
-                    "meta_keywords" => $meta_keywords,
-                    "meta_description" => $meta_description,
-                    "material" => $materialObj->admin_name ?? '',
-                    "tax_category_id" => "1",
-                    "dimensions" => $dimensionsObj->admin_name ?? '',
-                    "special_price" => "",
-                    "special_price_from" => "",
-                    "special_price_to" => "",
-                    "new" => "1",
-                    "visible_individually" => "0",
-                    "status" => "1",
-                    "featured" => "1",
-                    "guest_checkout" => "1",
-                    "manage_stock" => "1",       
-                    "length" => $foundOptional['BoxLengthMM'] / 10 ?? '',
-                    "width" => $foundOptional['BoxWidthMM'] / 10 ?? '',
-                    "height" => $foundOptional['BoxHeightMM'] / 10 ?? '',
-                    "weight" => $foundOptional['Weight'],
-                    'images' =>  $images,
-                    'categories' =>  $categories,
-                ];
-    
-                if ($foundOptional['HasColors'] != false) {
-                    $colorObj = $this->attributeOptionRepository->getOption($foundOptional['ColorDesc1']);
-                    if ($colorObj) {
-                        $superAttributes['color'] = $colorObj->id;
-                    }
-                }
+                    $urlKey = strtolower($foundOptional['Name'] . '-' . $foundOptional['Sku']);
+                    $urlKey = preg_replace('/\s+/', '-', $urlKey);
+                    $urlKey = preg_replace('/[^a-z0-9-]+/', '-', strtolower($urlKey));
+                    $urlKey = trim($urlKey, '-');
+                    $urlKey = strtolower($urlKey);
         
-                if ($foundOptional['HasSizes'] != false) {
-                    $sizeObj = $this->attributeOptionRepository->getOption($foundOptional['Size']);
-                    if ($sizeObj) {
-                        $superAttributes['size'] = $sizeObj->id;
-                    }
-                }
+                    $cost = isset($foundOptional['Price1']) ? $foundOptional['Price1'] : 0;
+                    $yourPrice = isset($mainProductOptionals['YourPrice']) ? $mainProductOptionals['YourPrice'] : 0;
+                    $price = $this->markupRepository->calculatePrice($cost, $this->globalMarkup);
     
-                $product = $this->productRepository->updateToShop($superAttributes, $variant->id, 'id');
-                $this->markupRepository->addMarkupToPrice($product,$this->globalMarkup);
-
-
-            } else {
-                echo "No optional data found for Product Variant SKU: " . $variantSku . "\n";
+                    $variants[$variant->id] = [
+                        "sku" => $foundOptional['Sku'],
+                        "name" => $foundOptional['Name'],
+                        'price' => round($price, 2),
+                        'cost' => round($cost, 2),
+                        "weight" => $foundOptional['Weight'] ?? 0,
+                        "status" => "1",
+                        "new" => "1",
+                        "visible_individually" => "0",
+                        "featured" => "1",
+                        "guest_checkout" => "1",
+                        "product_number" =>  $foundOptional['ProdReference'] . '-' . $foundOptional['Sku'],
+                        "url_key" => $urlKey,
+                        "short_description" =>(!isset($foundOptional['ShortDescription'])) ? 'no description provided' : '<p>' . $foundOptional['ShortDescription'] . '</p>',
+                        "description" => (!isset($foundOptional['Description'])) ? 'no description provided' : '<p>' . $foundOptional['Description'] . '</p>',
+                        "manage_stock" => "1",
+                        "inventories" => [
+                            1 =>  $foundOptional['BoxQuantity'] ?? 0,
+                        ],
+                        'images' => $images
+                    ];
+                    
+                    if ($foundOptional['HasSizes'] != false) {
+                        $sizeObj = $this->attributeOptionRepository->getOption($foundOptional['Size']);
+                        if ($sizeObj) {
+                            $variants[$variant->id]['size'] = $sizeObj->id;
+                        }
+                    }
+    
+                    if ($foundOptional['HasColors'] != false) {
+                        $colorObj = $this->attributeOptionRepository->getOption($foundOptional['ColorDesc1']);
+                        if ($colorObj) {
+                            $variants[$variant->id]['color'] = $colorObj->id;
+                        }
+                    }
+        
+                    $this->supplierRepository->create([
+                        'product_id' => $variant->id,
+                        'supplier_code' => $this->identifier
+                    ]);
+    
+                    if(isset($foundOptional['Type']) && $foundOptional['Type']!= '') {
+                        if (array_key_exists($foundOptional['Type'], $this->categoryMapper->midocean_to_stricker_category)) {
+                            $categories = $this->categoryImportService->importStrickerCategories($foundOptional, $this->categoryMapper->midocean_to_stricker_category, $this->categoryMapper->midocean_to_stricker_subcategory);
+                        }
+                    }
+    
+                    $name = $foundOptional['Name'];
+                    $components = $foundOptional['ProductComponents'];
+                    $brand = $foundOptional['Brand'];
+                    $productCategory = $foundOptional['Type'];
+                    $productSubCategory = $foundOptional['SubType'];
+    
+                    $meta_title = "$materialObj->admin_name $name $components $brand";
+                    $meta_description = $foundOptional['ShortDescription'];
+                    $meta_keywords = "$materialObj->admin_name, $name, $components, $brand, $productCategory, $productSubCategory";
+                    $price = $this->markupRepository->calculatePrice($cost, $this->globalMarkup);
+    
+                    $superAttributes = [
+                        '_method' => 'PUT',
+                        "channel" => "default",
+                        "locale" => $localeObj->code,
+                        'sku' => $foundOptional['Sku'],
+                        "product_number" =>  $foundOptional['ProdReference'] . '-' . $foundOptional['Sku'],
+                        "name" =>  $foundOptional['Name'],
+                        "url_key" => $urlKey,                    
+                        'price' => round($price, 2),
+                        'cost' => round($cost, 2),
+                        "weight" => $foundOptional['Weight'] ?? 0,
+                        "short_description" =>(isset($foundOptional['ShortDescription'])) ? 'no description provided' : '<p>' . $foundOptional['ShortDescription'] . '</p>',
+                        "description" => (isset($foundOptional['Description'])) ? 'no description provided' : '<p>' . $foundOptional['Description'] . '</p>',
+                        "meta_title" =>  $meta_title,
+                        "meta_keywords" => $meta_keywords,
+                        "meta_description" => $meta_description,
+                        "material" => $materialObj->admin_name ?? '',
+                        "tax_category_id" => "1",
+                        "dimensions" => $dimensionsObj->admin_name ?? '',
+                        "special_price" => "",
+                        "special_price_from" => "",
+                        "special_price_to" => "",
+                        "new" => "1",
+                        "visible_individually" => "0",
+                        "status" => "1",
+                        "featured" => "1",
+                        "guest_checkout" => "1",
+                        "manage_stock" => "1",       
+                        "length" => $foundOptional['BoxLengthMM'] / 10 ?? '',
+                        "width" => $foundOptional['BoxWidthMM'] / 10 ?? '',
+                        "height" => $foundOptional['BoxHeightMM'] / 10 ?? '',
+                        "weight" => $foundOptional['Weight'],
+                        'images' =>  $images,
+                        'categories' =>  $categories,
+                    ];
+        
+                    if ($foundOptional['HasColors'] != false) {
+                        $colorObj = $this->attributeOptionRepository->getOption($foundOptional['ColorDesc1']);
+                        if ($colorObj) {
+                            $superAttributes['color'] = $colorObj->id;
+                        }
+                    }
+            
+                    if ($foundOptional['HasSizes'] != false) {
+                        $sizeObj = $this->attributeOptionRepository->getOption($foundOptional['Size']);
+                        if ($sizeObj) {
+                            $superAttributes['size'] = $sizeObj->id;
+                        }
+                    }
+        
+                    $product = $this->productRepository->updateToShop($superAttributes, $variant->id, 'id');
+                    $this->markupRepository->addMarkupToPrice($product,$this->globalMarkup);
+    
+    
+                } else {
+                    echo "No optional data found for Product Variant SKU: " . $variantSku . "\n";
+                }
             }
         }
 
