@@ -12,6 +12,7 @@ use App\Services\CategoryImportService;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Hitexis\Markup\Repositories\MarkupRepository;
 use Webkul\Core\Repositories\LocaleRepository;
+use Illuminate\Support\Facades\DB;
 
 class MidoceanApiService {
 
@@ -550,6 +551,36 @@ class MidoceanApiService {
                 'images' =>  $images,
                 'variants' => $variants,
             ];
+
+            if (!empty($sizeList)) {
+                $superAttributesPivot[] = [
+                    'product_id'   => $product['id'],
+                    'attribute_id' => 24,
+                ];
+        
+                DB::table('product_super_attributes')->upsert(
+                    $superAttributesPivot,
+                    [
+                        'product_id',
+                        'attribute_id',
+                    ],
+                );
+            }
+    
+            if (!empty($colorList)) {
+                $superAttributesPivot[] = [
+                    'product_id'   => $product['id'],
+                    'attribute_id' => 23,
+                ];
+        
+                DB::table('product_super_attributes')->upsert(
+                    $superAttributesPivot,
+                    [
+                        'product_id',
+                        'attribute_id',
+                    ],
+                );
+            }
     
             if (isset($apiProduct->dimensions)) {
                 $dimensionsObj = $this->attributeOptionRepository->getOption($apiProduct->dimensions);
