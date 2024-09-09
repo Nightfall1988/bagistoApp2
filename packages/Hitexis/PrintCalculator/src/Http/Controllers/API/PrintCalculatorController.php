@@ -43,7 +43,7 @@ class PrintCalculatorController extends Controller
 
         $techniques = $this->printRepository
             ->where('description', '=', $request->type)
-            ->orderBy('minimum_quantity', 'asc')
+            ->orderBy('description', 'asc')
             ->get();
 
         $selectedTechnique = null;

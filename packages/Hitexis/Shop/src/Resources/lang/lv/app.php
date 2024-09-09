@@ -469,6 +469,7 @@ return [
             'dimensions'                   => "Izmēri",
 
             'calculator' => [
+                'title'                    => 'Izvēlēties drukas veidu',
                 'individual-product-price' => 'Cena par produktu',
                 'product-name'             => 'Preces nosaukums',
                 'quantity'                 => 'Daudzums',

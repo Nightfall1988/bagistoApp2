@@ -438,7 +438,18 @@ return [
             'material'                     => "Material",
             'dimensions'                   => "Dimensions",
             
-            
+            'calculator' => [
+                'title'                    => 'Select print type',
+                'individual-product-price' => 'Product price',
+                'product-name'             => 'Product',
+                'quantity'                 => 'Quantity',
+                'technique'                => 'Printing type',
+                'product-price-qty'        => 'Product with printing',
+                'total-price-technique'    => 'Price with printing',
+                'print-fee'                => 'Print fee',
+                'total-price'              => 'Total',
+            ],
+
             'type' => [
                 'configurable' => [
                     'select-options'       => 'Please select an option',
