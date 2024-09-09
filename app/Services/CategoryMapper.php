@@ -262,7 +262,7 @@ class CategoryMapper {
 
     public array $categoriesLv = [
         'office---writing' => 'Biroja piederumi',
-        'office-accessories-' => 'Biroja aksesuāri ',
+        'office-accessories-' => 'Biroja aksesuāri',
         'bags---travel' => 'Somas un ceļojuma piederumi',
         'backpacks---business-bags' => 'Mugursomas un darba somas',
         'premiums---tools' => 'Premiums & Tools',

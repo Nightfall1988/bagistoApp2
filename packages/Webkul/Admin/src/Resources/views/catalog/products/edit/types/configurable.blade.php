@@ -1096,6 +1096,7 @@
 
             methods: {
                 addVariant(params, { resetForm }) {
+                    console.log(param);
                     
                     let filteredVariants = this.variants.filter((variant) => {
                         let matchCount = 0;
@@ -1435,6 +1436,7 @@
                 },
 
                 optionName(attribute, optionId) {
+                    console.log(attribute, optionId);
                     return attribute.options.find((option) => option.id == optionId)?.admin_name;
                 },
             },
@@ -1450,6 +1452,7 @@
             ],
 
             data() {
+
                 return {
                     inventorySources: @json($inventorySources),
                 }
@@ -1500,6 +1503,8 @@
 
             methods: {
                 optionName(attribute, optionId) {
+                    console.log(attribute, optionId);
+
                     return attribute.options.find((option) => {
                         return option.id == optionId;
                     })?.admin_name;

@@ -174,7 +174,7 @@
                                     @change="updateItem($event, item)"
                                 />
 
-                                
+
                                 {!! view_render_event('bagisto.shop.checkout.mini-cart.drawer.content.quantity_changer.after') !!}
 
                                 {!! view_render_event('bagisto.shop.checkout.mini-cart.drawer.content.remove_button.before') !!}
@@ -193,6 +193,7 @@
                         </div>
                     </div>
                 </div>
+                
 
                 <!-- Empty Cart Section -->
                 <div
@@ -222,6 +223,11 @@
                         </p>
 
                         <template v-if="! isLoading">
+                            <template>
+                                <p class="text-3xl font-semibold">
+                                    @{{ cart.print_price }}
+                                </p>
+                            </template>
                             <template v-if="displayTax.subtotal == 'including_tax'">
                                 <p class="text-3xl font-semibold">
                                     @{{ cart.formatted_sub_total_incl_tax }}
@@ -319,7 +325,12 @@
                     cart: null,
 
                     isLoading:false,
-
+                    selectedTechnique: '',
+                    currentTechnique: null,
+                    techniquesData: [],
+                    techniquePrice: '',
+                    techniqueInfo: '',
+                    techniqueSinglePrice: '',
                     displayTax: {
                         prices: "{{ core()->getConfigData('sales.taxes.shopping_cart.display_prices') }}",
                         subtotal: "{{ core()->getConfigData('sales.taxes.shopping_cart.display_subtotal') }}",
@@ -352,6 +363,7 @@
 
                 updateItem(quantity, item) {
 
+                    log
                     this.isLoading = true;
                     let qty = {};
 
@@ -368,7 +380,12 @@
 
                             this.isLoading = false;
                         }).catch(error => this.isLoading = false);
-                },
+
+                        let l = this.calculatePrices()
+                        console.log(l);
+                        
+                
+                    },
 
                 removeItem(itemId) {
                     this.$emitter.emit('open-confirm-modal', {
@@ -394,6 +411,45 @@
                         }
                     });
                 },
+
+                calculatePrices() {
+                const quantity = this.getQuantityFromFieldQty();
+                if (!quantity || !this.currentTechnique) return;
+
+                // Send data to the backend using Axios
+                axios.get("{{ route('printcontroller.api.print.gettechnique') }}", {
+                    params: {
+                        technique_id: this.currentTechnique.id,
+                        quantity: quantity,
+                        product_id: this.product.id
+                    }
+                })
+                .then(response => {
+                    const data = response.data;
+
+                    // Update techniquesData with backend-calculated data
+                    this.techniquesData = [{
+                        product_name: this.product.name,
+                        print_technique: this.currentTechnique.description,
+                        quantity: quantity,
+                        price: data.price,
+                        setup_cost: data.setup_cost,
+                        total_price: data.total_price,
+                        technique_print_fee: data.technique_print_fee,
+                        print_fee: data.print_fee,
+                        product_price_qty: data.product_price_qty,
+                        total_product_and_print: data.total_product_and_print
+                    }];
+
+                    // Set techniqueSinglePrice to the calculated print fee
+                    this.techniqueSinglePrice = parseFloat(data.technique_print_fee).toFixed(2);
+                    this.techniqueInfo = this.currentTechnique.description;
+                    this.techniquePrice = data.technique_print_fee.toFixed(2);
+                })
+                .catch(error => {
+                    console.error('Error calculating price:', error);
+                });
+            },
             },
         });
     </script>

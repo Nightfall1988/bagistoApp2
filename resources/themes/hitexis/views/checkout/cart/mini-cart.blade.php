@@ -1,5 +1,3 @@
-<!-- Mini Cart Vue Component -->
-
 <v-mini-cart>
     <span
         class="icon-cart cursor-pointer text-2xl"
@@ -143,7 +141,6 @@
                                         @click="item.option_show = ! item.option_show"
                                     >
                                         @lang('shop::app.checkout.cart.mini-cart.see-details')
-
                                         <span
                                             class="text-2xl"
                                             :class="{'icon-arrow-up': item.option_show, 'icon-arrow-down': ! item.option_show}"
@@ -217,6 +214,16 @@
             <!-- Drawer Footer -->
             <x-slot:footer>
                 <div v-if="cart?.items?.length">
+                    <div class="mb-8 mt-8 flex items-center justify-between border-b border-zinc-200 px-6 pb-2">
+                        <p class="text-sm font-medium text-zinc-500">
+                            @lang('shop::app.products.view.calculator.print-fee')
+                        </p>
+                        <p class="text-3xl font-semibold text-gray-800">
+                            @{{ printPrice }}
+                        </p>
+                    </div>
+                    
+                    
                     <div class="mb-8 mt-8 flex items-center justify-between border-b border-zinc-200 px-6 pb-2">
                         {!! view_render_event('bagisto.shop.checkout.mini-cart.subtotal.before') !!}
 
@@ -320,9 +327,9 @@
             data() {
                 return  {
                     cart: null,
-
-                    isLoading:false,
-
+                    printPrice: '0.00', // New data property
+                    isLoading: false,
+                    currentTechnique: null,
                     displayTax: {
                         prices: "{{ core()->getConfigData('sales.taxes.shopping_cart.display_prices') }}",
                         subtotal: "{{ core()->getConfigData('sales.taxes.shopping_cart.display_subtotal') }}",
@@ -333,11 +340,6 @@
             mounted() {
                 this.getCart();
 
-                /**
-                 * To Do: Implement this.
-                 *
-                 * Action.
-                 */
                 this.$emitter.on('update-mini-cart', (cart) => {
                     this.cart = cart;
                 });
@@ -347,15 +349,14 @@
                 getCart() {
                     this.$axios.get('{{ route('shop.api.checkout.cart.index') }}')
                         .then(response => {
-                            console.log(response.data.discount_message)
                             this.cart = response.data.data;
                         })
                         .catch(error => {});
                 },
 
                 updateItem(quantity, item) {
+                    this.updateCurrentTechnique();
                     this.isLoading = true;
-
                     let qty = {};
 
                     qty[item.id] = quantity;
@@ -385,18 +386,40 @@
                                 this.cart = response.data.data;
 
                                 this.$emitter.emit('add-flash', { type: 'success', message: response.data.message });
-                                
                                 this.isLoading = false;
                             })
                             .catch(error => {
                                 this.$emitter.emit('add-flash', { type: 'error', message: response.data.message });
-
                                 this.isLoading = false;
                             });
                         }
                     });
                 },
-            },
+
+                updateCurrentTechnique() {
+                    this.getTechnique(this.cart.items, this.cart.print_type);
+                },
+
+                getTechnique(items, print_type) {
+                    axios.get("{{ route('printcontroller.api.print.gettechniquecart') }}", {
+                        params: {
+                            techniqueName: print_type,
+                            items: this.cart.items,
+                        }
+                    })
+                    .then(response => {
+                        const data = response.data;
+                        if (data.length > 0) {
+                            this.printPrice = (data[0].total_price).toFixed(2); // Update print price here
+                        } else {
+                            this.printPrice = '0.00';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error calculating price:', error);
+                    });
+                }
+            }
         });
     </script>
 @endpushOnce

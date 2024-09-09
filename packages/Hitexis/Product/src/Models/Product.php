@@ -26,7 +26,9 @@ use Hitexis\Product\Database\Factories\ProductFactory;
 use Hitexis\Product\Type\AbstractType;
 use Hitexis\Wholesale\Models\WholesaleProxy;
 use Hitexis\PrintCalculator\Models\PrintTechniqueProxy;
+use Hitexis\PrintCalculator\Models\PrintManipulationProxy;
 use Hitexis\Markup\Models\MarkupProxy;
+
 
 class Product extends BaseProduct implements ProductContract
 {
@@ -568,6 +570,11 @@ class Product extends BaseProduct implements ProductContract
     public function print_techniques(): HasMany
     {
         return $this->hasMany(PrintTechniqueProxy::modelClass());
+    }
+
+    public function print_manipulations()
+    {
+        return $this->belongsToMany(PrintManipulationProxy::class, 'print_technique_manipulation');
     }
 
     public function getColors()

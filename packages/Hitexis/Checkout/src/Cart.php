@@ -27,6 +27,8 @@ class Cart
      */
     private $cart;
 
+    private array $printData = ["technique-info" => '', "technique-price" => '', 'technique-single-price' => ''];
+
     const TAX_CALCULATION_BASED_ON_SHIPPING_ORIGIN = 'shipping_origin';
 
     const TAX_CALCULATION_BASED_ON_BILLING_ADDRESS = 'billing_address';
@@ -246,6 +248,11 @@ class Cart
      */
     public function addProduct(ProductContract $product, array $data): Contracts\Cart|\Exception
     {
+        if ($data["technique-info"] && $data["technique-price"]) {
+            $this->printData["technique-info"] = $data["technique-info"];
+            $this->printData["technique-price"] = $data["technique-price"];
+            $this->printData["technique-single-price"] = $data["technique-single-price"];
+        }
         Event::dispatch('checkout.cart.add.before', $product->id);
 
         if (! $this->cart) {
@@ -432,7 +439,9 @@ class Cart
                     'base_total_incl_tax' => $item->base_price_incl_tax * $quantity,
                     'total_weight'        => $item->weight * $quantity,
                     'base_total_weight'   => $item->weight * $quantity,
-                    'discount_amount' => '0',
+                    'discount_amount'     => '0',
+                    'print_single_price'  => $this->printData["technique-single-price"]
+
                 ], $itemId);
     
                 Event::dispatch('checkout.cart.update.after', $item);
@@ -455,6 +464,10 @@ class Cart
                         'base_total'          => ($baseTotal = $item->base_price * $item->quantity),
                         'base_total_incl_tax' => $item->baseTotal,
                         'discount_amount' => '0',
+                        'total_weight'        => $item->weight * $quantity,
+                        'base_total_weight'   => $item->weight * $quantity,
+                        'print_single_price'  => $this->printData["technique-single-price"]
+
                     ], $item->id);
 
                     Event::dispatch('checkout.cart.update.after', $item);
@@ -909,19 +922,24 @@ class Cart
 
         foreach ($this->cart->items as $item) {
 
+            
+            if ($this->printData["technique-price"] != '' && $this->printData["technique-info"] != '') {
+                $this->cart->print_price = $this->printData["technique-price"] *  $item->quantity;
+                $this->cart->print_type = $this->printData["technique-info"];
+            }
+
             $this->cart->discount_amount += $item->discount_amount;
             $this->cart->base_discount_amount += $item->base_discount_amount;
 
             $this->cart->tax_total += $item->tax_amount;
             $this->cart->base_tax_total += $item->base_tax_amount;
 
-            $this->cart->sub_total = (float) $this->cart->sub_total + ($item->total - $item->discount_amount);
+            $this->cart->sub_total = (float) $this->cart->sub_total + ($item->total - $item->discount_amount) + $this->cart->print_price;
             $this->cart->base_sub_total = (float) $this->cart->base_sub_total + $item->base_total;
             if ($this->cart->sub_total) {
-                            $this->cart->sub_total_incl_tax = (float) $this->cart->sub_total_incl_tax + $item->total_incl_tax;
-            $this->cart->base_sub_total_incl_tax = (float) $this->cart->base_sub_total_incl_tax + $item->base_total_incl_tax;
-
-            $quantities += $item->quantity;
+                $this->cart->sub_total_incl_tax = (float) $this->cart->sub_total_incl_tax + $item->total_incl_tax;
+                $this->cart->base_sub_total_incl_tax = (float) $this->cart->base_sub_total_incl_tax + $item->base_total_incl_tax;
+                $quantities += $item->quantity;
             }
 
         }
@@ -950,6 +968,11 @@ class Cart
             $this->cart->base_discount_amount += $shipping->base_discount_amount;
         }
 
+        if ($this->printData["technique-price"] != '' && $this->printData["technique-info"] != '') {
+            $this->cart->print_price = $this->printData["technique-price"] *  $item->quantity;
+            $this->cart->print_type = $this->printData["technique-info"];
+        }
+
         $this->cart->discount_amount = round($this->cart->discount_amount, 2);
         $this->cart->base_discount_amount = round($this->cart->base_discount_amount, 2);
 
@@ -959,7 +982,7 @@ class Cart
         $this->cart->sub_total_incl_tax = round($this->cart->sub_total_incl_tax, 2);
         $this->cart->base_sub_total_incl_tax = round($this->cart->base_sub_total_incl_tax, 2);
 
-        $this->cart->grand_total = round($this->cart->grand_total, 2);
+        $this->cart->grand_total = round($this->cart->grand_total, 2) +  $this->cart->print_price;
         $this->cart->base_grand_total = round($this->cart->base_grand_total, 2);
 
         $this->cart->cart_currency_code = core()->getCurrentCurrencyCode();

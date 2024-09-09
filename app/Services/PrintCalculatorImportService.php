@@ -7,6 +7,8 @@ use Hitexis\PrintCalculator\Repositories\PrintManipulationRepository;
 use Hitexis\PrintCalculator\Repositories\PrintTechniqueRepository;
 use Hitexis\Product\Repositories\HitexisProductRepository;
 use Symfony\Component\Console\Helper\ProgressBar;
+use Illuminate\Support\Facades\DB;
+use Hitexis\Product\Models\Product;
 
 class PrintCalculatorImportService
 {
@@ -22,17 +24,179 @@ class PrintCalculatorImportService
         $this->printTechniqueRepository = $printTechniqueRepository;
         $this->printManipulationRepository = $printManipulationRepository;
         $this->productRepository = $productRepository;
-        $this->url = env('STRICKER_PRINT_DATA');
+        $this->strickerUrl = env('STRICKER_PRINT_DATA');
+        $this->midoceanUrl = env('MIDOECAN_PRINT_PRODUCTS_URL');
+        $this->midoceanPrintUrl = env('MIDOCEAN_PRINT_DATA');
         $this->authUrl = env('STRICKER_AUTH_URL') . env('STRICKER_AUTH_TOKEN');
     }
-
+    
     public function importPrintData()
     {
         ini_set('memory_limit', '1G');
+        $this->importMidoceanPrintTechniquesAndManipulations();
         $this->importStrickerPrintData();
         $this->importXDConnectsPrintData();
+
     }
 
+    public function importMidoceanPrintData() {
+        ini_set('memory_limit', '1G');
+        $headers = [
+            'Content-Type' => 'application/json',
+            'x-Gateway-APIKey' => env('MIDOECAN_API_KEY'),
+        ];
+    
+        $this->httpClient = new GuzzleClient([
+            'headers' => $headers
+        ]);
+
+        $request = $this->httpClient->get($this->midoceanUrl);
+
+        $responseBody = $request->getBody()->getContents();
+        $printData = json_decode($responseBody, true);
+        $this->importPrintDataMidocean($printData);
+        $tracker = new ProgressBar($this->output, count($printData['CustomizationOptions']));
+        $tracker->start();
+
+    }
+
+    public function importMidoceanPrintTechniquesAndManipulations() 
+    {
+        ini_set('memory_limit', '1G');
+        $headers = [
+            'Content-Type' => 'application/json',
+            'x-Gateway-APIKey' => env('MIDOECAN_API_KEY'),
+        ];
+    
+        $this->httpClient = new GuzzleClient([
+            'headers' => $headers
+        ]);
+
+        $request = $this->httpClient->get($this->midoceanUrl);
+        $responseBody = $request->getBody()->getContents();
+        $printData = json_decode($responseBody, true);
+        ////////////////////
+        $request = $this->httpClient->get($this->midoceanPrintUrl);
+        $responseBody = $request->getBody()->getContents();
+        $printProductData = json_decode($responseBody, true);
+        $this->importPrintDataMidocean($printProductData,$printData);
+    }
+
+    public function setOutput($output)
+    {
+        $this->output = $output;
+    }
+
+    public function importPrintDataMidocean($data,$printData) {
+        ini_set('memory_limit', '1G');
+
+        // Fetching print products data
+        $response = $this->httpClient->get($this->midoceanPrintUrl);
+        $data = json_decode($response->getBody(), true);
+        if ($data && $printData) {
+            $this->processPrintTechniques($data['print_techniques'], $printData['products']);
+        }
+    }
+
+    /**
+     * Process and import print techniques and products.
+     *
+     * @param array $printTechniquesData
+     * @param array $productsData
+     */
+    protected function processPrintTechniques($printTechniquesData, $productsData) {
+        $tracker = new ProgressBar($this->output, count($printTechniquesData));
+        $tracker->start();
+    
+        foreach ($printTechniquesData as $techniqueData) {
+            foreach ($productsData as $productData) {
+                // Step 1: Find the product by its 'master_code'
+                $product = $this->productRepository->findWhereSimilarAttributeCode('sku', $productData['master_code']);
+    
+                if ($product && $product->first()) {
+                    $product = $product->first();  // Grab the first result
+    
+                    \Log::info("Processing product ID: " . $product->id);
+    
+                    try {
+                        // Step 2: Insert or update the print technique
+                        $printTechnique = $this->printTechniqueRepository->updateOrCreate(
+                            [
+                                'technique_id' => $techniqueData['id'],
+                                'product_id' => $product->id,
+                            ],
+                            [
+                                'description' => $techniqueData['description'] ?? null,
+                                'pricing_type' => $techniqueData['pricing_type'] ?? null,
+                                'setup' => $techniqueData['setup'] ?? null,
+                                'setup_repeat' => $techniqueData['setup_repeat'] ?? null,
+                                'next_colour_cost_indicator' => $techniqueData['next_colour_cost_indicator'] ?? null,
+                                'range_id' => $techniqueData['var_costs'][0]['range_id'] ?? null,
+                                'area_from' => $techniqueData['var_costs'][0]['area_from'] ?? null,
+                                'area_to' => $techniqueData['var_costs'][0]['area_to'] ?? null,
+                                'pricing_data' => isset($techniqueData['var_costs'][0]['scales'])
+                                ? json_encode($this->transformPricingData($techniqueData['var_costs'][0]['scales']))
+                                : json_encode([]),  // Empty array if no pricing data is found
+                                'default' => $this->isDefaultTechnique($techniqueData, $productData) ?? 0,
+                            ]
+                        );
+    
+                        \Log::info("Print technique saved for product ID: " . $product->id);
+    
+                        // Step 3: Attach print manipulation
+                        $this->attachPrintManipulation($printTechnique, $productData);
+                    } catch (\Exception $e) {
+                        // Catch and log any exception that might occur
+                        \Log::error("Failed to save print technique for product ID: " . $product->id . " - Error: " . $e->getMessage());
+                    }
+                } else {
+                    // Log if the product is not found
+                    \Log::warning("Product not found for master_code: " . $productData['master_code']);
+                }
+            }
+            $tracker->advance();
+
+        }
+    
+        $tracker->finish();
+    }
+    
+    
+    /**
+     * Attach the print manipulation to the print technique.
+     *
+     * @param PrintTechnique $printTechnique
+     * @param array $productData
+     */
+    protected function attachPrintManipulation($printTechnique, $productData) {
+        $manipulationCode = $productData['print_manipulation'];
+        $manipulation = $this->printManipulationRepository->where('code', $manipulationCode)->first();
+
+        if ($manipulation) {
+            $printTechnique->print_manipulations()->syncWithoutDetaching($manipulation->id);
+        }
+    }
+
+    /**
+     * Determine if a technique is the default for a product's print position.
+     *
+     * @param array $techniqueData
+     * @param array $productData
+     * @return bool
+     */
+    protected function isDefaultTechnique($techniqueData, $productData) {
+        foreach ($productData['printing_positions'] as $position) {
+            foreach ($position['printing_techniques'] as $technique) {
+                if ($technique['id'] === $techniqueData['id'] && $technique['default'] === true) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    
     public function importStrickerPrintData()
     {
         ini_set('memory_limit', '1G');
@@ -47,8 +211,8 @@ class PrintCalculatorImportService
         $request = $this->httpClient->get($this->authUrl);
         $authToken = json_decode($request->getBody()->getContents())->Token;
 
-        $this->url = $this->url . $authToken . '&lang=en';
-        $request = $this->httpClient->get($this->url);
+        $this->strickerUrl = $this->strickerUrl . $authToken . '&lang=en';
+        $request = $this->httpClient->get($this->strickerUrl);
 
         $responseBody = $request->getBody()->getContents();
         $printData = json_decode($responseBody, true);
@@ -89,10 +253,9 @@ class PrintCalculatorImportService
                     'product_id' => $product->id,
                 ];
 
-                $this->printTechniqueRepository->create($techniqueData);
+                $this->printTechniqueRepository->upsert($techniqueData, ['prouct_id', 'pricing_data']);
             }
 
-            $tracker->advance();
         }
 
         $tracker->finish();
@@ -209,8 +372,16 @@ class PrintCalculatorImportService
         return $resultArray;
     }
 
-    public function setOutput($output)
+    protected function transformPricingData(array $scales)
     {
-        $this->output = $output;
+        return array_map(function ($scale) {
+            return [
+                'MinQt' => $scale['minimum_quantity'] ?? 0,  // Default to 0 if 'minimum_quantity' is not set
+                'Price' => floatval(str_replace(',', '.', $scale['price'] ?? 0))  // Converting string to float, assuming comma as decimal separator
+            ];
+        }, $scales);
     }
+
 }
+
+

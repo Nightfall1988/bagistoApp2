@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('description');
             $table->string('setup_repeat');
             $table->string('next_colour_cost_indicator');
-            $table->string('minimum_colors');            
+            $table->string('minimum_colors');
             $table->string('range_id');
             $table->string('area_from');
             $table->string('area_to');

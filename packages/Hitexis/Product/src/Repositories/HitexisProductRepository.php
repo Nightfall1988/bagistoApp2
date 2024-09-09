@@ -227,6 +227,59 @@ class HitexisProductRepository extends Repository
 
         return $product;
     }
+
+        /**
+     * Return product by filtering through attribute values.
+     *
+     * @param  string  $code
+     * @param  mixed  $value
+     * @return \Hitexis\Product\Models\Product|null
+     */
+    public function findWhereSimilarAttributeCode($code, $value): ?HitexisProductModel
+    {
+        $attribute = $this->attributeRepository->findOneByField('code', $code);
+
+        $attributeValues = $this->productAttributeValueRepository->where('attribute_id', $attribute->id)
+        ->where($attribute->column_name, 'LIKE', '%' . $value . '%')
+        ->get();
+
+        if ($attribute->value_per_channel) {
+            if ($attribute->value_per_locale) {
+                $filteredAttributeValues = $attributeValues
+                    ->where('channel', core()->getRequestedChannelCode())
+                    ->where('locale', core()->getRequestedLocaleCode());
+                if ($filteredAttributeValues->isEmpty()) {
+                    $filteredAttributeValues = $attributeValues
+                        ->where('channel', core()->getRequestedChannelCode())
+                        ->where('locale', core()->getDefaultLocaleCodeFromDefaultChannel());
+                }
+            } else {
+                $filteredAttributeValues = $attributeValues
+                    ->where('channel', core()->getRequestedChannelCode());
+            }
+        } else {
+            if ($attribute->value_per_locale) {
+                $filteredAttributeValues = $attributeValues
+                    ->where('locale', core()->getRequestedLocaleCode());
+
+                if ($filteredAttributeValues->isEmpty()) {
+                    $filteredAttributeValues = $attributeValues
+                        ->where('locale', core()->getDefaultLocaleCodeFromDefaultChannel());
+                }
+            } else {
+                $filteredAttributeValues = $attributeValues;
+            }
+        }
+
+        $product = $filteredAttributeValues->first()?->product;
+
+        if (isset($product) && get_class($product) == "Webkul\Product\Models\Product") {
+            $product = new ProductAdapter($product);
+            $product = $product->getModel();
+        }
+
+        return $product;
+    }
     /**
      * Retrieve product from slug without throwing an exception.
      */

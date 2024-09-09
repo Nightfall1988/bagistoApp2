@@ -469,10 +469,12 @@ return [
             'dimensions'                   => "Izmēri",
 
             'calculator' => [
-                'price'                    => 'Cena',
+                'individual-product-price' => 'Cena par produktu',
                 'product-name'             => 'Preces nosaukums',
                 'quantity'                 => 'Daudzums',
                 'technique'                => 'Drukas tips',
+                'product-price-qty'        => 'Produkts ar apdruku',
+                'total-price-technique'    => 'Cena ar apdruku',
                 'print-fee'                => 'Drukas cena',
                 'total-price'              => 'Kopā',
             ],

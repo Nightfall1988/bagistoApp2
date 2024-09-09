@@ -49,6 +49,8 @@ class CartResource extends JsonResource
             'have_stockable_items'               => $this->haveStockableItems(),
             'payment_method'                     => $this->payment?->method,
             'payment_method_title'               => core()->getConfigData('sales.payment_methods.'.$this->payment?->method.'.title'),
+            'print_type'                         => $this->print_type,
+            'print_price'                        => $this->print_price,
         ];
     }
 }

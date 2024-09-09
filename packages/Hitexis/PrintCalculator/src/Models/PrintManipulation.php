@@ -28,4 +28,9 @@ class PrintManipulation extends BasePrintManipulation implements PrintManipulati
         'description',
         'price',
     ];
+
+    public function techniques()
+    {
+        return $this->belongsToMany(PrintTechnique::class, 'print_technique_manipulation');
+    }
 }

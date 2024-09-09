@@ -54,4 +54,9 @@ class PrintTechnique extends BasePrintTechnique implements PrintTechniqueContrac
     {
         return $this->belongsTo(ProductProxy::modelClass());
     }
+
+    public function print_manipulations()
+    {
+        return $this->belongsToMany(PrintManipulation::class, 'print_technique_manipulation');
+    }
 }

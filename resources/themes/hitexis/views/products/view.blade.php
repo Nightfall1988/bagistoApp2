@@ -264,7 +264,7 @@
                 <form
                     ref="formData"
                     @submit="handleSubmit($event, addToCart)"
-                >
+                    >
                     <input
                         type="hidden"
                         name="product_id"
@@ -736,8 +736,6 @@
                 },
 
                 mounted() {
-
-                    this.hasTechniques()
                     this.updateQuantity();
 
                     this.$emitter.on('configurable-variant-update-sku-event', (newSku) => {
@@ -750,14 +748,8 @@
 
                 methods: {
 
-                    hasTechniques() {
-                        console.log(this.product);
-                            
-                    },
-
-                    updateQuantity() {
+                    updateQuantity() {                        
                         const quantityDisplay = document.getElementById('quantity-display');
-                        console.log(this.sku); // Debugging to ensure correct SKU is being used
                         this.quantity = quantities[this.sku] || 0; // Access quantity based on current SKU
                         quantityDisplay.textContent = this.quantity;
                     },
