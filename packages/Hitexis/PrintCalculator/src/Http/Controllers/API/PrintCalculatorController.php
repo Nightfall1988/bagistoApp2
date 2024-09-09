@@ -45,6 +45,7 @@ class PrintCalculatorController extends Controller
             ->where('description', '=', $request->type)
             ->orderBy('description', 'asc')
             ->get();
+            
 
         $selectedTechnique = null;
 

@@ -317,5 +317,6 @@ class CategoryMapper {
         'textile-solo-group' => 'Tekstils no SOLO Grupas',
         'corporate---workwear' => 'Korporatīvie un Darba apģērbi',
         'brand' => 'Brenda',
+        'windproof-umbrellas' => 'Vēja necaurlaidīgi lietussargi'
     ];
 }
