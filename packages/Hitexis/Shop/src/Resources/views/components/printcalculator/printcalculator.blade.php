@@ -23,9 +23,10 @@
                         <tr>
                             <th class="px-6 py-3 border-b-2 border-indigo-700">@lang('shop::app.products.view.calculator.product-name')</th>
                             <th class="px-6 py-3 border-b-2 border-indigo-700">@lang('shop::app.products.view.calculator.technique')</th>
+                            <th class="px-6 py-3 border-b-2 border-indigo-700">@lang('shop::app.products.view.calculator.individual-product-price')</th>
                             <th class="px-6 py-3 border-b-2 border-indigo-700">@lang('shop::app.products.view.calculator.quantity')</th>
-                            <th class="px-6 py-3 border-b-2 border-indigo-700">@lang('shop::app.products.view.calculator.price')</th>
                             <th class="px-6 py-3 border-b-2 border-indigo-700">@lang('shop::app.products.view.calculator.print-fee')</th>
+                            <th class="px-6 py-3 border-b-2 border-indigo-700">@lang('shop::app.products.view.calculator.total-price-technique')</th>
                             <th class="px-6 py-3 border-b-2 border-indigo-700">@lang('shop::app.products.view.calculator.total-price')</th>
                         </tr>
                     </thead>
@@ -33,17 +34,23 @@
                         <tr v-for="technique in techniquesData" :key="technique.description" class="hover:bg-gray-100 transition-colors duration-150">
                             <td class="px-6 py-4 border-b border-gray-200">@{{ technique.product_name }}</td>
                             <td class="px-6 py-4 border-b border-gray-200">@{{ technique.print_technique }}</td>
+                            <td class="px-6 py-4 border-b border-gray-200">@{{ parseFloat(product.price).toFixed(2) }}</td>
                             <td class="px-6 py-4 border-b border-gray-200">@{{ technique.quantity }}</td>
-                            <td class="px-6 py-4 border-b border-gray-200">@{{ technique.price }}</td>
-                            <td class="px-6 py-4 border-b border-gray-200">@{{ technique.technique_print_fee }}</td>
-                            <td class="px-6 py-4 border-b border-gray-200">@{{ parseFloat(technique.total_price).toFixed(2) }}</td>
+                            <td class="px-6 py-4 border-b border-gray-200">@{{ parseFloat(technique.technique_print_fee).toFixed(2) }}</td>
+                            <td class="px-6 py-4 border-b border-gray-200">@{{ ((product.price * technique.quantity) + technique.price).toFixed(2) }}</td>
+                            <td class="px-6 py-4 border-b border-gray-200">@{{ ((product.price * technique.quantity) + parseFloat(technique.total_price)).toFixed(2) }}</td>
                         </tr>
+                        <!-- Hidden inputs to hold technique-related data -->
+                        <input name='technique-single-price' type='hidden' v-model="techniqueSinglePrice" />
+                        <input name='technique-info' type='hidden' v-model="techniqueInfo" />
+                        <input name='technique-price' type='hidden' v-model="techniquePrice" />
                     </tbody>
                 </table>
             </div>
         </div>
     </script>
 </div>
+
 <script type="module">
     app.component('v-print-calculator', {
         template: '#v-print-calculator-template',
@@ -55,6 +62,9 @@
                 selectedTechnique: '',
                 currentTechnique: null,
                 techniquesData: [],
+                techniquePrice: '',
+                techniqueInfo: '',
+                techniqueSinglePrice: '',
             };
         },
 
@@ -72,6 +82,12 @@
             selectedTechnique() {
                 this.updateCurrentTechnique();
             },
+
+            selectedTechnique(newVal, oldVal) {
+                if (newVal !== oldVal) {
+                    this.updateCurrentTechnique();
+                }
+            },
         },
 
         methods: {
@@ -86,34 +102,39 @@
                 const quantity = this.getQuantityFromFieldQty();
                 if (!quantity || !this.currentTechnique) return;
 
-                // Parse the pricing data from JSON
-                let pricingData = [];
-                try {
-                    pricingData = JSON.parse(this.currentTechnique.pricing_data);
-                } catch (error) {
-                    console.error('Error parsing pricing data:', error);
-                    return;
-                }
+                // Send data to the backend using Axios
+                axios.get("{{ route('printcontroller.api.print.gettechnique') }}", {
+                    params: {
+                        technique_id: this.currentTechnique.id,
+                        quantity: quantity,
+                        product_id: this.product.id
+                    }
+                })
+                .then(response => {
+                    const data = response.data;
 
-                // Find the applicable price for the given quantity
-                const applicablePrice = pricingData
-                    .filter(priceData => quantity >= priceData.MinQt)
-                    .sort((a, b) => b.MinQt - a.MinQt)[0];
-
-                if (applicablePrice) {
+                    // Update techniquesData with backend-calculated data
                     this.techniquesData = [{
                         product_name: this.product.name,
                         print_technique: this.currentTechnique.description,
                         quantity: quantity,
-                        setup_cost: 0, // Placeholder, adjust if needed
-                        total_price: applicablePrice.Price * quantity,
-                        technique_print_fee: applicablePrice.Price,
-                        price: applicablePrice.Price,
-                        print_fee: 0 // Placeholder, adjust if needed
+                        price: data.price,
+                        setup_cost: data.setup_cost,
+                        total_price: data.total_price,
+                        technique_print_fee: data.technique_print_fee,
+                        print_fee: data.print_fee,
+                        product_price_qty: data.product_price_qty,
+                        total_product_and_print: data.total_product_and_print
                     }];
-                } else {
-                    this.techniquesData = [];
-                }
+
+                    // Set techniqueSinglePrice to the calculated print fee
+                    this.techniqueSinglePrice = parseFloat(data.technique_print_fee).toFixed(2);
+                    this.techniqueInfo = this.currentTechnique.description;
+                    this.techniquePrice = data.technique_print_fee.toFixed(2);
+                })
+                .catch(error => {
+                    console.error('Error calculating price:', error);
+                });
             },
 
             getQuantityFromFieldQty() {
@@ -133,7 +154,7 @@
                     attributes: true,
                     attributeFilter: ['value']
                 });
-            }
+            },
         },
 
         mounted() {
