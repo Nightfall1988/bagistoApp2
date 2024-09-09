@@ -1,4 +1,3 @@
-<!-- Mini Cart Vue Component -->
 <v-mini-cart>
     <span
         class="icon-cart cursor-pointer text-2xl"
@@ -47,6 +46,7 @@
                         @lang('shop::app.checkout.cart.mini-cart.shopping-cart')
                     </p>
                 </div>
+
                 <p class="text-base">
                     @lang('shop::app.checkout.cart.mini-cart.offer-on-orders')
                 </p>
@@ -76,6 +76,7 @@
                                     :src="item.base_image.small_image_url"
                                     class="max-h-[110px] max-w-[110px] rounded-xl"
                                 />
+
                             </a>
                         </div>
 
@@ -120,7 +121,8 @@
                                         @{{ item.formatted_price }}
                                     </p>
                                 </template>
-
+                                <div>
+                                </div>
                                 {!! view_render_event('bagisto.shop.checkout.mini-cart.drawer.content.price.after') !!}
                             </div>
 
@@ -139,7 +141,6 @@
                                         @click="item.option_show = ! item.option_show"
                                     >
                                         @lang('shop::app.checkout.cart.mini-cart.see-details')
-
                                         <span
                                             class="text-2xl"
                                             :class="{'icon-arrow-up': item.option_show, 'icon-arrow-down': ! item.option_show}"
@@ -174,7 +175,6 @@
                                     @change="updateItem($event, item)"
                                 />
 
-
                                 {!! view_render_event('bagisto.shop.checkout.mini-cart.drawer.content.quantity_changer.after') !!}
 
                                 {!! view_render_event('bagisto.shop.checkout.mini-cart.drawer.content.remove_button.before') !!}
@@ -193,7 +193,6 @@
                         </div>
                     </div>
                 </div>
-                
 
                 <!-- Empty Cart Section -->
                 <div
@@ -216,6 +215,16 @@
             <x-slot:footer>
                 <div v-if="cart?.items?.length">
                     <div class="mb-8 mt-8 flex items-center justify-between border-b border-zinc-200 px-6 pb-2">
+                        <p class="text-sm font-medium text-zinc-500">
+                            @lang('shop::app.products.view.calculator.print-fee')
+                        </p>
+                        <p class="text-3xl font-semibold text-gray-800">
+                            @{{ printPrice }}
+                        </p>
+                    </div>
+                    
+                    
+                    <div class="mb-8 mt-8 flex items-center justify-between border-b border-zinc-200 px-6 pb-2">
                         {!! view_render_event('bagisto.shop.checkout.mini-cart.subtotal.before') !!}
 
                         <p class="text-sm font-medium text-zinc-500">
@@ -223,11 +232,6 @@
                         </p>
 
                         <template v-if="! isLoading">
-                            <template>
-                                <p class="text-3xl font-semibold">
-                                    @{{ cart.print_price }}
-                                </p>
-                            </template>
                             <template v-if="displayTax.subtotal == 'including_tax'">
                                 <p class="text-3xl font-semibold">
                                     @{{ cart.formatted_sub_total_incl_tax }}
@@ -244,7 +248,6 @@
                                         <span class="font-medium">@{{ cart.formatted_sub_total }}</span>
                                     </span>
                                 </p>
-
                             </template>
 
                             <template v-else>
@@ -253,6 +256,7 @@
                                 </p>
                             </template>
                         </template>
+                        
                         <template v-else>
                             <div class="flex items-center justify-center">
                                 <!-- Spinner -->
@@ -323,14 +327,9 @@
             data() {
                 return  {
                     cart: null,
-
-                    isLoading:false,
-                    selectedTechnique: '',
+                    printPrice: '0.00', // New data property
+                    isLoading: false,
                     currentTechnique: null,
-                    techniquesData: [],
-                    techniquePrice: '',
-                    techniqueInfo: '',
-                    techniqueSinglePrice: '',
                     displayTax: {
                         prices: "{{ core()->getConfigData('sales.taxes.shopping_cart.display_prices') }}",
                         subtotal: "{{ core()->getConfigData('sales.taxes.shopping_cart.display_subtotal') }}",
@@ -341,14 +340,8 @@
             mounted() {
                 this.getCart();
 
-                /**
-                 * To Do: Implement this.
-                 *
-                 * Action.
-                 */
                 this.$emitter.on('update-mini-cart', (cart) => {
                     this.cart = cart;
-
                 });
             },
 
@@ -362,16 +355,13 @@
                 },
 
                 updateItem(quantity, item) {
-
-                    console.log('čdcdcdc');
-                    
+                    this.updateCurrentTechnique();
                     this.isLoading = true;
                     let qty = {};
 
                     qty[item.id] = quantity;
 
                     this.$axios.put('{{ route('shop.api.checkout.cart.update') }}', { qty })
-
                         .then(response => {
                             if (response.data.message) {
                                 this.cart = response.data.data;
@@ -381,12 +371,7 @@
 
                             this.isLoading = false;
                         }).catch(error => this.isLoading = false);
-
-                        let l = this.calculatePrices()
-                        console.log(l);
-                        
-                
-                    },
+                },
 
                 removeItem(itemId) {
                     this.$emitter.emit('open-confirm-modal', {
@@ -401,57 +386,40 @@
                                 this.cart = response.data.data;
 
                                 this.$emitter.emit('add-flash', { type: 'success', message: response.data.message });
-                                
                                 this.isLoading = false;
                             })
                             .catch(error => {
                                 this.$emitter.emit('add-flash', { type: 'error', message: response.data.message });
-
                                 this.isLoading = false;
                             });
                         }
                     });
                 },
 
-                calculatePrices() {
-                const quantity = this.getQuantityFromFieldQty();
-                if (!quantity || !this.currentTechnique) return;
+                updateCurrentTechnique() {
+                    this.getTechnique(this.cart.items, this.cart.print_type);
+                },
 
-                // Send data to the backend using Axios
-                axios.get("{{ route('printcontroller.api.print.gettechnique') }}", {
-                    params: {
-                        technique_id: this.currentTechnique.id,
-                        quantity: quantity,
-                        product_id: this.product.id
-                    }
-                })
-                .then(response => {
-                    const data = response.data;
-
-                    // Update techniquesData with backend-calculated data
-                    this.techniquesData = [{
-                        product_name: this.product.name,
-                        print_technique: this.currentTechnique.description,
-                        quantity: quantity,
-                        price: data.price,
-                        setup_cost: data.setup_cost,
-                        total_price: data.total_price,
-                        technique_print_fee: data.technique_print_fee,
-                        print_fee: data.print_fee,
-                        product_price_qty: data.product_price_qty,
-                        total_product_and_print: data.total_product_and_print
-                    }];
-
-                    // Set techniqueSinglePrice to the calculated print fee
-                    this.techniqueSinglePrice = parseFloat(data.technique_print_fee).toFixed(2);
-                    this.techniqueInfo = this.currentTechnique.description;
-                    this.techniquePrice = data.technique_print_fee.toFixed(2);
-                })
-                .catch(error => {
-                    console.error('Error calculating price:', error);
-                });
-            },
-            },
+                getTechnique(items, print_type) {
+                    axios.get("{{ route('printcontroller.api.print.gettechniquecart') }}", {
+                        params: {
+                            techniqueName: print_type,
+                            items: this.cart.items,
+                        }
+                    })
+                    .then(response => {
+                        const data = response.data;
+                        if (data.length > 0) {
+                            this.printPrice = (data[0].total_price).toFixed(2); // Update print price here
+                        } else {
+                            this.printPrice = '0.00';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error calculating price:', error);
+                    });
+                }
+            }
         });
     </script>
 @endpushOnce
