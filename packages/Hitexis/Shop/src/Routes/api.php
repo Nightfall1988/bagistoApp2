@@ -16,7 +16,6 @@ use Hitexis\PrintCalculator\Http\Controllers\API\PrintCalculatorController;
 Route::group(['middleware' => ['locale', 'theme', 'currency'], 'prefix' => 'api'], function () {
     Route::controller(PrintCalculatorController::class)->prefix('print')->group(function () {
         Route::get('calculate', 'calculate')->name('printcontroller.api.print.calculate');
-        // Route::get('/print-techniques/{id}', 'getTechnique')->name('printcontroller.api.print.gettechnique');
         Route::get('/calculate-pricing', 'calculatePricing')->name('printcontroller.api.print.gettechnique');
         Route::get('/calculate-pricing-cart', 'calculatePricingCart')->name('printcontroller.api.print.gettechniquecart');
         

@@ -6,7 +6,7 @@
         <div class="p-4 bg-gray-100 rounded-lg shadow-md">
             <div class="mb-4">
                 <label for="technique" class="block text-sm font-medium text-gray-700 mb-2">
-                    <h2 class="text-2xl font-bold text-indigo-600">Select Print Type</h2>
+                    <h2 class="text-2xl font-bold text-indigo-600">@lang('shop::app.products.view.calculator.title')</h2>
                 </label>
                 <div>
                     <select v-model="selectedTechnique" @change="updateCurrentTechnique" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
@@ -72,7 +72,9 @@
             uniqueDescriptions() {
                 const descriptionsSet = new Set();
                 this.product.print_techniques.forEach(technique => {
-                    descriptionsSet.add(technique.description);
+                    if (technique.pricing_data != "[]") {
+                        descriptionsSet.add(technique.description);
+                    }
                 });
                 return Array.from(descriptionsSet);
             }

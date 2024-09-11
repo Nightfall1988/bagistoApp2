@@ -119,6 +119,12 @@ class PrintCalculatorImportService
                     \Log::info("Processing product ID: " . $product->id);
     
                     try {
+                        // Skip saving if pricing_data is empty
+                        if (empty($techniqueData['var_costs'][0]['scales'])) {
+                            \Log::info("Skipping technique for product ID: " . $product->id . " due to empty pricing_data.");
+                            continue;
+                        }
+    
                         // Step 2: Insert or update the print technique
                         $printTechnique = $this->printTechniqueRepository->updateOrCreate(
                             [
@@ -134,16 +140,11 @@ class PrintCalculatorImportService
                                 'range_id' => $techniqueData['var_costs'][0]['range_id'] ?? null,
                                 'area_from' => $techniqueData['var_costs'][0]['area_from'] ?? null,
                                 'area_to' => $techniqueData['var_costs'][0]['area_to'] ?? null,
-                                'pricing_data' => isset($techniqueData['var_costs'][0]['scales'])
-                                ? json_encode($this->transformPricingData($techniqueData['var_costs'][0]['scales']))
-                                : json_encode([]),  // Empty array if no pricing data is found
+                                'pricing_data' => json_encode($this->transformPricingData($techniqueData['var_costs'][0]['scales'])),
                                 'default' => $this->isDefaultTechnique($techniqueData, $productData) ?? 0,
                             ]
                         );
     
-                        \Log::info("Print technique saved for product ID: " . $product->id);
-    
-                        // Step 3: Attach print manipulation
                         $this->attachPrintManipulation($printTechnique, $productData);
                     } catch (\Exception $e) {
                         // Catch and log any exception that might occur
@@ -155,7 +156,6 @@ class PrintCalculatorImportService
                 }
             }
             $tracker->advance();
-
         }
     
         $tracker->finish();
