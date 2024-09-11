@@ -476,7 +476,8 @@ return [
                 'technique'                => 'Drukas tips',
                 'product-price-qty'        => 'Produkts ar apdruku',
                 'total-price-technique'    => 'Cena ar apdruku',
-                'print-fee'                => 'Drukas cena',
+                'print-fee-single'         => 'Drukas cena par vienību',
+                'print-fee-full'           => 'Drukas cena par visu',
                 'total-price'              => 'Kopā',
             ],
             

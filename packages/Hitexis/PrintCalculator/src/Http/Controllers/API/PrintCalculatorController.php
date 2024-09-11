@@ -92,59 +92,6 @@ class PrintCalculatorController extends Controller
         return response()->json($technique);
     }
 
-    public function calculatePricingCart() {
-        $techniqueName = request()->input('techniqueName');
-        $items = request()->input('items');
-    
-        $pricingResults = [];
-    
-        // Loop through each cart item
-        foreach ($items as $i => $item) {
-
-            $product = $this->productRepository->findByAttributeCode('url_key', $item['product_url_key']);
-
-            $productId = $product->id; // Assuming the product ID is available in the cart item
-            $quantity = $item['quantity']; // Quantity from cart item
-    
-            // Fetch the technique by product_id and technique description (name)
-            $technique = DB::table('print_techniques')
-                ->where('product_id', $productId)
-                ->where('description', $techniqueName)
-                ->first();
-    
-            if ($technique) {
-                // Decode the pricing data JSON
-                $pricingData = json_decode($technique->pricing_data, true);
-    
-                // Find the appropriate price based on the quantity
-                $applicablePrice = null;
-                foreach ($pricingData as $priceData) {
-                    if ($quantity >= $priceData['MinQt']) {
-                        $applicablePrice = $priceData['Price']; // Use the largest quantity threshold that applies
-                    }
-                }
-    
-                // Calculate the total price for this item
-                if ($applicablePrice !== null) {
-                    $totalPrice = $applicablePrice * $quantity;
-    
-                    // Add this item's pricing result to the results array
-                    $pricingResults[] = [
-                        'product_id' => $productId,
-                        'technique' => $technique->description,
-                        'quantity' => $quantity,
-                        'unit_price' => $applicablePrice,
-                        'total_price' => $totalPrice,
-                    ];
-                }
-            }
-        }
-    
-        // Return the pricing results
-        return response()->json($pricingResults);
-    }
-    
-
     public function getProductPrintData($product_id)
     {
         $product = Product::with('print_techniques.print_manipulations')->find($product_id);
@@ -189,15 +136,29 @@ class PrintCalculatorController extends Controller
         $repeatSetupCost = floatval(str_replace(',', '.', $technique->setup_repeat));
         $pricingData = json_decode($technique->pricing_data, true);
 
-        // Find the price for the given quantity
-        $applicablePrice = collect($pricingData)
-            ->filter(fn($data) => $quantity >= $data['MinQt'])
-            ->sortByDesc('MinQt')
-            ->first();
+        // Set default price to null
+        $applicablePrice = null;
 
+        // Iterate over the pricing data to find the correct price based on the quantity range
+        for ($i = 0; $i < count($pricingData); $i++) {
+            // Convert MinQt to a proper integer for comparison
+            $minQt = intval(str_replace('.', '', $pricingData[$i]['MinQt']));
+            $maxQt = isset($pricingData[$i + 1]) 
+                ? intval(str_replace('.', '', $pricingData[$i + 1]['MinQt'])) - 1 
+                : PHP_INT_MAX;
+
+            if ($quantity >= $minQt && $quantity <= $maxQt) {
+                $applicablePrice = floatval($pricingData[$i]['Price']);
+                break;
+            }
+        }
+        
+        if (is_null($applicablePrice)) {
+            $applicablePrice = floatval($pricingData[0]['Price']);
+        }
+        
         // Calculate print total
-        $unitPrice = isset($applicablePrice['Price']) ? floatval(str_replace(',', '.', $applicablePrice['Price'])) : 0;
-        $printTotal = $unitPrice * $quantity;
+        $printTotal = $applicablePrice * $quantity;
 
         // Calculate total product price
         $productPriceQty = $product->price * $quantity;
@@ -205,13 +166,78 @@ class PrintCalculatorController extends Controller
 
         // Return the calculated result
         return response()->json([
-            'price' => $unitPrice,
+            'price' => $applicablePrice,
             'setup_cost' => $setupCost,
             'total_price' => $printTotal,
-            'technique_print_fee' => $unitPrice,
+            'technique_print_fee' => $applicablePrice,
             'print_fee' => 0, // Adjust as needed
             'product_price_qty' => $productPriceQty,
             'total_product_and_print' => $totalProductAndPrint,
         ]);
     }
+    public function calculatePricingCart() {
+        $techniqueName = request()->input('techniqueName');
+        $items = request()->input('items');
+    
+        $pricingResults = [];
+    
+        // Loop through each cart item
+        foreach ($items as $i => $item) {
+    
+            $product = $this->productRepository->findByAttributeCode('url_key', $item['product_url_key']);
+    
+            $productId = $product->id; // Assuming the product ID is available in the cart item
+            $quantity = $item['quantity']; // Quantity from cart item
+    
+            // Fetch the technique by product_id and technique description (name)
+            $technique = DB::table('print_techniques')
+                ->where('product_id', $productId)
+                ->where('description', $techniqueName)
+                ->first();
+    
+            if ($technique) {
+                // Decode the pricing data JSON
+                $pricingData = json_decode($technique->pricing_data, true);
+    
+                // Set default price to null
+                $applicablePrice = null;
+    
+                // Iterate over the pricing data to find the correct price based on the quantity range
+                for ($i = 0; $i < count($pricingData); $i++) {
+                    // Convert MinQt to a proper integer for comparison
+                    $minQt = intval(str_replace('.', '', $pricingData[$i]['MinQt']));
+                    $maxQt = isset($pricingData[$i + 1]) 
+                        ? intval(str_replace('.', '', $pricingData[$i + 1]['MinQt'])) 
+                        : PHP_INT_MAX; // Removed the -1 to avoid boundary issues
+    
+                    // Check if quantity falls within the range, including exact matches like 99
+                    if ($quantity >= $minQt && $quantity < $maxQt) {
+                        $applicablePrice = floatval($pricingData[$i]['Price']);
+                        break;
+                    }
+                }
+    
+                // Fallback to the first tier if none matched (in case of single item or missing data)
+                if (is_null($applicablePrice)) {
+                    $applicablePrice = floatval($pricingData[0]['Price']);
+                }
+    
+                // Calculate the total price for this item
+                $totalPrice = $applicablePrice * $quantity;
+    
+                // Add this item's pricing result to the results array
+                $pricingResults[] = [
+                    'product_id' => $productId,
+                    'technique' => $technique->description,
+                    'quantity' => $quantity,
+                    'unit_price' => $applicablePrice,
+                    'total_price' => $totalPrice,
+                ];
+            }
+        }
+    
+        // Return the pricing results
+        return response()->json($pricingResults);
+    }
+    
 }
