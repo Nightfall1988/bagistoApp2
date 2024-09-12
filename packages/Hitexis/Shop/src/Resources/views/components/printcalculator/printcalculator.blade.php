@@ -26,7 +26,6 @@
                             <th class="px-6 py-3 border-b-2 border-indigo-700">@lang('shop::app.products.view.calculator.individual-product-price')</th>
                             <th class="px-6 py-3 border-b-2 border-indigo-700">@lang('shop::app.products.view.calculator.quantity')</th>
                             <th class="px-6 py-3 border-b-2 border-indigo-700">@lang('shop::app.products.view.calculator.print-fee')</th>
-                            <th class="px-6 py-3 border-b-2 border-indigo-700">@lang('shop::app.products.view.calculator.total-price-technique')</th>
                             <th class="px-6 py-3 border-b-2 border-indigo-700">@lang('shop::app.products.view.calculator.total-price')</th>
                         </tr>
                     </thead>
@@ -37,8 +36,7 @@
                             <td class="px-6 py-4 border-b border-gray-200">@{{ parseFloat(product.price).toFixed(2) }}</td>
                             <td class="px-6 py-4 border-b border-gray-200">@{{ technique.quantity }}</td>
                             <td class="px-6 py-4 border-b border-gray-200">@{{ parseFloat(technique.technique_print_fee).toFixed(2) }}</td>
-                            <td class="px-6 py-4 border-b border-gray-200">@{{ ((product.price * technique.quantity) + technique.price).toFixed(2) }}</td>
-                            <td class="px-6 py-4 border-b border-gray-200">@{{ ((product.price * technique.quantity) + parseFloat(technique.total_price)).toFixed(2) }}</td>
+                            <td class="px-6 py-4 border-b border-gray-200">    @{{ ((Number(product.price || 0) + Number(technique.price || 0)) * Number(technique.quantity || 0)).toFixed(2) }}</td>
                         </tr>
                         <!-- Hidden inputs to hold technique-related data -->
                         <input name='technique-single-price' type='hidden' v-model="techniqueSinglePrice" />
@@ -72,7 +70,8 @@
             uniqueDescriptions() {
                 const descriptionsSet = new Set();
                 this.product.print_techniques.forEach(technique => {
-                    if (technique.pricing_data != "[]") {
+
+                    if (technique.pricing_data != '[]') {
                         descriptionsSet.add(technique.description);
                     }
                 });
