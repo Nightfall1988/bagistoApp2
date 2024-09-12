@@ -178,7 +178,6 @@ class PrintCalculatorController extends Controller
     public function calculatePricingCart() {
         $techniqueName = request()->input('techniqueName');
         $items = request()->input('items');
-    
         $pricingResults = [];
     
         // Loop through each cart item

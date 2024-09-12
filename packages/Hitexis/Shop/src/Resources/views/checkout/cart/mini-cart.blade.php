@@ -359,9 +359,12 @@
     
                 // Function to calculate print fees for each item and update the total print fee
                 updatePrintFees() {
+                    let techniqueName = document.getElementsByName("technique-info")[0].value;
+                    console.log(techniqueName);
+                    
                     axios.get("{{ route('printcontroller.api.print.gettechniquecart') }}", {
                         params: {
-                            techniqueName: this.cart.print_type,
+                            techniqueName: techniqueName,
                             items: this.cart.items,
                         }
                     })
