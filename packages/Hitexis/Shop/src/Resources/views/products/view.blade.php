@@ -13,7 +13,7 @@
     $properCustomAttributes = ['sku', 'short_description', 'description', 'product_number', 'material', 'dimensions', 'height', 'width', 'weight'];
     $properData = [];
     foreach ($customAttributeValues as $attribute) {
-        if (in_array($attribute['code'], $properCustomAttributes )) {
+        if (in_array($attribute->code, $properCustomAttributes)) {
             $properData[] = $attribute;
         }
     }
