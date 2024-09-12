@@ -346,74 +346,55 @@ class HitexisProductRepository extends Repository
             'url_key'              => null,
         ], $params);
     
+        // Update search query for name and description
         if (!empty($params['query'])) {
             $params['name'] = $params['query'];
             $params['description'] = $params['query'];
         }
     
+        // Eager load necessary relationships
         $query = $this->with([
             'attribute_family',
             'images',
-            'videos',
-            'attribute_values',
             'price_indices',
             'inventory_indices',
-            'reviews',
-            'attribute_values'
+            'reviews'
         ])->scopeQuery(function ($query) use ($params) {
             $prefix = DB::getTablePrefix();
+            $customerGroup = $this->customerRepository->getCurrentGroup();
     
             $qb = $query->distinct()
                 ->select('products.*')
-                ->leftJoin('products as variants', DB::raw('COALESCE('.$prefix.'variants.parent_id, '.$prefix.'variants.id)'), '=', 'products.id')
-                ->leftJoin('product_price_indices', function ($join) {
-                    $customerGroup = $this->customerRepository->getCurrentGroup();
+                ->leftJoin('product_price_indices', function ($join) use ($customerGroup) {
                     $join->on('products.id', '=', 'product_price_indices.product_id')
-                        ->where('product_price_indices.customer_group_id', $customerGroup->id);
+                         ->where('product_price_indices.customer_group_id', $customerGroup->id);
                 });
     
-            // Joins for description and short_description attributes
-            $descriptionAlias1 = 'description_9_product_attribute_values';
-            $descriptionAlias2 = 'description_10_product_attribute_values';
+            // Subquery to get necessary attribute values
+            $qb->leftJoin(DB::raw("(SELECT product_id, attribute_id, text_value, boolean_value FROM product_attribute_values) as pav"),
+                          'products.id', '=', 'pav.product_id');
     
-            $qb->leftJoin('product_attribute_values as '.$descriptionAlias1, function ($join) use ($descriptionAlias1) {
-                $join->on('products.id', '=', $descriptionAlias1.'.product_id')
-                    ->where($descriptionAlias1.'.attribute_id', 9);
+            // Filter by visible_individually attribute
+            $qb->where(function ($query) {
+                $query->where('pav.attribute_id', 7)
+                      ->where('pav.boolean_value', 1);  // Visible individually
             });
     
-            $qb->leftJoin('product_attribute_values as '.$descriptionAlias2, function ($join) use ($descriptionAlias2) {
-                $join->on('products.id', '=', $descriptionAlias2.'.product_id')
-                    ->where($descriptionAlias2.'.attribute_id', 10);
-            });
-    
-            // Join for visible_individually attribute
-            $visibleIndividuallyAlias = 'visible_individually_product_attribute_values';
-            $qb->leftJoin('product_attribute_values as '.$visibleIndividuallyAlias, function ($join) use ($visibleIndividuallyAlias) {
-                $join->on('products.id', '=', $visibleIndividuallyAlias.'.product_id')
-                    ->where($visibleIndividuallyAlias.'.attribute_id', 7)
-                    ->where($visibleIndividuallyAlias.'.boolean_value', 1);
-            });
-    
-            // Join for name attribute
-            $nameAlias = 'name_product_attribute_values';
-            $qb->leftJoin('product_attribute_values as '.$nameAlias, function ($join) use ($nameAlias) {
-                $join->on('products.id', '=', $nameAlias.'.product_id')
-                    ->where($nameAlias.'.attribute_id', 2); // Assuming attribute_id = 2 for 'name'
-            });
-    
-            // Filter by name and description
+            // Filter by name and description (attribute_id = 2 for name, 9/10 for descriptions)
             if (!empty($params['query'])) {
-                $qb->where(function ($subQuery) use ($params, $nameAlias, $descriptionAlias1, $descriptionAlias2) {
-                    $subQuery->where($nameAlias.'.text_value', 'like', '%' . urldecode($params['query']) . '%')
-                             ->orWhere($descriptionAlias1.'.text_value', 'like', '%' . urldecode($params['query']) . '%')
-                             ->orWhere($descriptionAlias2.'.text_value', 'like', '%' . urldecode($params['query']) . '%');
+                $qb->where(function ($subQuery) use ($params) {
+                    $subQuery->where('pav.attribute_id', 2)
+                             ->where('pav.text_value', 'like', '%' . urldecode($params['query']) . '%')
+                             ->orWhere(function ($query) use ($params) {
+                                 $query->where('pav.attribute_id', 9)
+                                       ->where('pav.text_value', 'like', '%' . urldecode($params['query']) . '%')
+                                       ->orWhere('pav.attribute_id', 10)
+                                       ->where('pav.text_value', 'like', '%' . urldecode($params['query']) . '%');
+                             });
                 });
             }
     
-            // Ensure visible_individually is set to 1
-            $qb->where($visibleIndividuallyAlias.'.boolean_value', 1);
-    
-            // Sort collection
+            // Sorting
             $sortOptions = $this->getSortOptions($params);
             if ($sortOptions['order'] != 'rand') {
                 $attribute = $this->attributeRepository->findOneByField('code', $sortOptions['sort']);
@@ -421,28 +402,26 @@ class HitexisProductRepository extends Repository
                     if ($attribute->code === 'price') {
                         $qb->orderBy('product_price_indices.min_price', $sortOptions['order']);
                     } else {
-                        $alias = 'sort_product_attribute_values';
-                        $qb->leftJoin('product_attribute_values as '.$alias, function ($join) use ($alias, $attribute) {
-                            $join->on('products.id', '=', $alias.'.product_id')
-                                ->where($alias.'.attribute_id', $attribute->id)
-                                ->where($alias.'.channel', core()->getRequestedChannelCode())
-                                ->where($alias.'.locale', core()->getRequestedLocaleCode());
-                        })->orderBy($alias.'.'.$attribute->column_name, $sortOptions['order']);
+                        $qb->orderBy('pav.text_value', $sortOptions['order']);
                     }
                 } else {
                     $qb->orderBy('products.created_at', $sortOptions['order']);
                 }
             } else {
-                return $qb->inRandomOrder();
+                $qb->inRandomOrder();
             }
     
             return $qb->groupBy('products.id');
         });
     
-        $limit = $this->getPerPageLimit($params);
-    
-        return $query->paginate($limit);
+        // Cache result if applicable
+        $cacheKey = 'search_products_' . md5(serialize($params));
+        return Cache::remember($cacheKey, 60, function () use ($query, $params) {
+            $limit = $this->getPerPageLimit($params);
+            return $query->paginate($limit);
+        });
     }
+    
     
     /**
      * Create product.
@@ -598,7 +577,7 @@ class HitexisProductRepository extends Repository
     public function getCategoryProducts($params = [])
     {
         $customerGroup = $this->customerRepository->getCurrentGroup();
-    
+
         $query = $this->with([
             'attribute_family',
             'images',
