@@ -607,19 +607,19 @@ class HitexisProductRepository extends Repository
             'price_indices',
             'inventory_indices',
             'reviews',
-            'variants'
         ])->scopeQuery(function ($query) use ($params, $customerGroup) {
             $prefix = DB::getTablePrefix();
     
+            // Start the query
             $qb = $query->distinct()
                 ->select('products.*')
-                ->leftJoin('products as variants', DB::raw('COALESCE(' . $prefix . 'variants.parent_id, ' . $prefix . 'variants.id)'), '=', 'products.id')
                 ->leftJoin('product_price_indices', function ($join) use ($customerGroup) {
                     $join->on('products.id', '=', 'product_price_indices.product_id')
                         ->where('product_price_indices.customer_group_id', $customerGroup->id);
                 })
                 ->leftJoin('product_categories', 'products.id', 'product_categories.product_id');
     
+            // Filter by attributes like descriptions
             $descriptionAlias1 = 'description_9_product_attribute_values';
             $descriptionAlias2 = 'description_10_product_attribute_values';
     
@@ -633,6 +633,7 @@ class HitexisProductRepository extends Repository
                     ->where($descriptionAlias2 . '.attribute_id', 10);
             });
     
+            // Handle visibility of individual products
             $visibleIndividuallyAlias = 'visible_individually_product_attribute_values';
             $qb->leftJoin('product_attribute_values as ' . $visibleIndividuallyAlias, function ($join) use ($visibleIndividuallyAlias) {
                 $join->on('products.id', '=', $visibleIndividuallyAlias . '.product_id')
@@ -640,6 +641,7 @@ class HitexisProductRepository extends Repository
                     ->where($visibleIndividuallyAlias . '.boolean_value', 1);
             });
     
+            // Join for product name
             $nameAlias = 'name_product_attribute_values';
             $qb->leftJoin('product_attribute_values as ' . $nameAlias, function ($join) use ($nameAlias) {
                 $join->on('products.id', '=', $nameAlias . '.product_id')
@@ -661,15 +663,12 @@ class HitexisProductRepository extends Repository
                         ->where($colorAlias . '.attribute_id', 23);
                 });
     
-                $variantColorAlias = 'variant_color_product_attribute_values';
-                $qb->leftJoin('product_attribute_values as ' . $variantColorAlias, function ($join) use ($variantColorAlias) {
-                    $join->on('variants.id', '=', $variantColorAlias . '.product_id')
-                        ->where($variantColorAlias . '.attribute_id', 23);
-                });
-    
-                $qb->where(function ($query) use ($colorAlias, $variantColorAlias, $colorIds) {
+                // For variants, check if parent_id exists
+                $qb->where(function ($query) use ($colorAlias, $colorIds) {
                     $query->whereIn($colorAlias . '.integer_value', $colorIds)
-                        ->orWhereIn($variantColorAlias . '.integer_value', $colorIds);
+                        ->orWhere(function ($query) use ($colorAlias, $colorIds) {
+                            $query->whereIn($colorAlias . '.integer_value', $colorIds);
+                        });
                 });
             }
     
@@ -683,15 +682,10 @@ class HitexisProductRepository extends Repository
                         ->where($sizeAlias . '.attribute_id', 24);
                 });
     
-                $variantSizeAlias = 'variant_size_product_attribute_values';
-                $qb->leftJoin('product_attribute_values as ' . $variantSizeAlias, function ($join) use ($variantSizeAlias) {
-                    $join->on('variants.id', '=', $variantSizeAlias . '.product_id')
-                        ->where($variantSizeAlias . '.attribute_id', 24);
-                });
-    
-                $qb->where(function ($query) use ($sizeAlias, $variantSizeAlias, $sizeIds) {
+                // For variants, handle size filtering
+                $qb->where(function ($query) use ($sizeAlias, $sizeIds) {
                     $query->whereIn($sizeAlias . '.integer_value', $sizeIds)
-                        ->orWhereIn($variantSizeAlias . '.integer_value', $sizeIds);
+                        ->orWhereIn($sizeAlias . '.integer_value', $sizeIds);
                 });
             }
     
@@ -741,5 +735,5 @@ class HitexisProductRepository extends Repository
         $limit = $this->getPerPageLimit($params);
     
         return $query->paginate($limit);
-    }
+    }    
 }
