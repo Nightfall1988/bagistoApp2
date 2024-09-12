@@ -26,8 +26,6 @@ class ProductController extends APIController
      */
     public function index(): JsonResource
     {
-        $products = $this->productRepository->getCategoryProducts(request()->query());
-
         if (! empty(request()->query('query'))) {
             $products = $this->productRepository->getAll(request()->query());
             /**
@@ -42,6 +40,8 @@ class ProductController extends APIController
                     'locale'     => app()->getLocale(),
                 ]);
             }
+        } else {
+            $products = $this->productRepository->getCategoryProducts(request()->query());
         }
 
         return ProductResource::collection($products);

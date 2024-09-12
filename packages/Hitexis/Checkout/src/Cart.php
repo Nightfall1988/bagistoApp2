@@ -248,7 +248,12 @@ class Cart
      */
     public function addProduct(ProductContract $product, array $data): Contracts\Cart|\Exception
     {
-        if ($data["technique-info"] && $data["technique-price"]) {
+        if (
+                array_key_exists("technique-info",$this->printData) &&
+                array_key_exists("technique-price",$this->printData) &&
+                $this->printData["technique-info"] != '' &&
+                $this->printData["technique-price"] != ''
+            ) {
             $this->printData["technique-info"] = $data["technique-info"];
             $this->printData["technique-price"] = $data["technique-price"];
             $this->printData["technique-single-price"] = $data["technique-single-price"];
@@ -968,7 +973,10 @@ class Cart
             $this->cart->base_discount_amount += $shipping->base_discount_amount;
         }
 
-        if ($this->printData["technique-price"] != '' && $this->printData["technique-info"] != '') {
+        if (array_key_exists("technique-info",$this->printData) 
+            && $this->printData["technique-price"] != '' 
+            && array_key_exists("technique-price",$this->printData) 
+            && $this->printData["technique-info"] != '') {
             $this->cart->print_price = $this->printData["technique-price"] *  $item->quantity;
             $this->cart->print_type = $this->printData["technique-info"];
         }

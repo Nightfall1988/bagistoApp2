@@ -122,7 +122,7 @@
                                 </template>
 
                                 <p class="flex flex-row text-lg">
-                                    @lang('shop::app.products.view.calculator.print-fee-single'):&nbsp
+                                    @lang('shop::app.products.view.calculator.print-fee'):&nbsp
                                     <span class="text-l">
                                         <span class="font-medium">@{{ item.print_fee }}</span> <!-- Print fee added -->
                                     </span>
