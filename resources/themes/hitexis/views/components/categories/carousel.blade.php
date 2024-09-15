@@ -32,15 +32,13 @@
                             class="h-[110px] w-[110px] rounded-full bg-zinc-100"
                             :aria-label="category.name"
                         >
-                            <template v-if="category.logo?.large_image_url">
-                                <x-hitexis-shop::media.images.lazy
-                                    ::src="category.logo.large_image_url"
-                                    width="110"
-                                    height="110"
-                                    class="h-[110px] w-[110px] rounded-full"
-                                    ::alt="category.name"
-                                />
-                            </template>
+                            <!-- Display the category image using category.logo_path -->
+                            <img
+                                v-if="category.logo_path"
+                                :src="category.logo_path"
+                                alt="Category Image"
+                                class="h-[110px] w-[110px] rounded-full"
+                            />
                         </a>
 
                         <a

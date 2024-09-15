@@ -4077,6 +4077,11 @@ return [
                         'title'                => 'Mini Cart',
                     ],
                 ],
+
+                'shipping' => [
+                    'title' => 'Title',
+                    'info'  => 'Info'
+                ],
             ],
         ],
     ],

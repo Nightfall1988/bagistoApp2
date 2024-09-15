@@ -16,6 +16,7 @@ class CategoryTreeResource extends JsonResource
     {
         return [
             'id'        => $this->id,
+            'logo_path' => $this->logo_path,
             'parent_id' => $this->parent_id,
             'name'      => $this->name,
             'slug'      => $this->slug,
