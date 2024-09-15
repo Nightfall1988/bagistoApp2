@@ -2,6 +2,7 @@
     src="{{ $src }}"
     title="{{ $title }}"
     navigation-link="{{ $navigationLink ?? '' }}"
+    base-url="{{ url('/') }}" <!-- Passing base URL dynamically -->
 >
     <x-shop::shimmer.categories.carousel
         :count="8"
@@ -16,7 +17,7 @@
     >
         <div
             class="container mt-14 max-lg:px-8 max-sm:mt-5 flex justify-around"
-            v-if="! isLoading && categories?.length"
+            v-if="!isLoading && categories?.length"
         >
             <div class="relative flex justify-center" style="max-width: 1240px;">
                 <div
@@ -26,6 +27,7 @@
                     <div
                         class="grid min-w-[120px] max-w-[120px] grid-cols-1 justify-items-center gap-4 font-medium"
                         v-for="category in categories"
+                        :key="category.id"
                     >
                         <a
                             :href="category.slug"
@@ -35,7 +37,7 @@
                             <!-- Display the category image using category.logo_path -->
                             <img
                                 v-if="category.logo_path"
-                                :src="category.logo_path"
+                                :src="baseUrl + '/' + category.logo_path"
                                 alt="Category Image"
                                 class="h-[110px] w-[110px] rounded-full"
                             />
@@ -91,14 +93,13 @@
                 'src',
                 'title',
                 'navigationLink',
+                'baseUrl',  // Pass the base URL from Blade to Vue
             ],
 
             data() {
                 return {
                     isLoading: true,
-
                     categories: [],
-
                     offset: 323,
                 };
             },
@@ -112,22 +113,20 @@
                     this.$axios.get(this.src)
                         .then(response => {
                             this.isLoading = false;
-
                             this.categories = response.data.data;
-                        }).catch(error => {
-                            console.log(error);
+                        })
+                        .catch(error => {
+                            console.error(error);
                         });
                 },
 
                 swipeLeft() {
                     const container = this.$refs.swiperContainer;
-
                     container.scrollLeft -= this.offset;
                 },
 
                 swipeRight() {
                     const container = this.$refs.swiperContainer;
-
                     container.scrollLeft += this.offset;
                 },
             },
