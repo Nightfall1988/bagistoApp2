@@ -3972,6 +3972,7 @@ return [
                         'length'     => 'Rēķina numurs Garums',
                         'prefix'     => 'Rēķina numura Prefix',
                         'suffix'     => 'Rēķina numura Suffix',
+                        'title-info' => 'Rēķina iestatījumi',
                         'title'      => 'Rēķina numura iestatījumi',
                     ],
 
@@ -3981,6 +3982,8 @@ return [
                         'due-duration-days' => ':due-duration dienas',
                         'info'              => 'Saskaņoti nosacījumi, kas nosaka, kad un kā pircējam jāveic maksājums par precēm vai pakalpojumiem pārdevējam.',
                         'title'             => 'Maksājuma nosacījumi',
+                        'title-info'        => 'Saskaņoti nosacījumi, kas nosaka, kad un kā pircējam jāveic maksājums par precēm vai pakalpojumiem pārdevējam.',
+
                     ],
 
                     'pdf-print-outs' => [
@@ -3998,6 +4001,16 @@ return [
                         'interval-between-reminders' => 'Intervāls starp atgādinājumiem',
                         'maximum-limit-of-reminders' => 'Maksimālais atgādinājumu skaits',
                         'title'                      => 'Rēķinu atgādinājumi',
+                    ],
+
+                    'invoice-slip-design' => [
+                        'generator'  => 'Rēķinu numuru ģenerators',
+                        'info'       => 'Noteikumu vai parametru konfigurēšana unikālu identifikācijas numuru ģenerēšanai un piešķiršanai rēķiniem organizatoriskiem un izsekošanas mērķiem.',
+                        'length'     => 'Rēķina numurs Garums',
+                        'prefix'     => 'Rēķina numura Prefix',
+                        'suffix'     => 'Rēķina numura Suffix',
+                        'title-info' => "Rēķina kvīts vizuālais izkārtojums un formāts, uzņēmuma zīmols sabiedrībai, atšķirīgs skatījums uz detaļām, cenu un maksājuma informāciju.",
+                        'title'      => 'Rēķina numura iestatījumi',
                     ],
                 ],
 

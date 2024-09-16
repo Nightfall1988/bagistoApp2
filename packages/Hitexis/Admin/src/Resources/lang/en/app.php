@@ -3961,6 +3961,13 @@ return [
                         'prefix'     => 'Invoice Number Prefix',
                         'suffix'     => 'Invoice Number Suffix',
                         'title'      => 'Invoice Number Settings',
+                        'title-info' => 'Configuration of rules or parameters for generating invoices for reporting and tracking and for setting unique identification numbers for reporting and tracking purposes.',
+                    ],
+
+                    'invoice-slip-design' => [
+                        'logo' => 'Logo',
+                        'title' => 'Invoice slip design',
+                        'title-info' => 'The visual layout and format of the invoice slip, Company branding for society, Different view of itemization, price and payment details.',
                     ],
 
                     'payment-terms' => [
@@ -3969,6 +3976,7 @@ return [
                         'due-duration-days' => ':due-duration Days',
                         'info'              => 'Agreed-upon conditions dictating when and how payment for goods or services should be made by the buyer to the seller.',
                         'title'             => 'Payment Terms',
+                        'title-info'        => 'Agreed-upon terms that dictate how and when a buyer must pay a seller.',
                     ],
 
                     'pdf-print-outs' => [
@@ -3982,10 +3990,10 @@ return [
                     ],
 
                     'invoice-reminders' => [
-                        'info'                       => 'Automated notifications or communications sent to customers to remind them of upcoming or overdue payments for invoices.',
-                        'interval-between-reminders' => 'Interval between reminders',
-                        'maximum-limit-of-reminders' => 'Maximum limit of reminders',
-                        'title'                      => 'Invoice Reminders',
+                        'interval-between-reminders' => 'Interval between messages',
+                        'maximum-limit-of-reminders' => 'Maximum limit of messages',
+                        'title' => 'Invoice Reminder',
+                        'title-info' => 'Automatic notifications or operations sent to customers to remind them of upcoming or additional payments.',
                     ],
                 ],
 
