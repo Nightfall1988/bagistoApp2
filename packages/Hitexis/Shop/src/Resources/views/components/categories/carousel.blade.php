@@ -37,7 +37,7 @@
                             <!-- Display the category image using category.logo_path -->
                             <img
                                 v-if="category.logo_path"
-                                :src="baseUrl + '/' + category.logo_path"
+                                :src="baseUrl + '/storage/' + category.logo_path"
                                 alt="Category Image"
                                 class="h-[110px] w-[110px] rounded-full"
                             />
