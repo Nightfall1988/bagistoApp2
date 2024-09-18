@@ -370,9 +370,12 @@
                             try {
                                 item.additionalData = JSON.parse(item.additional);
                                 item.print_fee = item.additionalData['technique-single-price'] || '0.00';
+                                this.printFeeFull = item.additionalData['technique-price'] || '0.00';
                             } catch (e) {
                                 console.error('Failed to parse additional data', e);
                                 item.print_fee = '0.00';
+                                this.printFeeFull = '0.00';
+
                             }
                         }
                         totalPrintFee += parseFloat(item.print_fee || 0) * item.quantity;
