@@ -296,14 +296,14 @@
                             href="{{ route('shop.checkout.onepage.index') }}"
                             class="mx-auto block w-full cursor-pointer rounded-2xl bg-navyBlue px-11 py-4 text-center text-base font-medium text-white max-sm:px-5"
                         >
-                            @lang('shop::app.checkout.cart.mini-cart.continue-to-checkout')
+                            @lang('shop::app.checkout.cart.mini-cart.order-product')
                         </a>
 
                         {!! view_render_event('bagisto.shop.checkout.mini-cart.continue_to_checkout.after') !!}
 
                         <div class="block cursor-pointer text-center text-base font-medium">
-                            <a href="{{ route('shop.checkout.cart.index') }}">
-                                @lang('shop::app.checkout.cart.mini-cart.view-cart')
+                            <a href="{{ route('shop.home.index') }}">
+                                @lang('shop::app.checkout.cart.mini-cart.back-to-shop')
                             </a>
                         </div>
                     </div>

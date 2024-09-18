@@ -136,7 +136,7 @@
                     // Set techniqueSinglePrice to the calculated print fee
                     this.techniqueSinglePrice = parseFloat(data.technique_print_fee).toFixed(2);
                     this.techniqueInfo = this.currentTechnique.description;
-                    this.techniquePrice = data.technique_print_fee.toFixed(2);
+                    this.techniquePrice = (quantity * this.techniqueSinglePrice).toFixed(2);
                 })
                 .catch(error => {
                     console.error('Error calculating price:', error);

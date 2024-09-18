@@ -249,15 +249,15 @@ class Cart
     public function addProduct(ProductContract $product, array $data): Contracts\Cart|\Exception
     {
         if (
-                array_key_exists("technique-info",$this->printData) &&
-                array_key_exists("technique-price",$this->printData) &&
-                $this->printData["technique-info"] != '' &&
-                $this->printData["technique-price"] != ''
+                array_key_exists("technique-info",$data) &&
+                array_key_exists("technique-price",$data) &&
+                $data["technique-info"] != '' &&
+                $data["technique-price"] != ''
             ) {
-            $this->printData["technique-info"] = $data["technique-info"];
-            $this->printData["technique-price"] = $data["technique-price"];
-            $this->printData["technique-single-price"] = $data["technique-single-price"];
-        }
+                $this->printData["technique-info"] = $data["technique-info"];
+                $this->printData["technique-single-price"] = $data["technique-single-price"];
+                $this->printData["technique-price"] = $data["technique-price"];
+            }
         Event::dispatch('checkout.cart.add.before', $product->id);
 
         if (! $this->cart) {
@@ -265,11 +265,11 @@ class Cart
         }
 
         $cartProducts = $product->getTypeInstance()->prepareForCart($data); // PROBLEM HERE
+
         if (is_string($cartProducts)) {
             if (! $this->cart->all_items->count()) {
                 $this->removeCart($this->cart);
             } else {
-
                 $this->collectTotals();
             }
 
@@ -929,7 +929,7 @@ class Cart
 
             
             if ($this->printData["technique-price"] != '' && $this->printData["technique-info"] != '') {
-                $this->cart->print_price = $this->printData["technique-price"] *  $item->quantity;
+                $this->cart->print_price = $this->printData["technique-price"];
                 $this->cart->print_type = $this->printData["technique-info"];
             }
 
@@ -977,7 +977,7 @@ class Cart
             && $this->printData["technique-price"] != '' 
             && array_key_exists("technique-price",$this->printData) 
             && $this->printData["technique-info"] != '') {
-            $this->cart->print_price = $this->printData["technique-price"] *  $item->quantity;
+            $this->cart->print_price = $this->printData["technique-price"];
             $this->cart->print_type = $this->printData["technique-info"];
         }
 
@@ -990,7 +990,7 @@ class Cart
         $this->cart->sub_total_incl_tax = round($this->cart->sub_total_incl_tax, 2);
         $this->cart->base_sub_total_incl_tax = round($this->cart->base_sub_total_incl_tax, 2);
 
-        $this->cart->grand_total = round($this->cart->grand_total, 2) +  $this->cart->print_price;
+        $this->cart->grand_total = round($this->cart->grand_total, 2);
         $this->cart->base_grand_total = round($this->cart->base_grand_total, 2);
 
         $this->cart->cart_currency_code = core()->getCurrentCurrencyCode();

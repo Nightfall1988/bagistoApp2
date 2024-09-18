@@ -644,6 +644,7 @@ return [
                 'view-cart'            => 'Skatīt grozu',
                 'excl-task'            => 'Bez PVN: ',
                 'back-to-shop'         => 'Turpināt iepirkties',
+                'order-product'        => 'Pirkuma noformēšana',
             ],
         ],
         
@@ -665,6 +666,8 @@ return [
             'success-remove'            => 'Prece ir veiksmīgi izņemta no groza.',
             'suspended-account-message' => 'Jūsu konta darbība ir apturēta.',
             'excl-tax'                  => 'Bez PVN:',
+            'order-product'             => 'Pirkuma noformēšana',
+
 
             'index' => [
                 'bagisto'                  => 'Bagisto',
@@ -720,8 +723,9 @@ return [
                 'shopping-cart'        => 'Iepirkumu grozs',
                 'subtotal'             => 'Starpsumma',
                 'view-cart'            => 'Skatīt grozu',
-                'excl-tax'            => 'Bez PVN: ',
+                'excl-tax'             => 'Bez PVN: ',
                 'back-to-shop'         => 'Turpināt iepirkties',
+                'order-product'        => 'Pirkuma noformēšana',
             ],
 
             'summary' => [

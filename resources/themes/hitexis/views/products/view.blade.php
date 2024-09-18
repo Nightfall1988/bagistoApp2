@@ -161,7 +161,8 @@
                 @include('hitexis-shop::products.view.reviews')
             </x-hitexis-shop.item>
         </x-hitexis-shop::tabs>
-    </div> --}}
+    </div> 
+--}}
 
     {!! view_render_event('bagisto.shop.products.view.after', ['product' => $product]) !!}
 

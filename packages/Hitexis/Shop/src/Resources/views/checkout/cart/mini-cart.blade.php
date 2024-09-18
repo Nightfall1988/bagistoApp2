@@ -121,10 +121,10 @@
                                     </p>
                                 </template>
 
-                                <p class="flex flex-row text-lg">
+                                <p class="flex flex-row text-lg" v-if="item.print_fee">
                                     @lang('shop::app.products.view.calculator.print-fee'):&nbsp
                                     <span class="text-l">
-                                        <span class="font-medium">@{{ item.print_fee }}</span> <!-- Print fee added -->
+                                        <span class="font-medium">@{{ item.print_fee }}</span>
                                     </span>
                                 </p>
 
@@ -177,7 +177,8 @@
             <!-- Drawer Footer -->
             <x-slot:footer>
                 <div v-if="cart?.items?.length">
-                    <div class="mb-8 mt-8 flex items-center justify-between border-b border-zinc-200 px-6 pb-2">
+                    <!-- Print Fee Full Section -->
+                    <div class="mb-8 mt-8 flex items-center justify-between border-b border-zinc-200 px-6 pb-2" v-if="printPriceFull !== '0.00'">
                         <p class="text-sm font-medium text-zinc-500">
                             @lang('shop::app.products.view.calculator.print-fee-full')
                         </p>
@@ -185,6 +186,7 @@
                             @{{ printPriceFull }}
                         </p>
                     </div>
+
                     
                     <div class="mb-8 mt-8 flex items-center justify-between border-b border-zinc-200 px-6 pb-2">
                         {!! view_render_event('bagisto.shop.checkout.mini-cart.subtotal.before') !!}
@@ -260,14 +262,14 @@
                             href="{{ route('shop.checkout.onepage.index') }}"
                             class="mx-auto block w-full cursor-pointer rounded-2xl bg-navyBlue px-11 py-4 text-center text-base font-medium text-white max-sm:px-5"
                         >
-                            @lang('shop::app.checkout.cart.mini-cart.continue-to-checkout')
+                            @lang('shop::app.checkout.cart.mini-cart.order-product')
                         </a>
 
                         {!! view_render_event('bagisto.shop.checkout.mini-cart.continue_to_checkout.after') !!}
 
                         <div class="block cursor-pointer text-center text-base font-medium">
-                            <a href="{{ route('shop.checkout.cart.index') }}">
-                                @lang('shop::app.checkout.cart.mini-cart.view-cart')
+                            <a href="{{ route('shop.home.index') }}">
+                                @lang('shop::app.checkout.cart.mini-cart.back-to-shop')
                             </a>
                         </div>
                     </div>
