@@ -37,7 +37,7 @@
                             <!-- Display the category image using category.logo_path -->
                             <img
                                 v-if="category.logo_path"
-                                :src="baseUrl + '/storage/' + category.logo_path"
+                                :src="modifiedUrl + category.logo_path"
                                 alt="Category Image"
                                 class="h-[110px] w-[110px] rounded-full"
                             />
@@ -93,7 +93,7 @@
                 'src',
                 'title',
                 'navigationLink',
-                'baseUrl',  // Pass the base URL from Blade to Vue
+                'baseUrl',
             ],
 
             data() {
@@ -106,6 +106,7 @@
 
             mounted() {
                 this.getCategories();
+                this.editImgUrl();
             },
 
             methods: {
@@ -129,6 +130,11 @@
                     const container = this.$refs.swiperContainer;
                     container.scrollLeft += this.offset;
                 },
+
+                editImgUrl() {
+                    this.modifiedUrl = this.baseUrl + '/storage/';
+                    console.log(this.modifiedUrl);
+                }
             },
         });
     </script>

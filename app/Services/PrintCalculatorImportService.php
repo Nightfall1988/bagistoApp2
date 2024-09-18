@@ -39,27 +39,6 @@ class PrintCalculatorImportService
 
     }
 
-    public function importMidoceanPrintData() {
-        ini_set('memory_limit', '1G');
-        $headers = [
-            'Content-Type' => 'application/json',
-            'x-Gateway-APIKey' => env('MIDOECAN_API_KEY'),
-        ];
-    
-        $this->httpClient = new GuzzleClient([
-            'headers' => $headers
-        ]);
-
-        $request = $this->httpClient->get($this->midoceanUrl);
-
-        $responseBody = $request->getBody()->getContents();
-        $printData = json_decode($responseBody, true);
-        $this->importPrintDataMidocean($printData);
-        $tracker = new ProgressBar($this->output, count($printData['CustomizationOptions']));
-        $tracker->start();
-
-    }
-
     public function importMidoceanPrintTechniquesAndManipulations() 
     {
         ini_set('memory_limit', '1G');
