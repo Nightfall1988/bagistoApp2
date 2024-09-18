@@ -449,6 +449,7 @@ return [
                 'total-price-technique'    => 'Price with printing',
                 'print-fee'                => 'Print fee',
                 'total-price'              => 'Total',
+                'print-fee-full'           => 'Full print price',
             ],
 
             'type' => [
