@@ -121,7 +121,8 @@
                                     </p>
                                 </template>
 
-                                <p class="flex flex-row text-lg" v-if="item.print_fee">
+                                <!-- Print Fee from Backend -->
+                                <p class="flex flex-row text-lg" v-if="item.print_fee && item.print_fee !== '0.00'">
                                     @lang('shop::app.products.view.calculator.print-fee'):&nbsp
                                     <span class="text-l">
                                         <span class="font-medium">@{{ item.print_fee }}</span>
@@ -187,7 +188,6 @@
                         </p>
                     </div>
 
-                    
                     <div class="mb-8 mt-8 flex items-center justify-between border-b border-zinc-200 px-6 pb-2">
                         {!! view_render_event('bagisto.shop.checkout.mini-cart.subtotal.before') !!}
 
@@ -300,7 +300,7 @@
     
             mounted() {
                 this.getCart();
-    
+
                 this.$emitter.on('update-mini-cart', (cart) => {
                     this.cart = cart;
                     this.updatePrintFees(); // Calculate print fees on load
@@ -312,6 +312,8 @@
                     this.$axios.get('{{ route('shop.api.checkout.cart.index') }}')
                         .then(response => {
                             this.cart = response.data.data;
+                            console.log(this.cart);
+
                             this.updatePrintFees(); // Trigger price update immediately after cart fetch
                         })
                         .catch(error => {});
@@ -322,7 +324,7 @@
                     qty[item.id] = quantity;
     
                     this.isLoading = true;
-    
+
                     this.$axios.put('{{ route('shop.api.checkout.cart.update') }}', { qty })
                         .then(response => {
                             if (response.data.message) {
@@ -340,7 +342,7 @@
                     this.$emitter.emit('open-confirm-modal', {
                         agree: () => {
                             this.isLoading = true;
-    
+                            
                             this.$axios.post('{{ route('shop.api.checkout.cart.destroy') }}', {
                                 '_method': 'DELETE',
                                 'cart_item_id': itemId,
@@ -361,40 +363,24 @@
     
                 // Function to calculate print fees for each item and update the total print fee
                 updatePrintFees() {
-                    let techniqueName = document.getElementsByName("technique-info")[0].value;
-                    console.log(techniqueName);
-                    
-                    axios.get("{{ route('printcontroller.api.print.gettechniquecart') }}", {
-                        params: {
-                            techniqueName: techniqueName,
-                            items: this.cart.items,
+                    let totalPrintFee = 0;
+
+                    this.cart.items.forEach(item => {
+                        if (item.additional) {
+                            try {
+                                item.additionalData = JSON.parse(item.additional);
+                                item.print_fee = item.additionalData['technique-single-price'] || '0.00';
+                            } catch (e) {
+                                console.error('Failed to parse additional data', e);
+                                item.print_fee = '0.00';
+                            }
                         }
-                    })
-                    .then(response => {
-                        const data = response.data;
-                        let totalPrintFee = 0; // Initialize total print fee
-    
-                        if (data.length > 0) {
-                            this.cart.items.forEach((item, index) => {
-                                // Update the individual item's print fee
-                                item.print_fee = (data[index]?.unit_price || 0).toFixed(2);
-    
-                                // Accumulate total print fee
-                                totalPrintFee += parseFloat(item.print_fee) * item.quantity;
-                            });
-    
-                            // Update the total print fee
-                            this.printPriceFull = totalPrintFee.toFixed(2);
-                        } else {
-                            this.printPriceFull = '0.00';
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error calculating price:', error);
+                        totalPrintFee += parseFloat(item.print_fee || 0) * item.quantity;
                     });
+
+                    this.printPriceFull = totalPrintFee.toFixed(2);
                 }
             }
         });
     </script>
-    
 @endpushOnce

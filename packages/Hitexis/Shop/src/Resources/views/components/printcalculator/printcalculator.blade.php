@@ -37,7 +37,7 @@
                             <td class="px-6 py-4 border-b border-gray-200 text-center">@{{ technique.quantity }}</td>
                             <td class="px-6 py-4 border-b border-gray-200 text-center">@{{ parseFloat(technique.technique_print_fee).toFixed(2) }} * </td>
                             <td class="px-6 py-4 border-b border-gray-200 text-center">
-                                @{{ ((Number(product.price || 0) + Number(technique.price || 0)) * Number(technique.quantity || 0)).toFixed(2) }} *
+                                @{{ totalTechniquePrice }}
                             </td>
                         </tr>
                         <!-- Hidden inputs to hold technique-related data -->
@@ -65,7 +65,7 @@
                 selectedTechnique: '',
                 currentTechnique: null,
                 techniquesData: [],
-                techniquePrice: '',
+                techniquePrice: '', // This will store the total price
                 techniqueInfo: '',
                 techniqueSinglePrice: '',
             };
@@ -75,24 +75,24 @@
             uniqueDescriptions() {
                 const descriptionsSet = new Set();
                 this.product.print_techniques.forEach(technique => {
-
                     if (technique.pricing_data != '[]') {
                         descriptionsSet.add(technique.description);
                     }
                 });
                 return Array.from(descriptionsSet);
+            },
+            totalTechniquePrice() {
+                if (this.techniquesData.length > 0) {
+                    const technique = this.techniquesData[0];
+                    return ((Number(this.product.price || 0) + Number(technique.price || 0)) * Number(technique.quantity || 0)).toFixed(2);
+                }
+                return "0.00";
             }
         },
 
         watch: {
             selectedTechnique() {
                 this.updateCurrentTechnique();
-            },
-
-            selectedTechnique(newVal, oldVal) {
-                if (newVal !== oldVal) {
-                    this.updateCurrentTechnique();
-                }
             },
         },
 
@@ -136,7 +136,7 @@
                     // Set techniqueSinglePrice to the calculated print fee
                     this.techniqueSinglePrice = parseFloat(data.technique_print_fee).toFixed(2);
                     this.techniqueInfo = this.currentTechnique.description;
-                    this.techniquePrice = (quantity * this.techniqueSinglePrice).toFixed(2);
+                    this.techniquePrice = this.totalTechniquePrice;
                 })
                 .catch(error => {
                     console.error('Error calculating price:', error);
@@ -165,6 +165,7 @@
 
         mounted() {
             this.observeQuantityChange();
+            this.calculatePrices();
 
             if (this.product.print_techniques.length > 0) {
                 this.selectedTechnique = this.product.print_techniques[0].description;
