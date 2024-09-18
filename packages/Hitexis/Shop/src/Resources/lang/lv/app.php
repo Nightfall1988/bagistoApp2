@@ -467,6 +467,7 @@ return [
             'our-clients'                  => "Mūsu klienti",
             'material'                     => "Materiāls",
             'dimensions'                   => "Izmēri",
+            'price-no-tax'                 => "Cena noradīta bez PVN",
 
             'calculator' => [
                 'title'                    => 'Izvēlēties drukas veidu',
@@ -641,7 +642,8 @@ return [
                 'shopping-cart'        => 'Iepirkumu grozs',
                 'subtotal'             => 'Starpsumma',
                 'view-cart'            => 'Skatīt grozu',
-                'excl-task'            => 'Bez PVN: '
+                'excl-task'            => 'Bez PVN: ',
+                'back-to-shop'         => 'Turpināt iepirkties',
             ],
         ],
         
@@ -686,6 +688,7 @@ return [
                 'total'                    => 'Kopā',
                 'update-cart'              => 'Atjaunot grozu',
                 'view-cart'                => 'Skatīt grozu',
+                'back-to-shop'         => 'Turpināt iepirkties',
 
                 'cross-sell' => [
                     'title' => 'Vairāk izvēles',
@@ -717,7 +720,8 @@ return [
                 'shopping-cart'        => 'Iepirkumu grozs',
                 'subtotal'             => 'Starpsumma',
                 'view-cart'            => 'Skatīt grozu',
-                'excl-tax'            => 'Bez PVN: '
+                'excl-tax'            => 'Bez PVN: ',
+                'back-to-shop'         => 'Turpināt iepirkties',
             ],
 
             'summary' => [

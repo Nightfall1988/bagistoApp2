@@ -437,6 +437,7 @@ return [
             'our-clients'                  => "Our clients",
             'material'                     => "Material",
             'dimensions'                   => "Dimensions",
+            'price-no-tax'                 => "Prices displayed do not include VAT",
             
             'calculator' => [
                 'title'                    => 'Select print type',

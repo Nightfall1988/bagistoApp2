@@ -33,11 +33,11 @@
                         <tr v-for="technique in techniquesData" :key="technique.description" class="hover:bg-gray-100 transition-colors duration-150">
                             <td class="px-6 py-4 border-b border-gray-200 text-center">@{{ technique.product_name }}</td>
                             <td class="px-6 py-4 border-b border-gray-200 text-center">@{{ technique.print_technique }}</td>
-                            <td class="px-6 py-4 border-b border-gray-200 text-center">@{{ parseFloat(product.price).toFixed(2) }}</td>
+                            <td class="px-6 py-4 border-b border-gray-200 text-center">@{{ parseFloat(product.price).toFixed(2) }} * </td>
                             <td class="px-6 py-4 border-b border-gray-200 text-center">@{{ technique.quantity }}</td>
-                            <td class="px-6 py-4 border-b border-gray-200 text-center">@{{ parseFloat(technique.technique_print_fee).toFixed(2) }}</td>
+                            <td class="px-6 py-4 border-b border-gray-200 text-center">@{{ parseFloat(technique.technique_print_fee).toFixed(2) }} * </td>
                             <td class="px-6 py-4 border-b border-gray-200 text-center">
-                                @{{ ((Number(product.price || 0) + Number(technique.price || 0)) * Number(technique.quantity || 0)).toFixed(2) }}
+                                @{{ ((Number(product.price || 0) + Number(technique.price || 0)) * Number(technique.quantity || 0)).toFixed(2) }} *
                             </td>
                         </tr>
                         <!-- Hidden inputs to hold technique-related data -->
@@ -45,6 +45,9 @@
                         <input name='technique-info' type='hidden' v-model="techniqueInfo" />
                         <input name='technique-price' type='hidden' v-model="techniquePrice" />
                     </tbody>
+                    <p class="mt-4 ml-2 mb-2 text-sm text-zinc-500 max-sm:mt-4 max-xs:text-xs">
+                        <i>* @lang('shop::app.products.view.price-no-tax')</i>
+                    </p>
                 </table>
             </div>
         </div>

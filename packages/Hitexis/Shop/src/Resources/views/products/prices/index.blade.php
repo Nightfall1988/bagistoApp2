@@ -14,3 +14,7 @@
         {{ $prices['regular']['formatted_price'] }}
     </p>
 @endif
+&nbsp;
+<p class="text-lg text-zinc-500 max-sm:mt-4 max-xs:text-xs">
+    <i>@lang('shop::app.products.view.price-no-tax')</i>
+</p>
