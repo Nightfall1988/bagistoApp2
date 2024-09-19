@@ -467,7 +467,7 @@ return [
             'our-clients'                  => "Mūsu klienti",
             'material'                     => "Materiāls",
             'dimensions'                   => "Izmēri",
-            'price-no-tax'                 => "Cena noradīta bez PVN",
+            'price-no-tax'                 => "Cena norādīta bez PVN",
 
             'calculator' => [
                 'title'                    => 'Izvēlēties drukas veidu',
