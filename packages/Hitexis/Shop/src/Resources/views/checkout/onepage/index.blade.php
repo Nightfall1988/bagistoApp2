@@ -94,7 +94,7 @@
 
                     <!-- Included Checkout Summary Blade File -->
                     <div class="sticky top-8 h-max w-[442px] max-w-full max-lg:w-auto max-lg:max-w-[442px] ltr:pl-8 max-lg:ltr:pl-0 rtl:pr-8 max-lg:rtl:pr-0">
-                        @include('shop::checkout.onepage.summary')
+                        @include('hitexis-shop::checkout.onepage.summary')
 
                         <div
                             class="flex justify-end"

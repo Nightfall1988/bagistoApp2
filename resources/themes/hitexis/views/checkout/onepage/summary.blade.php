@@ -80,7 +80,7 @@
                 @{{ cart.formatted_sub_total }}
             </p>
         </div>
-        
+
         <div class="flex justify-between text-right">
             <p class="text-base">
                 @lang('shop::app.checkout.onepage.summary.sub-total-incl-tax')
@@ -99,7 +99,7 @@
             </p>
 
             <p class="text-base font-medium">
-                @{{ cart.formatted_sub_total }}
+                @{{ cart.formatted_sub_total }} *
             </p>
         </div>
     </template>
@@ -157,7 +157,6 @@
                 @{{ cart.formatted_shipping_amount }}
             </p>
         </div>
-        
         <div class="flex justify-between text-right">
             <p class="text-base">
                 @lang('shop::app.checkout.onepage.summary.delivery-charges-incl-tax')
@@ -257,5 +256,11 @@
         </p>
     </div>
 
+    <div>
+        &nbsp;
+        <p class="text-lg text-zinc-500 max-sm:mt-4 max-xs:text-xs">
+            <i>* @lang('shop::app.products.view.price-no-tax')</i>
+        </p>
+    </div>
     {!! view_render_event('bagisto.shop.checkout.onepage.summary.grand_total.after') !!}
 </div>
