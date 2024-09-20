@@ -148,7 +148,8 @@ class CategoryController extends Controller
         }
 
         try {
-            Event::dispatch('catalog.category.delete.before', $id);
+
+            // Event::dispatch('catalog.category.delete.before', $id);
 
             $category->delete($id);
 
