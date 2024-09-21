@@ -2,8 +2,8 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
 use App\Services\MidoceanApiService;
+use Illuminate\Console\Command;
 
 class MidoceanProductImport extends Command
 {

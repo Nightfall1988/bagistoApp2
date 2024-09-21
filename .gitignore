@@ -34,6 +34,5 @@ public/themes/shop/hitexis/build/manifest.json
 public/themes/shop/hitexis/build/assets/*.js
 <<<<<<< HEAD
 public/themes/shop/hitexis/build/assets/*.css
-=======
-public/themes/shop/hitexis/build/assets/*.css
 >>>>>>> f06c3a1627322dbe4b7f910fbdb1842ce27d6f45
+public/build/*
