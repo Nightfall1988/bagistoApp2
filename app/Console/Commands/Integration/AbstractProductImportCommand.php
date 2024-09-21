@@ -17,6 +17,12 @@ abstract class AbstractProductImportCommand extends Command
     public const CACHE_TTL = 86400; // 1 day
 
     /**
+     * Cache Renew in seconds.
+     * @const int
+     */
+    public const CACHE_RENEW = 960; // 16 minutes
+
+    /**
      * Execute the console command.
      *
      * Primary entry point for the command when executed.
@@ -41,7 +47,7 @@ abstract class AbstractProductImportCommand extends Command
             $cachedData = Cache::get($cacheKey);
             $cachedAt = isset($cachedData['cached_at']) ? Carbon::parse($cachedData['cached_at']) : null;
 
-            if ($cachedData && $cachedAt && $cachedAt->diffInSeconds(Carbon::now()) < self::CACHE_TTL) {
+            if ($cachedData && $cachedAt && $cachedAt->diffInSeconds(Carbon::now()) < self::CACHE_RENEW) {
                 $this->info("Using cached data for {$dataType}. Cached at {$cachedAt}.");
             } else {
                 $this->info("Fetching new data for {$dataType}.");
