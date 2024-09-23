@@ -381,7 +381,7 @@
 
                             let cursorPointer = editor.getCursor();
 
-                            editor.replaceRange(`<div class="top-collection-card"><img style='visibility: visible;' class="lazy" width="396" height="396" src="${response.data}"><h3>Our Collections</h3></div>`, {
+                            editor.replaceRange(`<img style='visibility: visible;' class="lazy" width="396" height="396" src="${response.data}">`, {
                                 line: cursorPointer.line, ch: cursorPointer.ch
                             });
 
