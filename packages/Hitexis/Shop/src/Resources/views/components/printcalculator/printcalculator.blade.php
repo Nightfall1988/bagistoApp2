@@ -46,6 +46,7 @@
                         <input name='technique-info' type='hidden' v-model="techniqueInfo" />
                         <input name='technique-price' type='hidden' v-model="techniquePrice" />
                         <input name='position-id' type='hidden' v-model="positionId" />
+                        <input name='setup-price' type='hidden' v-model="setupPrice" />
                     </tbody>
                     <p class="mt-4 ml-2 mb-2 text-sm text-zinc-500 max-sm:mt-4 max-xs:text-xs">
                         <i>* @lang('shop::app.products.view.price-no-tax')</i>
@@ -71,6 +72,7 @@
                 techniqueInfo: '',
                 techniqueSinglePrice: '',
                 positionId: '',
+                setupPrice: ''
             };
         },
 
@@ -117,7 +119,8 @@
                         technique_id: this.currentTechnique.id,
                         quantity: quantity,
                         product_id: this.product.id,
-                        position_id: this.currentTechnique.position_id
+                        position_id: this.currentTechnique.position_id,
+                        setup: this.currentTechnique.setup
                     }
                 })
                 .then(response => {
@@ -142,6 +145,7 @@
                     this.techniqueInfo = this.currentTechnique.description;
                     this.techniquePrice = this.totalTechniquePrice;
                     this.positionId = this.currentTechnique.position_id;
+                    this.setupPrice = this.currentTechnique.setup
                 })
                 .catch(error => {
                     console.error('Error calculating price:', error);
