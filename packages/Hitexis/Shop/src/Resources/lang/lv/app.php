@@ -480,6 +480,7 @@ return [
                 'print-fee'                => 'Drukas cena par vienību',
                 'print-fee-full'           => 'Kopēja drukas cena',
                 'total-price'              => 'Kopā',
+                'setup-cost'               => 'Iestatīšanas maksa'
             ],
             
             
@@ -667,7 +668,6 @@ return [
             'suspended-account-message' => 'Jūsu konta darbība ir apturēta.',
             'excl-tax'                  => 'Bez PVN:',
             'order-product'             => 'Pirkuma noformēšana',
-
 
             'index' => [
                 'bagisto'                  => 'Bagisto',

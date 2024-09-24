@@ -29,6 +29,7 @@ class PrintTechnique extends BasePrintTechnique implements PrintTechniqueContrac
         'setup_repeat',
         'next_colour_cost_indicator',
         'minimum_colors',
+        'position_id',
         'range_id',
         'area_from',
         'area_to',

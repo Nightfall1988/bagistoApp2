@@ -228,7 +228,7 @@ class HitexisProductRepository extends Repository
         return $product;
     }
 
-        /**
+    /**
      * Return product by filtering through attribute values.
      *
      * @param  string  $code
