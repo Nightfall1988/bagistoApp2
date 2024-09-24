@@ -480,7 +480,7 @@ return [
                 'print-fee'                => 'Drukas cena par vienību',
                 'print-fee-full'           => 'Kopēja drukas cena',
                 'total-price'              => 'Kopā',
-                'setup-cost'               => 'Iestatīšanas maksa'
+                'setup-cost'               => 'Uzstādīšanas izmaksas'
             ],
             
             
