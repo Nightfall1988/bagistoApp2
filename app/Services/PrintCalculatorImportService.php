@@ -66,14 +66,15 @@ class PrintCalculatorImportService
         echo "Print manipulation import\n";
         $tracker = new ProgressBar($this->output, count($data['print_manipulations']));
         $tracker->start();
-
+    
         $printManipulationsData = $data['print_manipulations'];  // Extract the print manipulations array
         $currency = $data['currency'];
         $pricelistValidFrom = $data['pricelist_valid_from'];
         $pricelistValidUntil = $data['pricelist_valid_until'];
-
+    
         $formattedData = [];
         foreach ($printManipulationsData as $manipulation) {
+            // Prepare formatted data
             $formattedData[] = [
                 'currency' => $currency,
                 'pricelist_valid_from' => $pricelistValidFrom,
@@ -84,18 +85,28 @@ class PrintCalculatorImportService
                 'created_at' => now(),
                 'updated_at' => now(),
             ];
-
+    
             $tracker->advance();
         }
-
+    
+        // Remove existing duplicates before upserting
+        foreach ($formattedData as $data) {
+            DB::table('print_manipulations')
+                ->where('code', $data['code'])
+                ->where('description', $data['description'])
+                ->delete();
+        }
+    
+        // Perform the upsert
         DB::table('print_manipulations')->upsert(
             $formattedData, // Data to insert or update
             ['code', 'description'], // Unique constraints (columns to check for uniqueness)
-            ['currency', 'pricelist_valid_from', 'pricelist_valid_until', 'price', 'updated_at'] // Columns to update if match found
+            ['currency', 'pricelist_valid_from', 'pricelist_valid_until', 'price', 'updated_at'] // Columns to update
         );
+    
         $tracker->finish();
-
     }
+    
 
     public function importMidoceanPrintData($data,$printData) {
         ini_set('memory_limit', '1G');
