@@ -40,7 +40,7 @@ class PrintCalculatorController extends Controller
 
     public function getProductPrintData($product_id)
     {
-        $product = Product::with('print_techniques.print_manipulations')->find($product_id);
+        $product = Product::with('print_techniques.print_manipulation')->find($product_id);
 
         if (!$product) {
             return response()->json(['message' => 'Product not found'], 404);
@@ -55,6 +55,7 @@ class PrintCalculatorController extends Controller
         $quantity = $request->input('quantity');
         $productId = $request->input('product_id');
         $position = $request->input('position_id');
+        $setup = $request->input('setup-price');
 
         // Fetch the product
         $product = $this->productRepository->findOrFail($productId);
@@ -101,16 +102,17 @@ class PrintCalculatorController extends Controller
         // Calculate total product price
         $productPriceQty = $product->price * $quantity;
         $totalProductAndPrint = $productPriceQty + $printTotal;
-
+        $manipulationPrice = floatval($technique->print_manipulation->price) * $quantity;
         // Return the calculated result
         return response()->json([
             'price' => $applicablePrice,
             'setup_cost' => $setupCost,
             'total_price' => $printTotal,
             'technique_print_fee' => $applicablePrice,
-            'print_fee' => 0, // Adjust as needed
+            'print_fee' => 0,
             'product_price_qty' => $productPriceQty,
             'total_product_and_print' => $totalProductAndPrint,
+            'print_manipulation' => round($manipulationPrice, 2),
         ]);
     }
 

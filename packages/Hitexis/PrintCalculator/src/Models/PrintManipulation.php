@@ -4,6 +4,7 @@ namespace Hitexis\PrintCalculator\Models;
 use Illuminate\Database\Eloquent\Model as BasePrintManipulation;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Hitexis\PrintCalculator\Contracts\PrintManipulation as PrintManipulationContract;
+use Hitexis\PrintCalculator\Model\PrintTechnique;
 use Exception;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -29,8 +30,8 @@ class PrintManipulation extends BasePrintManipulation implements PrintManipulati
         'price',
     ];
 
-    public function techniques()
+    public function print_techniques()
     {
-        return $this->belongsToMany(PrintTechnique::class, 'print_technique_manipulation');
-    }
+        return $this->hasMany(PrintTechnique::class, 'print_manipulation_id');
+    }    
 }

@@ -450,7 +450,8 @@ return [
                 'print-fee'                => 'Print fee',
                 'total-price'              => 'Total',
                 'print-fee-full'           => 'Full print price',
-                'setup-cost'               => 'Setup cost'
+                'setup-cost'               => 'Setup cost',
+                'manipulation'             => 'Handling'
             ],
 
             'type' => [

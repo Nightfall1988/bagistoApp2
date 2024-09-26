@@ -113,6 +113,7 @@ class PrintCalculatorImportService
         $tracker->start();
     
         foreach ($productsData as $productData) {
+            $manipulation = $this->printManipulationRepository->where('code', $productData['print_manipulation'])->first();
             $product = $this->productRepository->findWhereSimilarAttributeCode('sku', $productData['master_code']);
     
             if ($product && $product->first()) {
@@ -149,6 +150,7 @@ class PrintCalculatorImportService
                             // Insert or update the print technique with the position_id
                             $printTechnique = $this->printTechniqueRepository->create([
                                 'technique_id' => $techniqueData['id'],
+                                'print_manipulation_id' => $manipulation->id,
                                 'product_id' => $product->id,
                                 'description' => $matchingTechnique['description'] ?? null,
                                 'pricing_type' => $matchingTechnique['pricing_type'] ?? null,
@@ -164,7 +166,7 @@ class PrintCalculatorImportService
                             ]);
     
                             // Attach print manipulation to the technique
-                            $this->attachPrintManipulation($printTechnique, $productData);
+                            $printTechnique->print_manipulation()->attack($manipulation->id);
     
                         } catch (\Exception $e) {
                             \Log::error("Failed to save print technique for product ID: " . $product->id . " - Error: " . $e->getMessage());
@@ -198,11 +200,6 @@ class PrintCalculatorImportService
         }
     
         return null;
-    }
-
-    protected function attachPrintManipulation($printTechnique, $manipulation)
-    {
-        $printTechnique->print_manipulations()->syncWithoutDetaching($manipulation->id);
     }
 
     /**

@@ -25,6 +25,7 @@
                             <th class="px-6 py-3 border-b-2 border-indigo-700">@lang('shop::app.products.view.calculator.technique')</th>
                             <th class="px-6 py-3 border-b-2 border-indigo-700">@lang('shop::app.products.view.calculator.setup-cost')</th>
                             <th class="px-6 py-3 border-b-2 border-indigo-700">@lang('shop::app.products.view.calculator.individual-product-price')</th>
+                            <th class="px-6 py-3 border-b-2 border-indigo-700">@lang('shop::app.products.view.calculator.manipulation')</th>
                             <th class="px-6 py-3 border-b-2 border-indigo-700">@lang('shop::app.products.view.calculator.quantity')</th>
                             <th class="px-6 py-3 border-b-2 border-indigo-700">@lang('shop::app.products.view.calculator.print-fee')</th>
                             <th class="px-6 py-3 border-b-2 border-indigo-700">@lang('shop::app.products.view.calculator.total-price')</th>
@@ -36,9 +37,10 @@
                             <td class="px-6 py-4 border-b border-gray-200 text-center">@{{ technique.print_technique }}</td>
                             <td class="px-6 py-4 border-b border-gray-200 text-center">@{{ Number(technique.setup_cost).toFixed(2) }}</td>
                             <td class="px-6 py-4 border-b border-gray-200 text-center">@{{ parseFloat(product.price).toFixed(2) }} * </td>
+                            <td class="px-6 py-4 border-b border-gray-200 text-center">@{{ parseFloat(manipulationPrice).toFixed(2) }} * </td>
                             <td class="px-6 py-4 border-b border-gray-200 text-center">@{{ technique.quantity }}</td>
                             <td class="px-6 py-4 border-b border-gray-200 text-center">@{{ parseFloat(technique.technique_print_fee).toFixed(2) }} * </td>
-                            <td class="px-6 py-4 border-b border-gray-200 text-center">@{{ (Number(totalTechniquePrice) + Number(technique.setup_cost)).toFixed(2) }}</td>
+                            <td class="px-6 py-4 border-b border-gray-200 text-center">@{{ (Number(totalTechniquePrice) + (Number(parseFloat(product.price)).toFixed(2) * Number(technique.quantity))).toFixed(2) }}</td>
 
                         </tr>
                         <!-- Hidden inputs to hold technique-related data -->
@@ -47,6 +49,8 @@
                         <input name='technique-price' type='hidden' v-model="techniquePrice" />
                         <input name='position-id' type='hidden' v-model="positionId" />
                         <input name='setup-price' type='hidden' v-model="setupPrice" />
+                        <input name='print-manipulation' type='hidden' v-model="manipulationPrice" />
+                        
                     </tbody>
                     <p class="mt-4 ml-2 mb-2 text-sm text-zinc-500 max-sm:mt-4 max-xs:text-xs">
                         <i>* @lang('shop::app.products.view.price-no-tax')</i>
@@ -72,7 +76,8 @@
                 techniqueInfo: '',
                 techniqueSinglePrice: '',
                 positionId: '',
-                setupPrice: ''
+                setupPrice: '',
+                manipulationPrice: 0
             };
         },
 
@@ -89,7 +94,7 @@
             totalTechniquePrice() {
                 if (this.techniquesData.length > 0) {
                     const technique = this.techniquesData[0];
-                    return ((Number(this.product.price || 0) + Number(technique.price || 0)) * Number(technique.quantity || 0)).toFixed(2);
+                    return ((Number(technique.price) * technique.quantity) + Number(technique.setup_cost) + Number(technique.printManipulation)).toFixed(2);
                 }
                 return "0.00";
             }
@@ -137,15 +142,17 @@
                         technique_print_fee: data.technique_print_fee,
                         print_fee: data.print_fee,
                         product_price_qty: data.product_price_qty,
-                        total_product_and_print: data.total_product_and_print
+                        total_product_and_print: data.total_product_and_print,
+                        printManipulation: data.print_manipulation
                     }];
-
+                                        
                     // Set techniqueSinglePrice to the calculated print fee
                     this.techniqueSinglePrice = parseFloat(data.technique_print_fee).toFixed(2);
                     this.techniqueInfo = this.currentTechnique.description;
                     this.techniquePrice = this.totalTechniquePrice;
                     this.positionId = this.currentTechnique.position_id;
-                    this.setupPrice = this.currentTechnique.setup
+                    this.setupPrice = this.currentTechnique.setup;
+                    this.manipulationPrice = data.print_manipulation; 
                 })
                 .catch(error => {
                     console.error('Error calculating price:', error);

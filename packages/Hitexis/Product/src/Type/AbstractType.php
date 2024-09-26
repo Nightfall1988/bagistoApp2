@@ -828,6 +828,11 @@ abstract class AbstractType
      */
     public function prepareForCart($data)
     {
+        $printPrice = '0.00';
+
+        if ($data['technique-price']) {
+            $printPrice = $data['technique-price'];
+        }
         $data['quantity'] = $this->handleQuantity((int) $data['quantity']);
 
         $data = $this->getQtyRequest($data);
@@ -836,7 +841,7 @@ abstract class AbstractType
             return trans('product::app.checkout.cart.inventory-warning');
         }
 
-        $price = $this->getFinalPrice();
+        $price = $this->getFinalPrice() + floatval($printPrice);
 
         $products = [
             [
@@ -857,6 +862,7 @@ abstract class AbstractType
                 'base_total_weight'   => ($this->product->weight ?? 0) * $data['quantity'],
                 'type'                => $this->product->type,
                 'additional'          => $this->getAdditionalOptions($data),
+                'print_price'         => $printPrice
             ],
         ];
 
