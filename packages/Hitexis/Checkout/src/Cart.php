@@ -270,7 +270,7 @@ class Cart
             $this->createCart([]);
         }
 
-        $cartProducts = $product->getTypeInstance()->prepareForCart($data); // PROBLEM HERE
+        $cartProducts = $product->getTypeInstance()->prepareForCart($data);
         if (is_string($cartProducts)) {
             if (! $this->cart->all_items->count()) {
                 $this->removeCart($this->cart);
@@ -854,7 +854,7 @@ class Cart
         $totalPrintPrice = 0; // Track total print price
     
         foreach ($this->cart->items as $item) {
-    
+
             // Fetch print data for each item
             $printPrice = $this->getPrintPrice($item);
     
@@ -868,7 +868,8 @@ class Cart
             $this->cart->base_tax_total += $item->base_tax_amount;
     
             // Accumulate subtotal and include print price
-            $this->cart->sub_total += (float) ($item->total - $item->discount_amount) + $itemTotalPrintPrice;
+
+            $this->cart->sub_total += (float) ($item->total - $item->discount_amount) + (float)$itemTotalPrintPrice;
             $this->cart->base_sub_total += $item->base_total;
             $this->cart->print_price += $itemTotalPrintPrice; // Add each item's print price to total print price
     
@@ -878,7 +879,7 @@ class Cart
                 $quantities += $item->quantity;
             }
         }
-    
+
         // Set item quantities and count
         $this->cart->items_qty = $quantities;
         $this->cart->items_count = $this->cart->items->count();
