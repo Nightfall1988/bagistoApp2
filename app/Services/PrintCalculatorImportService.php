@@ -34,7 +34,7 @@ class PrintCalculatorImportService
     {
         ini_set('memory_limit', '1G');
         $this->importMidoceanPrintTechniquesAndManipulations();
-        // $this->importStrickerPrintData();
+        $this->importStrickerPrintData();
         // $this->importXDConnectsPrintData();
 
     }

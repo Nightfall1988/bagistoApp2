@@ -102,7 +102,11 @@ class PrintCalculatorController extends Controller
         // Calculate total product price
         $productPriceQty = $product->price * $quantity;
         $totalProductAndPrint = $productPriceQty + $printTotal;
-        $manipulationPrice = floatval($technique->print_manipulation->price) * $quantity;
+        if (isset($technique->print_manipulation)) {
+            $manipulationPrice = floatval($technique->print_manipulation->price) * $quantity;
+        } else {
+            $manipulationPrice = 0;
+        }
         // Return the calculated result
         return response()->json([
             'price' => $applicablePrice,

@@ -841,7 +841,7 @@ abstract class AbstractType
             return trans('product::app.checkout.cart.inventory-warning');
         }
 
-        $price = $this->getFinalPrice() + floatval($printPrice);
+        $price = $this->getFinalPrice();
 
         $products = [
             [

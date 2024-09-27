@@ -521,6 +521,11 @@ class Configurable extends AbstractType
      */
     public function prepareForCart($data)
     {
+        $printPrice = '0.00';
+
+        if ($data['technique-price']) {
+            $printPrice = $data['technique-price'];
+        }
         $data['quantity'] = parent::handleQuantity((int) $data['quantity']);
 
         if (empty($data['selected_configurable_option'])) {
@@ -562,6 +567,7 @@ class Configurable extends AbstractType
                     'product_id' => (int) $data['selected_configurable_option'],
                     'parent_id'  => $this->product->id,
                 ],
+                'print_price'         => $printPrice
             ],
         ];
     }
