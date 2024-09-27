@@ -815,6 +815,7 @@ return [
                 'place-order'      => 'Veiciet pasūtījumu',
                 'price_&_qty'      => ':price × :qty',
                 'processing'       => 'Apstrāde',
+                'print_price'      => 'Drukas cena: ',
                 'sub-total'        => 'Starpsumma',
                 'tax'              => 'PVN',
                 'excl-tax'         => 'Bez PVN: ',

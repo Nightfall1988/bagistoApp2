@@ -48,6 +48,10 @@
                 <template v-else>
                     @lang('shop::app.checkout.onepage.summary.price_&_qty', ['price' => '@{{ item.formatted_price }}', 'qty' => '@{{ item.quantity }}'])
                 </template>
+                <br>
+                <template v-if="item.printPriceFull && item.printPriceFull > 0">
+                    @lang('shop::app.checkout.onepage.summary.print_price') @{{ item.printPriceFull }}
+                </template>
             </p>
         </div>
     </div>

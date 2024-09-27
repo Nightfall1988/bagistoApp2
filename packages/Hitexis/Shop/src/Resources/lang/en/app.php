@@ -781,6 +781,7 @@ return [
                 'place-order'      => 'Place Order',
                 'price_&_qty'      => ':price × :qty',
                 'processing'       => 'Processing',
+                'print_price'      => 'Print price: ',
                 'sub-total'        => 'Subtotal',
                 'tax'              => 'Tax',
             ],
