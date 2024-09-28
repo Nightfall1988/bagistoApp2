@@ -15,12 +15,12 @@
     <x-slot:content class="mt-8 !p-0">
         <!-- If the customer is guest -->
         <template v-if="cart.is_guest">
-            @include('shop::checkout.onepage.address.guest')
+            @include('hitexis-shop::checkout.onepage.address.guest')
         </template>
 
         <!-- If the customer is logged in -->
         <template v-else>
-            @include('shop::checkout.onepage.address.customer')
+            @include('hitexis-shop::checkout.onepage.address.customer')
         </template>
     </x-slot:content>
 </x-shop::accordion>

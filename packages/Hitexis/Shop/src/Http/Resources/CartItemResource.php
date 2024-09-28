@@ -55,7 +55,7 @@ class CartItemResource extends JsonResource
                 'base_image'                => $this->getTypeInstance()->getBaseImage($this),
                 'product_url_key'           => $this->product->url_key,
                 'print_fee'                 => $this->resource->additional['technique-single-price'],
-                'printPriceFull'            => $this->resource->additional['technique-price'],
+                'printPriceFull'            => $this->resource->additional['technique-price'] ?? '',
                 'wholesale'                 => $this->product->wholesales,
             ];
         }

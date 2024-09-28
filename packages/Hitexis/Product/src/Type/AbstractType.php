@@ -830,9 +830,10 @@ abstract class AbstractType
     {
         $printPrice = '0.00';
 
-        if ($data['technique-price']) {
+        if (isset($data['technique-price'])) {
             $printPrice = $data['technique-price'];
         }
+
         $data['quantity'] = $this->handleQuantity((int) $data['quantity']);
 
         $data = $this->getQtyRequest($data);

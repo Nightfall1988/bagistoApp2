@@ -523,7 +523,7 @@ class Configurable extends AbstractType
     {
         $printPrice = '0.00';
 
-        if ($data['technique-price']) {
+        if (isset($data['technique-price'])) {
             $printPrice = $data['technique-price'];
         }
         $data['quantity'] = parent::handleQuantity((int) $data['quantity']);
