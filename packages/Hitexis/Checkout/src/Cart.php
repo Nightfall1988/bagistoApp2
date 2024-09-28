@@ -959,12 +959,12 @@ class Cart
             $wholesales = $this->productRepository->find($item->product_id)->first()->wholesales;
             $wholesale = $this->getBestWholesalePromotion($item, $wholesales);
             $printTechnique = $this->printTechniqueRepository->where('product_id',$item->product_id)
-                                                    ->where('position_id', $item->additional["position-id"])
-                                                    ->where('description', $item->additional["technique-info"])
+                                                    // ->where('position_id', $item->additional["position-id"])
+                                                    // ->where('description', $item->additional["technique-info"])
                                                     ->first();
             $itemFullPrintPrice = 0;
 
-            if ($printTechnique) {
+            if ($printTechnique != null) {
                 $manipulationPrice = $printTechnique->print_manipulation->price;
                 $price = $this->getPriceBasedOnQuantity($quantity, $printTechnique);
                 $itemFullPrintPrice = round(($quantity * floatval($price)) + floatval($item->additional["setup-price"]) + (floatval($manipulationPrice) * $quantity), 2);
@@ -972,22 +972,38 @@ class Cart
             }
 
             if($wholesale == null) {
+                if ($printTechnique != null) {
+                    $this->cartItemRepository->update([
+                        'quantity'                  => $quantity,
+                        'total'                     => $total = core()->convertPrice(($item->price_incl_tax * $item->quantity)),
+                        'total_incl_tax'            => $total,
+                        'base_total'                => $item->price_incl_tax * $quantity,
+                        'base_total_incl_tax'       => $item->base_price_incl_tax * $quantity,
+                        'total_weight'              => $item->weight * $quantity,
+                        'base_total_weight'         => $item->weight * $quantity,
+                        'discount_amount'           => '0',
+                        'print_price'               => "$itemFullPrintPrice",
+                        'print_single_price'        => "$price",
+                        'print_setup'               => "$setup",
+                        'print_manipulation_cost'   => "$manipulationPrice",
+    
+                    ], $itemId);
+                } else {
+                    $this->cartItemRepository->update([
+                        'quantity'                  => $quantity,
+                        'total'                     => $total = core()->convertPrice(($item->price_incl_tax * $item->quantity)),
+                        'total_incl_tax'            => $total,
+                        'base_total'                => $item->price_incl_tax * $quantity,
+                        'base_total_incl_tax'       => $item->base_price_incl_tax * $quantity,
+                        'total_weight'              => $item->weight * $quantity,
+                        'base_total_weight'         => $item->weight * $quantity,
+                        'discount_amount'           => '0',
+                        'print_price'               => "$itemFullPrintPrice",
+    
+                    ], $itemId);
+                }
                 
-                $this->cartItemRepository->update([
-                    'quantity'                  => $quantity,
-                    'total'                     => $total = core()->convertPrice(($item->price_incl_tax * $item->quantity)),
-                    'total_incl_tax'            => $total,
-                    'base_total'                => $item->price_incl_tax * $quantity,
-                    'base_total_incl_tax'       => $item->base_price_incl_tax * $quantity,
-                    'total_weight'              => $item->weight * $quantity,
-                    'base_total_weight'         => $item->weight * $quantity,
-                    'discount_amount'           => '0',
-                    'print_price'               => "$itemFullPrintPrice",
-                    'print_single_price'        => "$price",
-                    'print_setup'               => "$setup",
-                    'print_manipulation_cost'   => "$manipulationPrice",
-
-                ], $itemId);
+                
 
                 $this->flag = 1;
 
@@ -1000,27 +1016,43 @@ class Cart
             } else {
                 if ($wholesale->batch_amount > $quantity) {
                     $product = $this->productRepository->find($item->product_id);
+                    if ($printTechnique != null) {
 
-                    $item = $this->cartItemRepository->update([
-                        'quantity'            => $quantity,
-                        'price'               => $product->price,
-                        'price_incl_tax'      => $product->price,
-                        'base_price'          => $product->base_price,
-                        'base_price_incl_tax' => $product->base_price,
-                        'total'               => $total = core()->convertPrice($item->base_price * $item->quantity),
-                        'total_incl_tax'      => $total,
-                        'base_total'          => ($baseTotal = $item->base_price * $item->quantity),
-                        'base_total_incl_tax' => $item->baseTotal,
-                        'discount_amount' => '0',
-                        'total_weight'        => $item->weight * $quantity,
-                        'base_total_weight'   => $item->weight * $quantity,
-                        'print_price'         => "$itemFullPrintPrice",
-                        'print_single_price'  => "$price",
-                        'print_setup'         => "$setup",
-                        'print_manipulation_cost'  => "$manipulationPrice",
+                        $item = $this->cartItemRepository->update([
+                            'quantity'            => $quantity,
+                            'price'               => $product->price,
+                            'price_incl_tax'      => $product->price,
+                            'base_price'          => $product->base_price,
+                            'base_price_incl_tax' => $product->base_price,
+                            'total'               => $total = core()->convertPrice($item->base_price * $item->quantity),
+                            'total_incl_tax'      => $total,
+                            'base_total'          => ($baseTotal = $item->base_price * $item->quantity),
+                            'base_total_incl_tax' => $item->baseTotal,
+                            'discount_amount' => '0',
+                            'total_weight'        => $item->weight * $quantity,
+                            'base_total_weight'   => $item->weight * $quantity,
+                            'print_price'         => "$itemFullPrintPrice",
+                            'print_single_price'  => "$price",
+                            'print_setup'         => "$setup",
+                            'print_manipulation_cost'  => "$manipulationPrice",
 
-                    ], $item->id);
-
+                        ], $item->id);
+                    } else {
+                        $item = $this->cartItemRepository->update([
+                            'quantity'            => $quantity,
+                            'price'               => $product->price,
+                            'price_incl_tax'      => $product->price,
+                            'base_price'          => $product->base_price,
+                            'base_price_incl_tax' => $product->base_price,
+                            'total'               => $total = core()->convertPrice($item->base_price * $item->quantity),
+                            'total_incl_tax'      => $total,
+                            'base_total'          => ($baseTotal = $item->base_price * $item->quantity),
+                            'base_total_incl_tax' => $item->baseTotal,
+                            'discount_amount' => '0',
+                            'total_weight'        => $item->weight * $quantity,
+                            'base_total_weight'   => $item->weight * $quantity,
+                        ], $item->id);
+                    }
                     Event::dispatch('checkout.cart.update.after', $item);
 
                     $this->collectTotals();
