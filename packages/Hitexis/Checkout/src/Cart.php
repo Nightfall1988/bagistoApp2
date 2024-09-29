@@ -958,10 +958,14 @@ class Cart
             Event::dispatch('checkout.cart.update.before', $item);
             $wholesales = $this->productRepository->find($item->product_id)->first()->wholesales;
             $wholesale = $this->getBestWholesalePromotion($item, $wholesales);
-            $printTechnique = $this->printTechniqueRepository->where('product_id',$item->product_id)
-                                                    // ->where('position_id', $item->additional["position-id"])
-                                                    // ->where('description', $item->additional["technique-info"])
-                                                    ->first();
+            $printTechnique = null;
+
+            if (isset($item->additional["position-id"]) && isset($item->additional["technique-info"])) {
+                $printTechnique = $this->printTechniqueRepository->where('product_id',$item->product_id)
+                ->where('position_id', $item->additional["position-id"])
+                ->where('description', $item->additional["technique-info"])
+                ->first();
+            }
             $itemFullPrintPrice = 0;
 
             if ($printTechnique != null) {
