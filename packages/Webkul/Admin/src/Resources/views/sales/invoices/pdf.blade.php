@@ -73,7 +73,7 @@
                         @lang('shop::app.emails.orders.payment')
                     </div>
                     <div style="font-size: 16px; font-weight: 400; color: #384860;">
-                        @lang('configuration.index.sales.payment_methods.' . $invoice->order->payment->method)
+                        @lang('shop::app.emails.orders.' . $invoice->order->payment->method)
                     </div>
                     @php $additionalDetails = \Webkul\Payment\Payment::getAdditionalDetails($invoice->order->payment->method); @endphp
                     @if (! empty($additionalDetails))

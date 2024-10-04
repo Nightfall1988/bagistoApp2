@@ -79,6 +79,7 @@ return [
                 'city'             => 'Pilsēta',
                 'company-name'     => 'Uzņēmuma nosaukums',
                 'registration-nr'  => 'Reģistrācijas numurs',
+                'moneytransfer'    => 'Naudas pārskaitījums',
                 'country'          => 'Valsts',
                 'create-success'   => 'Adrese ir veiksmīgi pievienota.',
                 'default-address'  => 'Noklusējuma adrese',

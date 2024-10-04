@@ -17,7 +17,7 @@
                     <a href="{{ route('shop.home.index') }}">
                     @if (core()->getConfigData('sales.invoice_settings.invoice_slip_design.logo'))
                         <div class="image" style="display:inline-block; vertical-align: middle; padding-top:8px">
-                            <img class="logo" style="height: 40px; width: 130px;" src="{{ Storage::url(core()->getConfigData('sales.invoice_settings.invoice_slip_design.logo')) }}" alt=""/>
+                            <img class="logo" style="height: 40px; width: 150px;" src="{{ Storage::url(core()->getConfigData('sales.invoice_settings.invoice_slip_design.logo')) }}" alt=""/>
                         </div>
                     @else
                         <div class="without_logo" style="display:inline-block; vertical-align: middle; padding-top:8px">

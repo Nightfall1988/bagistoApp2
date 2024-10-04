@@ -986,6 +986,7 @@ return [
             'carrier'           => 'Carrier',
             'contact'           => 'Contact',
             'registration-nr'   => 'Company Registration Number',
+            'moneytransfer'      => 'Naudas pārskaitījums',
             'print-setup'        => 'Print setup',
             'print-single-price' => 'Print single price',
             'print-manipulation' => 'Print manipulation',
