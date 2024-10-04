@@ -94,23 +94,10 @@
                 return Array.from(descriptionsSet);
             },
             totalTechniquePrice() {
-                const quantity = this.getQuantityFromFieldQty() || 0;
-
-                // If no technique is selected, just calculate product price * quantity
-                if (this.selectedTechnique === 'no-technique') {
-                    return (Number(this.product.price) * quantity).toFixed(2);
-                }
-
-                // If a technique is selected, calculate the total with technique costs
                 if (this.techniquesData.length > 0) {
                     const technique = this.techniquesData[0];
-                    return (
-                        Number(technique.setup_cost) +
-                        Number(this.product.price) * quantity +
-                        Number(technique.printManipulation)
-                    ).toFixed(2);
+                    return ((Number(technique.price) * technique.quantity) + Number(technique.setup_cost) + Number(technique.printManipulation)).toFixed(2);
                 }
-
                 return "0.00";
             }
         },
@@ -127,7 +114,7 @@
                     // Set all technique properties to 0
                     this.techniquesData = [{
                         product_name: this.product.name,
-                        print_technique: "@lang('shop::app.products.view.calculator.no-technique')",
+                        techniqueInfo: "@lang('shop::app.products.view.calculator.no-technique')",
                         quantity: 0,
                         price: 0,
                         setup_cost: 0,
@@ -139,7 +126,7 @@
                         printManipulation: 0,
                     }];
                     this.techniqueSinglePrice = 0;
-                    this.techniqueInfo = "@lang('shop::app.products.view.calculator.no-technique')";
+                    this.techniqueInfo = "@lang('shop::app.products.view.calculator.no-technique')",
                     this.techniquePrice = 0;
                     this.positionId = null;
                     this.setupPrice = 0;
