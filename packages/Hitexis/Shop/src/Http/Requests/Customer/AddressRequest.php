@@ -28,6 +28,7 @@ class AddressRequest extends FormRequest
     {
         return [
             'company_name' => [new AlphaNumericSpace],
+            'registration_number' => [new AlphaNumericSpace],
             'first_name'   => ['required', new AlphaNumericSpace],
             'last_name'    => ['required', new AlphaNumericSpace],
             'address'      => ['required', 'array', 'min:1'],

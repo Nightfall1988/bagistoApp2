@@ -15,8 +15,7 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'Bagisto'),
-
+    'name' => env('APP_NAME', 'LogoPrint.lv'),
     /*
     |--------------------------------------------------------------------------
     | Application Environment
@@ -104,8 +103,8 @@ return [
     |
     */
 
-    'locale' => env('APP_LOCALE', 'en'),
-    'locales' => ['en', 'lv'],
+    'locale' => env('APP_LOCALE', 'lv'),
+    'locales' => ['lv', 'en'],
 
     /*
     |--------------------------------------------------------------------------

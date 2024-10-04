@@ -10,10 +10,12 @@
                 </label>
                 <div>
                     <select v-model="selectedTechnique" @change="updateCurrentTechnique" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <option value="no-technique">@lang('shop::app.products.view.calculator.no-technique')</option> <!-- No technique option -->
                         <option v-for="technique in uniqueDescriptions" :key="technique" :value="technique">
                             @{{ technique }}
                         </option>
                     </select>
+                    
                 </div>
             </div>
 
@@ -92,10 +94,23 @@
                 return Array.from(descriptionsSet);
             },
             totalTechniquePrice() {
+                const quantity = this.getQuantityFromFieldQty() || 0;
+
+                // If no technique is selected, just calculate product price * quantity
+                if (this.selectedTechnique === 'no-technique') {
+                    return (Number(this.product.price) * quantity).toFixed(2);
+                }
+
+                // If a technique is selected, calculate the total with technique costs
                 if (this.techniquesData.length > 0) {
                     const technique = this.techniquesData[0];
-                    return ((Number(technique.price) * technique.quantity) + Number(technique.setup_cost) + Number(technique.printManipulation)).toFixed(2);
+                    return (
+                        Number(technique.setup_cost) +
+                        Number(this.product.price) * quantity +
+                        Number(technique.printManipulation)
+                    ).toFixed(2);
                 }
+
                 return "0.00";
             }
         },
@@ -108,10 +123,34 @@
 
         methods: {
             updateCurrentTechnique() {
-                this.currentTechnique = this.product.print_techniques.find(
-                    technique => technique.description === this.selectedTechnique
-                );
-                this.calculatePrices();
+                if (this.selectedTechnique === 'no-technique') {
+                    // Set all technique properties to 0
+                    this.techniquesData = [{
+                        product_name: this.product.name,
+                        print_technique: "@lang('shop::app.products.view.calculator.no-technique')",
+                        quantity: 0,
+                        price: 0,
+                        setup_cost: 0,
+                        total_price: 0,
+                        technique_print_fee: 0,
+                        print_fee: 0,
+                        product_price_qty: 0,
+                        total_product_and_print: 0,
+                        printManipulation: 0,
+                    }];
+                    this.techniqueSinglePrice = 0;
+                    this.techniqueInfo = "@lang('shop::app.products.view.calculator.no-technique')";
+                    this.techniquePrice = 0;
+                    this.positionId = null;
+                    this.setupPrice = 0;
+                    this.manipulationPrice = 0;
+                } else {
+                    // Proceed with normal technique selection
+                    this.currentTechnique = this.product.print_techniques.find(
+                        technique => technique.description === this.selectedTechnique
+                    );
+                    this.calculatePrices();
+                }
             },
 
             calculatePrices() {

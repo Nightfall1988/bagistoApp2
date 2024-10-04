@@ -1014,6 +1014,7 @@ return [
             'billing-address'            => 'Billing Address',
             'carrier'                    => 'Carrier',
             'contact'                    => 'Contact',
+            'registration-nr'            => 'Company Registration Number',
             'discount'                   => 'Discount',
             'excl-tax'                   => 'Excl. Tax: ',
             'grand-total'                => 'Grand Total',

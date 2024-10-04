@@ -57,6 +57,7 @@ class AddressController extends Controller
         $this->validate(request(), [
             'company_name'    => [new AlphaNumericSpace],
             'address'         => ['required', 'array'],
+            'registration_number' => ['required', new AlphaNumericSpace],
             'country'         => ['required', new AlphaNumericSpace],
             'state'           => ['required', new AlphaNumericSpace],
             'city'            => ['required', 'string'],
@@ -74,6 +75,7 @@ class AddressController extends Controller
             'first_name',
             'last_name',
             'address',
+            'registration_number',
             'city',
             'country',
             'state',
@@ -118,6 +120,7 @@ class AddressController extends Controller
     {
         $this->validate(request(), [
             'company_name'    => [new AlphaNumericSpace],
+            'registration_number' => [new AlphaNumericSpace],
             'address'         => ['required', 'array'],
             'country'         => ['required', new AlphaNumericSpace],
             'state'           => ['required', new AlphaNumericSpace],
@@ -132,6 +135,7 @@ class AddressController extends Controller
         $data = array_merge(request()->only([
             'customer_id',
             'company_name',
+            'registration_number',
             'vat_id',
             'first_name',
             'last_name',

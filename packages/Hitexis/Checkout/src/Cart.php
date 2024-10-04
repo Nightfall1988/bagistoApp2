@@ -260,7 +260,7 @@ class Cart
             ) {
                 $this->printData["technique-info"] = $data["technique-info"];
                 $this->printData["technique-single-price"] = $data["technique-single-price"];
-                $this->printData["technique-price"] = strval(($data["technique-single-price"]  * $data["quantity"]) + $data["print-manipulation"] + floatval($data['setup-price']));
+                $this->printData["technique-price"] = $data['technique-price'];
                 $this->printData["setup-price"] = $data["setup-price"];
                 $this->printData["print-manipulation"] = $data["print-manipulation"];
             }
@@ -291,6 +291,7 @@ class Cart
                 }
 
                 if (! $cartItem) {
+
                     $cartItem = $this->cartItemRepository->create(array_merge($cartProduct, ['cart_id' => $this->cart->id]));
 
                     if (sizeof($product->wholesales) > 0) {
@@ -501,6 +502,7 @@ class Cart
             ->only([
                 'use_for_shipping',
                 'default_address',
+                'registration_number',
                 'company_name',
                 'first_name',
                 'last_name',
@@ -871,8 +873,10 @@ class Cart
 
             $this->cart->sub_total += (float) ($item->total - $item->discount_amount) + (float)$itemTotalPrintPrice;
             $this->cart->base_sub_total += $item->base_total;
-            $this->cart->print_price += $itemTotalPrintPrice; // Add each item's print price to total print price
-    
+            $this->cart->print_price += $item->print_price; // Add each item's print price to total print price
+            $this->cart->print_name = $item->print_name; // Add each item's print price to total print price
+            $this->cart->print_setup = $item->print_setup; // Add each item's print price to total print price
+            $this->cart->print_manipulation += $item->print_manipulation_cost; // Add each item's print price to total print price
             if ($this->cart->sub_total) {
                 $this->cart->sub_total_incl_tax += (float) $item->total_incl_tax;
                 $this->cart->base_sub_total_incl_tax += (float) $item->base_total_incl_tax;

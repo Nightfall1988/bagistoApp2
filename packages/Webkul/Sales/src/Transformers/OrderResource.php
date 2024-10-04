@@ -39,6 +39,7 @@ class OrderResource extends JsonResource
             'customer_email'           => $this->customer_email,
             'customer_first_name'      => $this->customer_first_name,
             'customer_last_name'       => $this->customer_last_name,
+            'registration_number'      => $this->registration_number,
             'channel_id'               => $this->channel_id,
             'channel_name'             => $this->channel->name,
             'channel_type'             => get_class($this->channel),
@@ -62,9 +63,14 @@ class OrderResource extends JsonResource
             'discount_amount'          => $this->discount_amount,
             'base_discount_amount'     => $this->base_discount_amount,
             'billing_address'          => (new OrderAddressResource($this->billing_address))->jsonSerialize(),
-            $this->mergeWhen($this->haveStockableItems(), $shippingInformation),
+                                           $this->mergeWhen($this->haveStockableItems(), $shippingInformation),
             'payment'                  => (new OrderPaymentResource($this->payment))->jsonSerialize(),
             'items'                    => OrderItemResource::collection($this->items)->jsonSerialize(),
+            "print_price"              => $this->print_price,
+            // "print_single_price"       => $this->print_single_price,
+            // "print_manipulation_cost"  => $this->print_manipulation_cost,
+            // "print_setup"              => $this->print_setup,
+            // "print_name"               => $this->print_name,
         ];
     }
 }

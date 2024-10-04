@@ -30,14 +30,17 @@
                 <x-shop::form.control-group.label>
                     @lang('shop::app.checkout.onepage.address.registration-nr')
                 </x-shop::form.control-group.label>
-
+            
                 <x-shop::form.control-group.control
                     type="text"
-                    ::name="controlName + '.registration_nr'"
-                    ::value="address.registration_nr"
+                    ::name="controlName + '.registration_number'"
+                    ::value="address.registration_number"
                     :placeholder="trans('shop::app.checkout.onepage.address.registration-nr')"
                 />
+            
+                <x-shop::form.control-group.error ::name="controlName + '.registration_number'" />
             </x-shop::form.control-group>
+            
 
             {!! view_render_event('bagisto.shop.checkout.onepage.address.form.company_name.after') !!}
 
@@ -303,6 +306,7 @@
                     default: () => ({
                         id: 0,
                         company_name: '',
+                        registration_number: '',
                         first_name: '',
                         last_name: '',
                         email: '',

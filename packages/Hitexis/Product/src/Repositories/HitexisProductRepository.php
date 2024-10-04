@@ -20,6 +20,7 @@ use Hitexis\Product\Contracts\Product;
 use Hitexis\Product\Adapters\ProductAdapter;
 use Webkul\Product\Repositories\ProductRepository as WebkulProductRepository;
 use Hitexis\Product\Models\Product as HitexisProductModel;
+use Illuminate\Support\Facades\Cache;
 
 class HitexisProductRepository extends Repository
 {

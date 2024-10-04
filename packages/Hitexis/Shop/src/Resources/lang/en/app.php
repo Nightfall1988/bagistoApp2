@@ -452,7 +452,9 @@ return [
                 'total-price'              => 'Total',
                 'print-fee-full'           => 'Full print price',
                 'setup-cost'               => 'Setup cost',
-                'manipulation'             => 'Handling'
+                'manipulation'             => 'Handling',
+                'no-technique'             => 'No print'
+
             ],
 
             'type' => [
@@ -983,6 +985,10 @@ return [
             'billing-address'   => 'Billing Address',
             'carrier'           => 'Carrier',
             'contact'           => 'Contact',
+            'registration-nr'   => 'Company Registration Number',
+            'print-setup'        => 'Print setup',
+            'print-single-price' => 'Print single price',
+            'print-manipulation' => 'Print manipulation',
             'discount'          => 'Discount',
             'grand-total'       => 'Grand Total',
             'name'              => 'Name',

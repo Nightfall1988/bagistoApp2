@@ -96,6 +96,10 @@ class AppServiceProvider extends ServiceProvider
     
     public function boot()
     {
+        // if (request()->is('admin/*')) {
+        //     app()->setLocale('lv');
+        //     session()->put('admin-locale', 'lv');  // Ensure the locale is stored in session
+        // }
         Wholesale::observe(WholesaleObserver::class);
     }
 }

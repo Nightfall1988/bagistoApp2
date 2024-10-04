@@ -52,6 +52,8 @@ class CartResource extends JsonResource
             'print_type'                         => $this->print_type,
             'print_setup'                        => $this->print_setup,
             'print_price'                        => core()->formatPrice($this->print_price),
+            'print_name'                         => $this->print_name,
+            'print_manipulation'                 => $this->print_manipulation,
         ];
     }
 }

@@ -74,8 +74,8 @@ class StrickerApiService {
         $this->optionalsUrl = $this->optionalsUrl . $authToken . '&lang=en';
 
         // GET PRODUCTS
-        $request = $this->httpClient->get($this->url);
-        $productsData = json_decode($request->getBody()->getContents(), true);
+        $productsData = $this->httpClient->get($this->url);
+        $productsData = json_decode($productsData->getBody()->getContents(), true);
 
         // GET OPTIONALS
         $optionalsData = $this->httpClient->get($this->optionalsUrl);
