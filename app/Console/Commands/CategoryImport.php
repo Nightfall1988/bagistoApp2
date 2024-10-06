@@ -33,6 +33,6 @@ class CategoryImport extends Command
 
     public function handle()
     {
-        $this->service->importMidoceanData();
+        $this->service->importMidoceanCategories();
     }
 }

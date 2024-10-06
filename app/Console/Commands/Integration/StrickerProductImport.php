@@ -4,6 +4,8 @@ namespace App\Console\Commands\Integration;
 
 use App\Enums\Integrations\Stricker\CacheKey;
 use App\Enums\Integrations\Stricker\DataType;
+use App\Services\Integration\Stricker\StrickerPrintDataMapperService;
+use App\Services\Integration\Stricker\StrickerProductMapperService;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 
@@ -11,44 +13,49 @@ class StrickerProductImport extends AbstractProductImportCommand
 {
     /**
      * The name and signature of the console command.
+     *
      * @var string
      */
     protected $signature = 'integration:stricker:import';
 
     /**
      * The console command description.
+     *
      * @var string
      */
     protected $description = 'Stricker Product import';
 
     /**
      * HTTP Client instance
-     * @var Client
      */
     protected Client $client;
 
     /**
      * Authentication token for API requests
-     * @var string|null
      */
     protected ?string $authToken = null;
+
+    protected StrickerProductMapperService $productMapperService;
+    protected StrickerPrintDataMapperService $printDataMapperService;
 
     /**
      * Create a new command instance.
      */
-    public function __construct()
+    public function __construct(ExtractStrickerCategories $categoryExtractCommand, StrickerProductMapperService $productMapperService, StrickerPrintDataMapperService $printDataMapperService)
     {
-        parent::__construct();
+        parent::__construct($categoryExtractCommand);
 
         // Initialize the HTTP client with default headers
         $this->client = new Client([
             'headers' => [
                 'Content-Type' => 'application/json',
-            ]
+            ],
         ]);
 
         // Perform authentication
         $this->authenticate();
+        $this->productMapperService = $productMapperService;
+        $this->printDataMapperService = $printDataMapperService;
     }
 
     /**
@@ -65,7 +72,7 @@ class StrickerProductImport extends AbstractProductImportCommand
                 $this->authToken = $authToken;
             }
         } catch (GuzzleException $exception) {
-            $this->error("Authentication request failed: {$exception->getMessage()}");
+            //$this->error("Authentication request failed: {$exception->getMessage()}");
         }
     }
 
@@ -74,8 +81,8 @@ class StrickerProductImport extends AbstractProductImportCommand
      *
      * Parses and processes the JSON content fetched from the API.
      *
-     * @param string $dataType Type of data being processed.
-     * @param string $content JSON content to be processed.
+     * @param  string  $dataType  Type of data being processed.
+     * @param  string  $content  JSON content to be processed.
      */
     protected function processContent(string $dataType, string $content): void
     {
@@ -85,13 +92,31 @@ class StrickerProductImport extends AbstractProductImportCommand
         if (json_last_error() !== JSON_ERROR_NONE) {
             // Log an error if JSON decoding fails
             $this->error("Failed to parse JSON data for {$dataType}.");
+
             return;
         }
 
-        // Log the record count in the JSON data
-        $this->info("Record count for {$dataType}: " . count($data));
-
-        // TODO: Process content, normalize, transform, map, etc., and store somewhere or pass directly for further processing
+        switch ($dataType) {
+            case 'products':
+                $this->info("Record count for {$dataType}: ".count($data['Products']));
+                $this->processProductData($data);
+                break;
+            case 'optionals':
+                $this->info("Record count for {$dataType}: ".count($data['OptionalsComplete']));
+                $this->processOptionalsData($data);
+                break;
+            case 'print_data':
+                $this->info("Record count for {$dataType}: ".count($data['CustomizationOptions']));
+                $this->processPrintData($data);
+                break;
+            case 'images':
+                //$this->info("Record count for {$dataType}: ".count($data['products']));
+                //$this->processImageData($data);
+                break;
+            default:
+                $this->error("Unknown data type {$dataType}.");
+                break;
+        }
     }
 
     /**
@@ -104,7 +129,7 @@ class StrickerProductImport extends AbstractProductImportCommand
      */
     protected function getDataTypes(): array
     {
-        return array_map(fn($dataType) => $dataType->value, DataType::cases());
+        return array_map(fn ($dataType) => $dataType->value, DataType::cases());
     }
 
     /**
@@ -114,7 +139,7 @@ class StrickerProductImport extends AbstractProductImportCommand
      * for the given data type. This key is used to store and retrieve
      * cached data.
      *
-     * @param string $dataType The type of data being cached.
+     * @param  string  $dataType  The type of data being cached.
      * @return string Cache key.
      */
     protected function getCacheKey(string $dataType): string
@@ -128,18 +153,18 @@ class StrickerProductImport extends AbstractProductImportCommand
      * Returns the URL endpoint to fetch the data for the given data type
      * from the external API.
      *
-     * @param string $dataType The type of data being fetched.
+     * @param  string  $dataType  The type of data being fetched.
      * @return string URL endpoint.
      */
     protected function getEndpoint(string $dataType): string
     {
         $endpointConfig = config('integrations.stricker.endpoints');
 
-        if (!isset($endpointConfig[$dataType])) {
+        if (! isset($endpointConfig[$dataType])) {
             throw new \InvalidArgumentException("No endpoint configured for data type: {$dataType}");
         }
 
-        return $endpointConfig[$dataType] . $this->authToken . '&lang=en';
+        return $endpointConfig[$dataType].$this->authToken.'&lang=en';
     }
 
     /**
@@ -152,7 +177,7 @@ class StrickerProductImport extends AbstractProductImportCommand
      */
     protected function getCacheKeys(): array
     {
-        return array_map(fn($cacheKey) => $cacheKey->value, CacheKey::cases());
+        return array_map(fn ($cacheKey) => $cacheKey->value, CacheKey::cases());
     }
 
     /**
@@ -161,7 +186,7 @@ class StrickerProductImport extends AbstractProductImportCommand
      * Converts a cache key back to its corresponding data type.
      * This is useful for determining the data type when processing cached content.
      *
-     * @param string $cacheKey Cache key used to store data.
+     * @param  string  $cacheKey  Cache key used to store data.
      * @return string Data type.
      */
     protected function getDataTypeFromCacheKey(string $cacheKey): string
@@ -177,5 +202,31 @@ class StrickerProductImport extends AbstractProductImportCommand
     protected function getClient(): Client
     {
         return $this->client;
+    }
+
+    private function processProductData(array $data): void
+    {
+        $this->productMapperService->loadData($data);
+        $this->productMapperService->mapProducts();
+        $this->productMapperService->mapProductFlats();
+        $this->productMapperService->mapProductCategories();
+        $this->productMapperService->mapProductAttributeValues();
+    }
+
+    private function processOptionalsData(array $data): void
+    {
+        $this->productMapperService->loadData($data);
+        $this->productMapperService->mapOptionals();
+        $this->productMapperService->mapOptionalFlats();
+    }
+
+    private function processPrintData(array $data): void
+    {
+        $this->printDataMapperService->loadData($data);
+        $this->printDataMapperService->mapProductPrintData();
+        $this->printDataMapperService->mapPrintingPositions();
+        $this->printDataMapperService->mapPrintTechniques();
+        $this->printDataMapperService->mapTechniqueVariableCosts();
+        $this->printDataMapperService->mapPositionPrintTechniques();
     }
 }

@@ -1,18 +1,12 @@
 <?php
+
 namespace Hitexis\PrintCalculator\Models;
 
-use Illuminate\Database\Eloquent\Model as BasePrintTechnique;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Hitexis\PrintCalculator\Contracts\PrintTechnique as PrintTechniqueContract;
-use Exception;
-use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Support\Collection;
 use Hitexis\Product\Models\ProductProxy;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model as BasePrintTechnique;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PrintTechnique extends BasePrintTechnique implements PrintTechniqueContract
 {
@@ -23,21 +17,11 @@ class PrintTechnique extends BasePrintTechnique implements PrintTechniqueContrac
      */
     protected $fillable = [
         'technique_id',
+        'description',
         'pricing_type',
         'setup',
-        'description',
         'setup_repeat',
         'next_colour_cost_indicator',
-        'minimum_colors',
-        'range_id',
-        'area_from',
-        'area_to',
-        'minimum_quantity',
-        'price',
-        'next_price',
-        'default',
-        'pricing_data',
-        'product_id'
     ];
 
     /**

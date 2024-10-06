@@ -3,6 +3,7 @@
 namespace Webkul\Product\Models;
 
 use Exception;
+use Hitexis\Markup\Models\MarkupProxy;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -17,13 +18,12 @@ use Webkul\Attribute\Repositories\AttributeRepository;
 use Webkul\CatalogRule\Models\CatalogRuleProductPriceProxy;
 use Webkul\Category\Models\CategoryProxy;
 use Webkul\Inventory\Models\InventorySourceProxy;
+use Webkul\PrintCalculator\Models\PrintTechniqueProxy;
 use Webkul\Product\Contracts\Product as ProductContract;
 use Webkul\Product\Database\Eloquent\Builder;
 use Webkul\Product\Database\Factories\ProductFactory;
 use Webkul\Product\Type\AbstractType;
 use Webkul\Wholesale\Models\WholesaleProxy;
-use Webkul\PrintCalculator\Models\PrintTechniqueProxy;
-use Hitexis\Markup\Models\MarkupProxy;
 
 class Product extends Model implements ProductContract
 {
@@ -510,7 +510,6 @@ class Product extends Model implements ProductContract
         return ProductFactory::new();
     }
 
-    
     /**
      * Get the wholesale options.
      */
@@ -524,7 +523,7 @@ class Product extends Model implements ProductContract
      */
     public function supplier(): HasOne
     {
-        return $this->hasOne(ProductSupplierProxy::modelClass(),'product_id');
+        return $this->hasOne(ProductSupplierProxy::modelClass(), 'product_id');
     }
 
     /**
@@ -532,7 +531,7 @@ class Product extends Model implements ProductContract
      */
     public function markup(): belongsToMany
     {
-        return $this->belongsToMany(MarkupProxy::modelClass(),'markup_product', 'product_id', 'markup_id');
+        return $this->belongsToMany(MarkupProxy::modelClass(), 'markup_product', 'product_id', 'markup_id');
     }
 
     /**
@@ -550,7 +549,7 @@ class Product extends Model implements ProductContract
         // Retrieve the super attribute by code
         $colorAttribute = $this->super_attributes->firstWhere('code', $attributeCode);
 
-        if (!$colorAttribute) {
+        if (! $colorAttribute) {
             return collect();
         }
 

@@ -45,7 +45,8 @@
         "shetabit/visitor": "^4.3",
         "spatie/laravel-image-optimizer": "^1.8",
         "spatie/laravel-responsecache": "^7.4",
-        "spatie/laravel-sitemap": "^6.2"
+        "spatie/laravel-sitemap": "^6.2",
+        "ext-simplexml": "*"
     },
     "require-dev": {
         "bagisto/laravel-datafaker": "dev-master",

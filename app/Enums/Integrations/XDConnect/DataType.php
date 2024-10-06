@@ -6,8 +6,8 @@ enum DataType: string
 {
     case PRODUCTS = 'products';
     case PRODUCT_PRICES = 'product_prices';
-    case PRINT_DATA = 'print_data';
     case PRINT_PRICES = 'print_prices';
+    case PRINT_DATA = 'print_data';
     case STOCK = 'stock';
 
     /**

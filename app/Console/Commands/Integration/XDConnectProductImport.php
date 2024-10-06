@@ -4,6 +4,11 @@ namespace App\Console\Commands\Integration;
 
 use App\Enums\Integrations\XDConnect\CacheKey;
 use App\Enums\Integrations\XDConnect\DataType;
+use App\Services\Integration\XDConnect\XDConnectPrintDataMapperService;
+use App\Services\Integration\XDConnect\XDConnectPrintPriceMapperService;
+use App\Services\Integration\XDConnect\XDConnectProductMapperService;
+use App\Services\Integration\XDConnect\XDConnectProductPriceMapperService;
+use App\Services\Integration\XDConnect\XDConnectStockMapperService;
 use GuzzleHttp\Client;
 use SimpleXMLElement;
 
@@ -11,34 +16,54 @@ class XDConnectProductImport extends AbstractProductImportCommand
 {
     /**
      * The name and signature of the console command.
+     *
      * @var string
      */
     protected $signature = 'integration:xdconnect:import';
 
     /**
      * The console command description.
+     *
      * @var string
      */
     protected $description = 'XD Connects Product import';
 
     /**
      * HTTP Client instance
-     * @var Client
      */
     protected Client $client;
 
     /**
      * Create a new command instance.
      */
-    public function __construct()
+    private XDConnectProductMapperService $productMapperService;
+
+    private XDConnectProductPriceMapperService $productPriceMapperService;
+
+    private XDConnectPrintPriceMapperService $printPriceMapperService;
+    private XDConnectPrintDataMapperService $printDataMapperService;
+    private XDConnectStockMapperService $stockMapperService;
+
+    public function __construct(ExtractXDConnectCategories $categoryExtractCommand,
+        XDConnectProductMapperService $productMapperService,
+        XDConnectProductPriceMapperService $productPriceMapperService,
+        XDConnectPrintPriceMapperService $printPriceMapperService,
+        XDConnectPrintDataMapperService $printDataMapperService,
+        XDConnectStockMapperService $stockMapperService)
     {
-        parent::__construct();
+        parent::__construct($categoryExtractCommand);
 
         $this->client = new Client([
             'headers' => [
                 'Content-Type'     => 'application/json',
-            ]
+            ],
         ]);
+
+        $this->productMapperService = $productMapperService;
+        $this->productPriceMapperService = $productPriceMapperService;
+        $this->printPriceMapperService = $printPriceMapperService;
+        $this->printDataMapperService = $printDataMapperService;
+        $this->stockMapperService = $stockMapperService;
     }
 
     /**
@@ -46,24 +71,91 @@ class XDConnectProductImport extends AbstractProductImportCommand
      *
      * Parse and process the XML content fetched from the API.
      *
-     * @param string $dataType Type of data being processed.
-     * @param string $content XML content to be processed.
+     * @param  string  $dataType  Type of data being processed.
+     * @param  string  $content  XML content to be processed.
      */
     protected function processContent(string $dataType, string $content): void
     {
         try {
             // Parse the XML content
             $xml = new SimpleXMLElement($content);
+            $data = json_decode(json_encode($xml), true);
+
         } catch (\Exception $e) {
             // Log an error if XML parsing fails
-            $this->error("Failed to parse XML data for {$dataType}: " . $e->getMessage());
+            $this->error("Failed to parse XML data for {$dataType}: ".$e->getMessage());
+
             return;
         }
 
-        // Log the record count in the XML
-        $this->info("Record count for {$dataType}: " . $xml->count());
+        switch ($dataType) {
+            case 'products':
+                $this->info("Record count for {$dataType}: ".count($data['Product']));
+                $this->processProductData($data['Product']);
+                break;
+            case 'product_prices':
+                $this->info("Record count for {$dataType}: ".count($data['Product']));
+                $this->processProductPriceData($data['Product']);
+                break;
+            case 'print_prices':
+                $this->info("Record count for {$dataType}: ".count($data['SalesTechnique']));
+                $this->processPrintPriceData($data['SalesTechnique']);
+                break;
+            case 'print_data':
+                $this->info("Record count for {$dataType}: ".count($data['Product']));
+                $this->processPrintData($data['Product']);
+                break;
+            case 'stock':
+                $this->info("Record count for {$dataType}: ".count($data['Product']));
+                $this->processStockData($data['Product']);
+                break;
+            default:
+                $this->error("Unknown data type {$dataType}.");
+                break;
+        }
 
         // TODO: Process content, normalize, transform, map, etc., and store somewhere or pass directly for further processing
+    }
+
+    private function processProductData(array $data): void
+    {
+        $this->productMapperService->loadData($data);
+        $this->productMapperService->mapProducts();
+        $this->productMapperService->mapProductFlats();
+        $this->productMapperService->mapProductCategories();
+        $this->productMapperService->mapProductAttributeValues();
+        $this->productMapperService->mapAttributeOptions();
+        $this->productMapperService->mapProductImageURLs();
+    }
+
+    private function processProductPriceData(array $data): void
+    {
+        $this->productPriceMapperService->loadData($data);
+        $this->productPriceMapperService->mapProductAttributeValuePrices();
+        $this->productPriceMapperService->mapProductFlatPrices();
+        $this->productPriceMapperService->mapProductPriceIndices();
+    }
+
+    private function processPrintPriceData(array $data): void
+    {
+        $this->printPriceMapperService->loadData($data);
+        $this->printPriceMapperService->mapPrintTechniques();
+        $this->printPriceMapperService->mapPrintTechniqueVariableCosts();
+    }
+
+    private function processPrintData(array $data): void
+    {
+        $this->printDataMapperService->loadData($data);
+        $this->printDataMapperService->mapProductPrintData();
+        $this->printDataMapperService->mapPrintingPositions();
+        $this->printDataMapperService->mapPositionPrintTechniques();
+    }
+
+    private function processStockData(array $data): void
+    {
+        $this->stockMapperService->loadData($data);
+        $this->stockMapperService->mapProductInventories();
+        $this->stockMapperService->mapProductInventoryIndices();
     }
 
     /**
@@ -76,7 +168,7 @@ class XDConnectProductImport extends AbstractProductImportCommand
      */
     protected function getDataTypes(): array
     {
-        return array_map(fn($dataType) => $dataType->value, DataType::cases());
+        return array_map(fn ($dataType) => $dataType->value, DataType::cases());
     }
 
     /**
@@ -86,7 +178,7 @@ class XDConnectProductImport extends AbstractProductImportCommand
      * for the given data type. This key is used to store and retrieve
      * cached data.
      *
-     * @param string $dataType The type of data being cached.
+     * @param  string  $dataType  The type of data being cached.
      * @return string Cache key.
      */
     protected function getCacheKey(string $dataType): string
@@ -100,7 +192,7 @@ class XDConnectProductImport extends AbstractProductImportCommand
      * Returns the URL endpoint to fetch the data for the given data type
      * from the external API.
      *
-     * @param string $dataType The type of data being fetched.
+     * @param  string  $dataType  The type of data being fetched.
      * @return string URL endpoint.
      */
     protected function getEndpoint(string $dataType): string
@@ -118,7 +210,7 @@ class XDConnectProductImport extends AbstractProductImportCommand
      */
     protected function getCacheKeys(): array
     {
-        return array_map(fn($cacheKey) => $cacheKey->value, CacheKey::cases());
+        return array_map(fn ($cacheKey) => $cacheKey->value, CacheKey::cases());
     }
 
     /**
@@ -127,7 +219,7 @@ class XDConnectProductImport extends AbstractProductImportCommand
      * Converts a cache key back to its corresponding data type.
      * This is useful for determining the data type when processing cached content.
      *
-     * @param string $cacheKey Cache key used to store data.
+     * @param  string  $cacheKey  Cache key used to store data.
      * @return string Data type.
      */
     protected function getDataTypeFromCacheKey(string $cacheKey): string

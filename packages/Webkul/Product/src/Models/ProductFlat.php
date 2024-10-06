@@ -19,6 +19,11 @@ class ProductFlat extends Model implements ProductFlatContract
      *
      * @var array
      */
+    protected $fillable = [
+        'product_number',
+        'product_id',
+    ];
+
     protected $guarded = [
         'id',
         'created_at',

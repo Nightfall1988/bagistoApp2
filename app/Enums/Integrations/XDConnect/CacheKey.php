@@ -6,8 +6,8 @@ enum CacheKey: string
 {
     case PRODUCTS = '_xd_products';
     case PRODUCT_PRICES = '_xd_product_prices';
-    case PRINT_DATA = '_xd_print_data';
     case PRINT_PRICES = '_xd_print_prices';
+    case PRINT_DATA = '_xd_print_data';
     case STOCK = '_xd_stock';
 
     /**

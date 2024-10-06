@@ -60,5 +60,32 @@ class CategoryTableSeeder extends Seeder
                 ],
             ]);
         }
+
+        //Insert uncategorized category
+
+        $existingCategory = DB::table('category_translations')
+            ->where('name', 'Uncategorized')
+            ->first();
+
+        if (! $existingCategory) {
+            $categoryId = DB::table('categories')->insertGetId([
+                'logo_path'   => null,
+                'status'      => '1',
+                'parent_id'   => null,
+                'created_at'  => $now,
+                'updated_at'  => $now,
+            ]);
+
+            DB::table('category_translations')->insert([
+                [
+                    'name'             => 'Uncategorized',
+                    'slug'             => 'root',
+                    'description'      => 'Uncategorized',
+                    'category_id'      => $categoryId,
+                    'locale'           => 'en',
+                ],
+            ]);
+        }
+
     }
 }

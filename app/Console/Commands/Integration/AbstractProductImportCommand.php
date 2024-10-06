@@ -12,25 +12,26 @@ abstract class AbstractProductImportCommand extends Command
 {
     /**
      * Cache Time-To-Live (TTL) in seconds.
+     *
      * @const int
      */
-    public const CACHE_TTL = 86400; // 1 day
-
-    /**
-     * Cache Renew in seconds.
-     * @const int
-     */
-    public const CACHE_RENEW = 960; // 16 minutes
-
+    protected AbstractCategoryExtractCommand $categoryExtractCommand;
     /**
      * Execute the console command.
      *
      * Primary entry point for the command when executed.
      * Orchestrates the cache checking and data processing.
      */
+    public function __construct(AbstractCategoryExtractCommand $categoryExtractCommand)
+    {
+        parent::__construct();
+        $this->categoryExtractCommand = $categoryExtractCommand;
+    }
+
     public function handle(): void
     {
         $this->checkAndWriteOrUpdateCache();
+        $this->categoryExtractCommand->handle();
         $this->processCachedData();
     }
 
@@ -47,7 +48,7 @@ abstract class AbstractProductImportCommand extends Command
             $cachedData = Cache::get($cacheKey);
             $cachedAt = isset($cachedData['cached_at']) ? Carbon::parse($cachedData['cached_at']) : null;
 
-            if ($cachedData && $cachedAt && $cachedAt->diffInSeconds(Carbon::now()) < self::CACHE_RENEW) {
+            if ($cachedData && $cachedAt && $cachedAt->diffInSeconds(Carbon::now()) < env('CACHE_TIME_TO_LIVE', 86400)) {
                 $this->info("Using cached data for {$dataType}. Cached at {$cachedAt}.");
             } else {
                 $this->info("Fetching new data for {$dataType}.");
@@ -59,23 +60,24 @@ abstract class AbstractProductImportCommand extends Command
     /**
      * Write or Update the cache with fresh data from the API.
      *
-     * @param string $dataType The type of data being cached.
-     * @param string $cacheKey The cache key used to store data.
+     * @param  string  $dataType  The type of data being cached.
+     * @param  string  $cacheKey  The cache key used to store data.
      */
     protected function updateCache(string $dataType, string $cacheKey): void
     {
         $url = $this->getEndpoint($dataType);
 
         try {
-            $response = $this->client->get($url);
+            $response = $this->getClient()->get($url);
 
+            $this->info($url);
             if ($response->getStatusCode() === 200) {
                 $content = $response->getBody()->getContents();
 
                 Cache::put($cacheKey, [
                     'content'   => $content,
                     'cached_at' => Carbon::now()->toDateTimeString(),
-                ], self::CACHE_TTL);
+                ], env('CACHE_TIME_TO_LIVE', 86400));
             } else {
                 $this->error("Failed to fetch data for {$dataType}. HTTP Status: {$response->getStatusCode()}");
             }
@@ -96,8 +98,10 @@ abstract class AbstractProductImportCommand extends Command
             $cachedData = Cache::get($cacheKey);
 
             if ($cachedData && isset($cachedData['content'])) {
+                $startTime = microtime(true);
                 $dataType = $this->getDataTypeFromCacheKey($cacheKey);
                 $this->processContent($dataType, $cachedData['content']);
+                $this->info('Execution time: '.microtime(true) - $startTime.' seconds for '.$dataType.' import');
             }
         }
     }
@@ -105,8 +109,8 @@ abstract class AbstractProductImportCommand extends Command
     /**
      * Process the content (either XML or JSON).
      *
-     * @param string $dataType Type of data being processed.
-     * @param string $content Content to be processed.
+     * @param  string  $dataType  Type of data being processed.
+     * @param  string  $content  Content to be processed.
      */
     abstract protected function processContent(string $dataType, string $content): void;
 
@@ -127,7 +131,7 @@ abstract class AbstractProductImportCommand extends Command
      * for the given data type. This key is used to store and retrieve
      * cached data.
      *
-     * @param string $dataType The type of data being cached.
+     * @param  string  $dataType  The type of data being cached.
      * @return string Cache key.
      */
     abstract protected function getCacheKey(string $dataType): string;
@@ -138,7 +142,7 @@ abstract class AbstractProductImportCommand extends Command
      * Returns the URL endpoint to fetch the data for the given data type
      * from the external API.
      *
-     * @param string $dataType The type of data being fetched.
+     * @param  string  $dataType  The type of data being fetched.
      * @return string URL endpoint.
      */
     abstract protected function getEndpoint(string $dataType): string;
@@ -159,7 +163,7 @@ abstract class AbstractProductImportCommand extends Command
      * Converts a cache key back to its corresponding data type.
      * This is useful for determining the data type when processing cached content.
      *
-     * @param string $cacheKey Cache key used to store data.
+     * @param  string  $cacheKey  Cache key used to store data.
      * @return string Data type.
      */
     abstract protected function getDataTypeFromCacheKey(string $cacheKey): string;

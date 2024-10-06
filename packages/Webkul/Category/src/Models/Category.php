@@ -5,6 +5,7 @@ namespace Webkul\Category\Models;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
 use Kalnoy\Nestedset\NodeTrait;
 use Shetabit\Visitor\Traits\Visitable;
@@ -66,6 +67,12 @@ class Category extends TranslatableModel implements CategoryContract
     {
         return $this->belongsToMany(ProductProxy::modelClass(), 'product_categories');
     }
+
+    public function translations(): HasMany
+    {
+        return $this->hasMany(CategoryTranslation::class);
+    }
+
 
     /**
      * The filterable attributes that belong to the category.

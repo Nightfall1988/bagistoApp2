@@ -5,8 +5,8 @@ namespace App\Enums\Integrations\Stricker;
 enum CacheKey: string
 {
     case PRODUCTS = '_striker_products';
-    case PRINT_DATA = '_striker_print_data';
     case OPTIONALS = '_striker_optionals';
+    case PRINT_DATA = '_striker_print_data';
     case IMAGES = '_striker_images';
 
     /**

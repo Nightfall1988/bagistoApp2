@@ -1,8 +1,11 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Integration;
 
-class CategoryMapper
+use Illuminate\Support\Collection;
+use Webkul\Sitemap\Models\CategoryTranslation;
+
+class CategoryAssignmentService
 {
     public array $midocean_to_xdconnects_category = [
         'Drinkware'                  => 'Eating & Drinking',
@@ -135,7 +138,6 @@ class CategoryMapper
         'Write'             => 'Office & Writing',
         'Drinkware'         => 'Eating & Drinking',
         'Keychains'         => 'Premiums & Tools',
-        'Textile'           => 'Textile SOLO Group',
         'Shopping'          => 'Bags & Travel',
         'Sun & Rain'        => 'Umbrellas & Rain garments',
         'Bodum'             => 'Eating & Drinking',
@@ -198,7 +200,6 @@ class CategoryMapper
         'Personal care - Bath'                                => 'Personal care',
         'Leisure - Games and Toys'                            => 'Games',
         'Writing - Ball pens with Lid/Roller'                 => 'Writing',
-        'Bags - PC/Tablet Backpacks'                          => 'Backpacks & Business bags',
         'Office - Notepads'                                   => 'Office accessories',
         'Identification - Badges and Pins'                    => 'Corporate & Workwear',
         'Leisure - Picnic and BBQ'                            => 'Outdoor',
@@ -227,8 +228,6 @@ class CategoryMapper
         'Bags - Paper Bags'                                   => 'Shopping bags',
         'Bags - Foldable Shopping Bags'                       => 'Shopping bags',
         'Keychains - With light'                              => 'Key rings',
-        'Accessories - Cardholders'                           => 'Other',
-        'Technology - Other Accessories'                      => 'Other',
         'Technology - Mobile Phone Accessories'               => 'Phone accessories',
         'Office - Rulers'                                     => 'Office accessories',
         'Drinkware - Mugs'                                    => 'Drinkware',
@@ -247,7 +246,6 @@ class CategoryMapper
         'Personal Care - Cosmetic sets'                       => 'Personal care',
         'Personal Care - Lip Protector'                       => 'Personal care',
         'Personal Care - Sanitizers and protective equipment' => 'Personal care',
-        'Leisure - Various Accessories'                       => 'Other',
         'Technology - Digital Watches and Desk Stations'      => 'Office accessories ',
         'Technology - Powerbanks and Chargers'                => 'Power banks',
         'Personal Care - Anti-Stress'                         => 'Anti stress/Candies',
@@ -262,63 +260,59 @@ class CategoryMapper
         'Sports - Accessories'                                => 'Sport & Outdoor bags',
     ];
 
-    public array $categoriesLv = [
-        'office---writing'          => 'Biroja piederumi',
-        'office-accessories-'       => 'Biroja aksesuāri',
-        'bags---travel'             => 'Somas un ceļojuma piederumi',
-        'backpacks---business-bags' => 'Mugursomas un darba somas',
-        'premiums---tools'          => 'Premiums & Tools',
-        'key-rings'                 => 'Atslēgu piekariņi',
-        'notebooks'                 => 'Piezīmju grāmatiņas',
-        'christmas---winter'        => 'Christmas & Winter',
-        'textile'                   => 'Tekstils',
-        'decoration'                => 'Dekorācijas',
-        'drinkware'                 => 'Dzērienu trauki',
-        'gift-bag'                  => 'Dāvanu maisiņi',
-        'kids---games'              => 'Bērniem un spēles',
-        'stuffed-animals'           => 'Mīkstās rotaļlietas',
-        'eating---drinking'         => 'Ēšanai un dzeršanai',
-        'kitchenware'               => 'Virtuves piederumi',
-        'wellness---care'           => 'Veselība un kopšana',
-        'home---living'             => 'Māja un dzīvesstils',
-        'shopping-bags'             => 'Iepirkuma somas',
-        'others'                    => 'Citi',
-        'catalogues'                => 'Katalogi',
-        'umbrellas---rain-garments' => 'Lietussargi un lietus apģērbi',
-        'rain-gear'                 => 'Lietus inventārs',
-        'painting'                  => 'Gleznošana',
-        'anti-stress-candies'       => 'Anti stress/Candies',
-        'sports---recreation'       => 'Sports un atpūta',
-        'beach-items'               => 'Pludmales preces',
-        'sport---outdoor-bags'      => 'Sporta un āra somas',
-        'travel-accessories'        => 'Ceļojumu piederumi',
-        'outdoor'                   => 'Brīvā dabā',
-        'apparel---accessories'     => 'Apģērbi un aksesuāri',
-        'accessories'               => 'Aksesuāri',
-        'personal-care'             => 'Personīgā aprūpe',
-        'barware'                   => 'Bāra piederumi',
-        'tools---torches'           => 'Instrumenti un lāpas',
-        'writing'                   => 'Rakstīšana',
-        'portfolios'                => 'Portfeļi',
-        'games'                     => 'Spēles',
-        'car-accessories'           => 'Auto piederumi',
-        'head-gear'                 => 'Galvas piederumi',
-        'events'                    => 'Pasākumi',
-        'umbrellas'                 => 'Lietussargi',
-        'sport---health'            => 'Sports un veselība',
-        'first-aid'                 => 'Pirmā palīdzība',
-        'technology---accessories'  => 'Tehnoloģijas un piederumi',
-        'usbs'                      => 'USB',
-        'wireless-chargers'         => 'Bezvadu lādētāji',
-        'audio---sound'             => 'Audio un skaņa',
-        'phone-accessories'         => 'Tālruņu piederumi',
-        'lunchware'                 => 'Pusdienu trauki',
-        'power-banks'               => 'Ārējie lādētāji',
-        'ball-pens'                 => 'Pildspalvas',
-        'textile-category'          => 'Tekstils',
-        'textile-solo-group'        => 'Tekstils no SOLO Grupas',
-        'corporate---workwear'      => 'Korporatīvie un Darba apģērbi',
-        'brand'                     => 'Brenda',
-        'windproof-umbrellas'       => 'Vēja necaurlaidīgi lietussargi',
-    ];
+    private ?Collection $categories = null;
+
+    public function getCategories(): Collection
+    {
+        if ($this->categories === null) {
+            // Lazy load categories and cache them for future use
+            $this->categories = CategoryTranslation::all()->keyBy('name');
+        }
+
+        return $this->categories;
+    }
+    public function StrickerMapTypeToDefaultCategory($categoryName): int
+    {
+        $categories = $this->getCategories();
+        if (array_key_exists($categoryName, $this->midocean_to_stricker_category) &&
+            isset($categories[$this->midocean_to_stricker_category[$categoryName]])) {
+            return $categories[$this->midocean_to_stricker_category[$categoryName]]->id;
+        }
+
+        return $categories['Uncategorized']->id;
+    }
+
+    public function StrickerMapSubTypeToDefaultCategory($categoryName): int
+    {
+        $categories = $this->getCategories();
+        if (array_key_exists($categoryName, $this->midocean_to_stricker_subcategory) &&
+            isset($categories[$this->midocean_to_stricker_subcategory[$categoryName]])) {
+            return $categories[$this->midocean_to_stricker_subcategory[$categoryName]]->id;
+        }
+
+        return $categories['Uncategorized']->id;
+    }
+
+    public function XDConnectMapTypeToDefaultCategory($categoryName): int
+    {
+        $categories = $this->getCategories();
+        if (array_key_exists($categoryName, $this->midocean_to_xdconnects_category) &&
+            isset($categories[$this->midocean_to_xdconnects_category[$categoryName]])) {
+            return $categories[$this->midocean_to_xdconnects_category[$categoryName]]->id;
+        }
+
+        return $categories['Uncategorized']->id;
+    }
+
+    public function XDConnectMapSubTypeToDefaultCategory($categoryName): int
+    {
+        $categories = $this->getCategories();
+        if (array_key_exists($categoryName, $this->midocean_to_xdconnects_subcategory) &&
+            isset($categories[$this->midocean_to_xdconnects_subcategory[$categoryName]])) {
+            return $categories[$this->midocean_to_xdconnects_subcategory[$categoryName]]->id;
+        }
+
+        return $categories['Uncategorized']->id;
+    }
+
 }

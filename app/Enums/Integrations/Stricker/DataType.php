@@ -5,8 +5,8 @@ namespace App\Enums\Integrations\Stricker;
 enum DataType: string
 {
     case PRODUCTS = 'products';
-    case PRINT_DATA = 'print_data';
     case OPTIONALS = 'optionals';
+    case PRINT_DATA = 'print_data';
     case IMAGES = 'images';
 
     /**

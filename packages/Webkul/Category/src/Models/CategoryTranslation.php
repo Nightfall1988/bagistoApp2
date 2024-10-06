@@ -5,6 +5,7 @@ namespace Webkul\Category\Models;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Webkul\Category\Contracts\CategoryTranslation as CategoryTranslationContract;
 use Webkul\Category\Database\Factories\CategoryTranslationFactory;
 
@@ -37,6 +38,11 @@ class CategoryTranslation extends Model implements CategoryTranslationContract
     /**
      * Create a new factory instance for the model.
      */
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class);
+    }
+
     protected static function newFactory(): Factory
     {
         return CategoryTranslationFactory::new();
