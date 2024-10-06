@@ -312,7 +312,6 @@
                     this.$axios.get('{{ route('shop.api.checkout.cart.index') }}')
                         .then(response => {
                             this.cart = response.data.data;
-                            console.log(this.cart);
 
                             this.updatePrintFees(); // Trigger price update immediately after cart fetch
                         })
@@ -328,7 +327,9 @@
                     this.$axios.put('{{ route('shop.api.checkout.cart.update') }}', { qty })
                         .then(response => {
                             if (response.data.message) {
+                                
                                 this.cart = response.data.data;
+
                                 this.updatePrintFees(); // Recalculate print fees after updating quantity
                             } else {
                                 this.$emitter.emit('add-flash', { type: 'warning', message: response.data.data.message });
@@ -354,7 +355,6 @@
                                 this.isLoading = false;
                             })
                             .catch(error => {
-                                this.$emitter.emit('add-flash', { type: 'error', message: response.data.message });
                                 this.isLoading = false;
                             });
                         }
@@ -365,23 +365,20 @@
                 updatePrintFees() {
                     let totalPrintFee = 0;
 
+                    this.printPriceFull = this.cart.print_price;
+
                     this.cart.items.forEach(item => {
-                        if (item.additional) {
+                        if (item.print_fee) {
                             try {
-                                item.additionalData = JSON.parse(item.additional);
-                                item.print_fee = item.additionalData['technique-single-price'] || '0.00';
-                                this.printFeeFull = item.additionalData['technique-price'] || '0.00';
+                                this.print_fee = parseFloat(item.print_price).toFixed(2);
+
                             } catch (e) {
                                 console.error('Failed to parse additional data', e);
                                 item.print_fee = '0.00';
-                                this.printFeeFull = '0.00';
-
+                                this.printPriceFull = '0.00';
                             }
                         }
-                        totalPrintFee += parseFloat(item.print_fee || 0) * item.quantity;
-                    });
-
-                    this.printPriceFull = totalPrintFee.toFixed(2);
+                    });                    
                 }
             }
         });

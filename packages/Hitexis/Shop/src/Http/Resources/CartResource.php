@@ -50,7 +50,10 @@ class CartResource extends JsonResource
             'payment_method'                     => $this->payment?->method,
             'payment_method_title'               => core()->getConfigData('sales.payment_methods.'.$this->payment?->method.'.title'),
             'print_type'                         => $this->print_type,
-            'print_price'                        => $this->print_price,
+            'print_setup'                        => $this->print_setup,
+            'print_price'                        => core()->formatPrice($this->print_price),
+            'print_name'                         => $this->print_name,
+            'print_manipulation'                 => $this->print_manipulation,
         ];
     }
 }

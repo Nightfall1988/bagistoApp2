@@ -3904,7 +3904,7 @@ return [
                     'logo'                           => 'Logo',
                     'logo-information'               => 'Attēlu izšķirtspējai jābūt šādai 55px X 45px',
                     'mailing-address'                => 'Nosūtiet čeku uz',
-                    'moneytransfer'                  => 'Naudas pārskaitījums',
+                    'money-transfer'                 => 'Naudas pārskaitījums',
                     'money-transfer-info'            => 'Līdzekļu pārskaitīšana no vienas personas vai konta uz citu, bieži vien elektroniski, dažādiem mērķiem, piemēram, darījumiem vai naudas pārvedumiem.',
                     'page-title'                     => 'Maksājumu metodes',
                     'paid'                           => 'Apmaksāts',
@@ -3982,8 +3982,6 @@ return [
                         'due-duration-days' => ':due-duration dienas',
                         'info'              => 'Saskaņoti nosacījumi, kas nosaka, kad un kā pircējam jāveic maksājums par precēm vai pakalpojumiem pārdevējam.',
                         'title'             => 'Maksājuma nosacījumi',
-                        'title-info'        => 'Saskaņoti nosacījumi, kas nosaka, kad un kā pircējam jāveic maksājums par precēm vai pakalpojumiem pārdevējam.',
-
                     ],
 
                     'pdf-print-outs' => [
@@ -4009,7 +4007,7 @@ return [
                         'length'     => 'Rēķina numurs Garums',
                         'prefix'     => 'Rēķina numura Prefix',
                         'suffix'     => 'Rēķina numura Suffix',
-                        'title-info' => "Rēķina kvīts vizuālais izkārtojums un formāts, uzņēmuma zīmols sabiedrībai, atšķirīgs skatījums uz detaļām, cenu un maksājuma informāciju.",
+                        'title-info' => 'Rēķina iestatījumi',
                         'title'      => 'Rēķina numura iestatījumi',
                     ],
                 ],
@@ -4501,16 +4499,6 @@ return [
                 'subject'  => 'Jauna pasūtījuma apstiprinājums',
                 'summary'  => 'Pasūtījuma kopsavilkums',
                 'title'    => 'Pasūtījuma apstiprinājums!',
-                'registration-nr'   => 'Reģistrācijas numurs:',
-                'print-single-price'       => 'Drukas cena',
-                'print-total'              => 'Kopējā drukas cena',
-                'print-setup'              => 'Uzstādīšanas izmaksas',
-                'print-name-position'      => 'Drukas tips un pozīcija',
-                'print-price'              => 'Kopējā drukas cena',
-                'print-manipulation' => 'Apstrāde',
-                'base_total'        => 'Kopā',
-                'product-sub-total' => 'Kopējā produktu cena',
-                'name'              => 'Nosaukums',
             ],
 
             'invoiced' => [

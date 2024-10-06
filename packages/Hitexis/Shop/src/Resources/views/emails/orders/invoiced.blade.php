@@ -1,4 +1,4 @@
-@component('shop::emails.layout')
+@component('hitexis-shop::emails.layout')
     <div style="margin-bottom: 34px;">
         <span style="font-size: 22px;font-weight: 600;color: #121A26">
             @lang('shop::app.emails.orders.invoiced.title')

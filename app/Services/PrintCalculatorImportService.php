@@ -35,10 +35,10 @@ class PrintCalculatorImportService
         ini_set('memory_limit', '1G');
         $this->importMidoceanPrintTechniquesAndManipulations();
         $this->importStrickerPrintData();
-        $this->importXDConnectsPrintData();
+        // $this->importXDConnectsPrintData();
 
     }
-
+    
     public function importMidoceanPrintTechniquesAndManipulations() 
     {
         ini_set('memory_limit', '1G');
@@ -54,19 +54,61 @@ class PrintCalculatorImportService
         $request = $this->httpClient->get($this->midoceanUrl);
         $responseBody = $request->getBody()->getContents();
         $printData = json_decode($responseBody, true);
-        ////////////////////
         $request = $this->httpClient->get($this->midoceanPrintUrl);
         $responseBody = $request->getBody()->getContents();
         $printProductData = json_decode($responseBody, true);
-        $this->importPrintDataMidocean($printProductData,$printData);
+
+        $this->importMidoceanPrintManipulations($printProductData);
+        $this->importMidoceanPrintData($printProductData,$printData);
     }
 
-    public function setOutput($output)
-    {
-        $this->output = $output;
+    public function importMidoceanPrintManipulations($data) {
+        echo "Print manipulation import\n";
+        $tracker = new ProgressBar($this->output, count($data['print_manipulations']));
+        $tracker->start();
+    
+        $printManipulationsData = $data['print_manipulations'];  // Extract the print manipulations array
+        $currency = $data['currency'];
+        $pricelistValidFrom = $data['pricelist_valid_from'];
+        $pricelistValidUntil = $data['pricelist_valid_until'];
+    
+        $formattedData = [];
+        foreach ($printManipulationsData as $manipulation) {
+            // Prepare formatted data
+            $formattedData[] = [
+                'currency' => $currency,
+                'pricelist_valid_from' => $pricelistValidFrom,
+                'pricelist_valid_until' => $pricelistValidUntil,
+                'code' => $manipulation['code'],
+                'description' => $manipulation['description'],
+                'price' => str_replace(',', '.', $manipulation['price']),  // Convert price to a proper decimal
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+    
+            $tracker->advance();
+        }
+    
+        // Remove existing duplicates before upserting
+        foreach ($formattedData as $data) {
+            DB::table('print_manipulations')
+                ->where('code', $data['code'])
+                ->where('description', $data['description'])
+                ->delete();
+        }
+    
+        // Perform the upsert
+        DB::table('print_manipulations')->upsert(
+            $formattedData, // Data to insert or update
+            ['code', 'description'], // Unique constraints (columns to check for uniqueness)
+            ['currency', 'pricelist_valid_from', 'pricelist_valid_until', 'price', 'updated_at'] // Columns to update
+        );
+    
+        $tracker->finish();
     }
+    
 
-    public function importPrintDataMidocean($data,$printData) {
+    public function importMidoceanPrintData($data,$printData) {
         ini_set('memory_limit', '1G');
 
         // Fetching print products data
@@ -77,62 +119,73 @@ class PrintCalculatorImportService
         }
     }
 
-    /**
-     * Process and import print techniques and products.
-     *
-     * @param array $printTechniquesData
-     * @param array $productsData
-     */
-    protected function processPrintTechniques($printTechniquesData, $productsData) {
-        $tracker = new ProgressBar($this->output, count($printTechniquesData));
+    public function processPrintTechniques($printTechniquesData, $productsData) {
+        $tracker = new ProgressBar($this->output, count($productsData));
         $tracker->start();
     
-        foreach ($printTechniquesData as $techniqueData) {
-            foreach ($productsData as $productData) {
-                // Step 1: Find the product by its 'master_code'
-                $product = $this->productRepository->findWhereSimilarAttributeCode('sku', $productData['master_code']);
+        foreach ($productsData as $productData) {
+            $manipulation = $this->printManipulationRepository->where('code', $productData['print_manipulation'])->first();
+            $product = $this->productRepository->findWhereSimilarAttributeCode('sku', $productData['master_code']);
     
-                if ($product && $product->first()) {
-                    $product = $product->first();  // Grab the first result
+            if ($product && $product->first()) {
+
+                foreach ($productData['printing_positions'] as $positionData) {
+                    $positionId = $positionData['position_id']; // Get the position_id (e.g., "TOP COMPASS")
     
-                    \Log::info("Processing product ID: " . $product->id);
+                    foreach ($positionData['printing_techniques'] as $techniqueData) {
+                        // Ensure the print technique is relevant to the specific position
+                        $matchingTechnique = $this->findMatchingTechnique($printTechniquesData, $techniqueData['id'], $positionData['position_id']);
     
-                    try {
-                        // Skip saving if pricing_data is empty
-                        if (empty($techniqueData['var_costs'][0]['scales'])) {
-                            \Log::info("Skipping technique for product ID: " . $product->id . " due to empty pricing_data.");
+                        // If no matching technique data is found, continue to the next one
+                        if (!$matchingTechnique) {
                             continue;
                         }
     
-                        // Step 2: Insert or update the print technique
-                        $printTechnique = $this->printTechniqueRepository->updateOrCreate(
-                            [
-                                'technique_id' => $techniqueData['id'],
-                                'product_id' => $product->id,
-                            ],
-                            [
-                                'description' => $techniqueData['description'] ?? null,
-                                'pricing_type' => $techniqueData['pricing_type'] ?? null,
-                                'setup' => $techniqueData['setup'] ?? null,
-                                'setup_repeat' => $techniqueData['setup_repeat'] ?? null,
-                                'next_colour_cost_indicator' => $techniqueData['next_colour_cost_indicator'] ?? null,
-                                'range_id' => $techniqueData['var_costs'][0]['range_id'] ?? null,
-                                'area_from' => $techniqueData['var_costs'][0]['area_from'] ?? null,
-                                'area_to' => $techniqueData['var_costs'][0]['area_to'] ?? null,
-                                'pricing_data' => json_encode($this->transformPricingData($techniqueData['var_costs'][0]['scales'])),
-                                'default' => $this->isDefaultTechnique($techniqueData, $productData) ?? 0,
-                            ]
-                        );
+                        try {
+                            // Skip saving if var_costs or pricing_data is empty in the matching technique
+                            if (empty($matchingTechnique['var_costs']) || empty($matchingTechnique['var_costs'][0]['scales'])) {
+                                continue;
+                            }
     
-                        $this->attachPrintManipulation($printTechnique, $productData);
-                    } catch (\Exception $e) {
-                        // Catch and log any exception that might occur
-                        \Log::error("Failed to save print technique for product ID: " . $product->id . " - Error: " . $e->getMessage());
+                            // Check if the print technique for this product and position already exists
+                            $existingTechnique = $this->printTechniqueRepository->where([
+                                ['technique_id', '=', $techniqueData['id']],
+                                ['product_id', '=', $product->id],
+                                ['position_id', '=', $positionId]  // Ensure the position_id is part of the condition
+                            ])->first();
+    
+                            if ($existingTechnique) {
+                                continue;
+                            }
+    
+                            // Insert or update the print technique with the position_id
+                            $printTechnique = $this->printTechniqueRepository->create([
+                                'technique_id' => $techniqueData['id'],
+                                'print_manipulation_id' => $manipulation->id,
+                                'product_id' => $product->id,
+                                'description' => $matchingTechnique['description'] ?? null,
+                                'pricing_type' => $matchingTechnique['pricing_type'] ?? null,
+                                'setup' => $matchingTechnique['setup'] ?? null,
+                                'setup_repeat' => $matchingTechnique['setup_repeat'] ?? null,
+                                'next_colour_cost_indicator' => $matchingTechnique['next_colour_cost_indicator'] ?? null,
+                                'position_id' => $positionId,  // Saving the position_id
+                                'range_id' => $matchingTechnique['var_costs'][0]['range_id'] ?? null,
+                                'area_from' => $matchingTechnique['var_costs'][0]['area_from'] ?? null,
+                                'area_to' => $matchingTechnique['var_costs'][0]['area_to'] ?? null,
+                                'pricing_data' => json_encode($this->transformPricingData($matchingTechnique['var_costs'][0]['scales'])),
+                                'default' => $techniqueData['default'] ?? 0,
+                            ]);
+    
+                            // Attach print manipulation to the technique
+                            $printTechnique->print_manipulation()->attack($manipulation->id);
+    
+                        } catch (\Exception $e) {
+                            \Log::error("Failed to save print technique for product ID: " . $product->id . " - Error: " . $e->getMessage());
+                        }
                     }
-                } else {
-                    // Log if the product is not found
-                    \Log::warning("Product not found for master_code: " . $productData['master_code']);
                 }
+            } else {
+                \Log::warning("Product not found for master_code: " . $productData['master_code']);
             }
             $tracker->advance();
         }
@@ -140,20 +193,24 @@ class PrintCalculatorImportService
         $tracker->finish();
     }
     
-    
     /**
-     * Attach the print manipulation to the print technique.
-     *
-     * @param PrintTechnique $printTechnique
-     * @param array $productData
+     * Find matching technique in the printTechniquesData array.
+     * @param array $printTechniquesData
+     * @param string $techniqueId
+     * @return array|null
      */
-    protected function attachPrintManipulation($printTechnique, $productData) {
-        $manipulationCode = $productData['print_manipulation'];
-        $manipulation = $this->printManipulationRepository->where('code', $manipulationCode)->first();
+    protected function findMatchingTechnique($printTechniquesData, $techniqueId, $positionId)
+    {
+        $z =[];
+        foreach ($printTechniquesData as $technique) {
+            if ($technique['id'] === $techniqueId && !in_array($techniqueId, $z)) {
+                $z[] = $techniqueId;
 
-        if ($manipulation) {
-            $printTechnique->print_manipulations()->syncWithoutDetaching($manipulation->id);
+                return $technique;
+            }
         }
+    
+        return null;
     }
 
     /**
@@ -175,7 +232,6 @@ class PrintCalculatorImportService
         return false;
     }
 
-    
     public function importStrickerPrintData()
     {
         ini_set('memory_limit', '1G');
@@ -361,6 +417,10 @@ class PrintCalculatorImportService
         }, $scales);
     }
 
+    public function setOutput($output)
+    {
+        $this->output = $output;
+    }
 }
 
 

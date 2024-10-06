@@ -36,7 +36,7 @@
             </div>
 
             @guest('customer')
-                @include('shop::checkout.login')
+                @include('hitexis-shop::checkout.login')
             @endguest
         </div>
     </div>
@@ -78,17 +78,17 @@
                     >
                         <!-- Included Addresses Blade File -->
                         <template v-if="['address', 'shipping', 'payment', 'review'].includes(currentStep)">
-                            @include('shop::checkout.onepage.address')
+                            @include('hitexis-shop::checkout.onepage.address')
                         </template>
 
                         <!-- Included Shipping Methods Blade File -->
                         <template v-if="cart.have_stockable_items && ['shipping', 'payment', 'review'].includes(currentStep)">
-                            @include('shop::checkout.onepage.shipping')
+                            @include('hitexis-shop::checkout.onepage.shipping')
                         </template>
 
                         <!-- Included Payment Methods Blade File -->
                         <template v-if="['payment', 'review'].includes(currentStep)">
-                            @include('shop::checkout.onepage.payment')
+                            @include('hitexis-shop::checkout.onepage.payment')
                         </template>
                     </div>
 

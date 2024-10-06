@@ -40,6 +40,11 @@ class OrderItemResource extends JsonResource
             'base_discount_amount'  => $this->base_discount_amount,
             'additional'            => array_merge($this->resource->additional ?? [], ['locale' => core()->getCurrentLocale()->code]),
             'children'              => self::collection($this->children)->jsonSerialize(),
+            "print_setup"           => $this->print_setup,
+            "print_single_price"    => $this->print_single_price,
+            "print_name"            => $this->print_name,
+            "print_manipulation_cost" => $this->print_manipulation_cost,
+            "print_price"           => $this->print_price,
         ];
     }
 }

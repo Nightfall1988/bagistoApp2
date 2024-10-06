@@ -960,6 +960,7 @@ return [
             'billing-address'   => 'Norēķinu adrese',
             'carrier'           => 'Pārvadātājs',
             'contact'           => 'Kontakti',
+            'registration-nr'   => 'Reģistrācijas numurs:',
             'discount'          => 'Atlaide',
             'grand-total'       => 'Kopsumma',
             'name'              => 'Vārds',

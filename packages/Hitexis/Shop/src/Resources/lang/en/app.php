@@ -78,6 +78,7 @@ return [
                     'address-2'        => 'Address 2',
                     'city'             => 'City',
                     'company-name'     => 'Company Name',
+                    'registration-nr'  => 'Registration number',
                     'country'          => 'Country',
                     'create-success'   => 'Address have been successfully added.',
                     'default-address'  => 'Default Address',
@@ -450,6 +451,10 @@ return [
                 'print-fee'                => 'Print fee',
                 'total-price'              => 'Total',
                 'print-fee-full'           => 'Full print price',
+                'setup-cost'               => 'Setup cost',
+                'manipulation'             => 'Handling',
+                'no-technique'             => 'No print'
+
             ],
 
             'type' => [
@@ -739,6 +744,7 @@ return [
                 'billing-address'  => 'Billing Address',
                 'city'             => 'City',
                 'company-name'     => 'Company Name',
+                'registration-nr'  => 'Registration number',
                 'confirm'          => 'Confirm',
                 'country'          => 'Country',
                 'email'            => 'Email',
@@ -779,6 +785,7 @@ return [
                 'place-order'      => 'Place Order',
                 'price_&_qty'      => ':price × :qty',
                 'processing'       => 'Processing',
+                'print_price'      => 'Print price: ',
                 'sub-total'        => 'Subtotal',
                 'tax'              => 'Tax',
             ],
@@ -978,6 +985,11 @@ return [
             'billing-address'   => 'Billing Address',
             'carrier'           => 'Carrier',
             'contact'           => 'Contact',
+            'registration-nr'   => 'Company Registration Number',
+            'moneytransfer'      => 'Naudas pārskaitījums',
+            'print-setup'        => 'Print setup',
+            'print-single-price' => 'Print single price',
+            'print-manipulation' => 'Print manipulation',
             'discount'          => 'Discount',
             'grand-total'       => 'Grand Total',
             'name'              => 'Name',

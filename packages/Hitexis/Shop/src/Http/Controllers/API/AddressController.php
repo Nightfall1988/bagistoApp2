@@ -41,6 +41,7 @@ class AddressController extends APIController
         $data = array_merge($request->only([
             'company_name',
             'first_name',
+            'registration_number',
             'last_name',
             'vat_id',
             'address',

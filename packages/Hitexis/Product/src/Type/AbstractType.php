@@ -828,6 +828,20 @@ abstract class AbstractType
      */
     public function prepareForCart($data)
     {
+        $printPrice = '0.00';
+        $printSinglePrice = '0.00';
+        $printManipulationCost = '0.00';
+        $printSetupPrice = '0.00';
+        $printNameAndPosition = '';
+
+        if (isset($data['technique-price'])) {
+            $printPrice = $data['technique-price'];
+            $printSinglePrice = $data["technique-single-price"];
+            $printManipulationCost =  floatval($data["print-manipulation"]) / intval($data["quantity"]);
+            $printSetupPrice = $data['setup-price'];
+            $printNameAndPosition = $data["technique-info"] . ' - ' .  $data["position-id"];
+        }
+
         $data['quantity'] = $this->handleQuantity((int) $data['quantity']);
 
         $data = $this->getQtyRequest($data);
@@ -840,23 +854,28 @@ abstract class AbstractType
 
         $products = [
             [
-                'product_id'          => $this->product->id,
-                'sku'                 => $this->product->sku,
-                'quantity'            => $data['quantity'],
-                'name'                => $this->product->name,
-                'price'               => $convertedPrice = core()->convertPrice($price),
-                'price_incl_tax'      => $convertedPrice,
-                'base_price'          => $price,
-                'base_price_incl_tax' => $price,
-                'total'               => $convertedPrice * $data['quantity'],
-                'total_incl_tax'      => $convertedPrice * $data['quantity'],
-                'base_total'          => $price * $data['quantity'],
-                'base_total_incl_tax' => $price * $data['quantity'],
-                'weight'              => $this->product->weight ?? 0,
-                'total_weight'        => ($this->product->weight ?? 0) * $data['quantity'],
-                'base_total_weight'   => ($this->product->weight ?? 0) * $data['quantity'],
-                'type'                => $this->product->type,
-                'additional'          => $this->getAdditionalOptions($data),
+                'product_id'                => $this->product->id,
+                'sku'                       => $this->product->sku,
+                'quantity'                  => $data['quantity'],
+                'name'                      => $this->product->name,
+                'price'                     => $convertedPrice = core()->convertPrice($price),
+                'price_incl_tax'            => $convertedPrice,
+                'base_price'                => $price,
+                'base_price_incl_tax'       => $price,
+                'total'                     => $convertedPrice * $data['quantity'],
+                'total_incl_tax'            => $convertedPrice * $data['quantity'],
+                'base_total'                => $price * $data['quantity'],
+                'base_total_incl_tax'       => $price * $data['quantity'],
+                'weight'                    => $this->product->weight ?? 0,
+                'total_weight'              => ($this->product->weight ?? 0) * $data['quantity'],
+                'base_total_weight'         => ($this->product->weight ?? 0) * $data['quantity'],
+                'type'                      => $this->product->type,
+                'additional'                => $this->getAdditionalOptions($data),
+                'print_price'               => $printPrice,
+                'print_single_price'        => $printSinglePrice,
+                'print_manipulation_cost'   => $printManipulationCost,
+                'print_setup'               => $printSetupPrice,
+                'print_name'                => $printNameAndPosition,
             ],
         ];
 

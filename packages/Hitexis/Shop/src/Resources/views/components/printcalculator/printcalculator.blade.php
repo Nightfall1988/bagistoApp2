@@ -10,10 +10,12 @@
                 </label>
                 <div>
                     <select v-model="selectedTechnique" @change="updateCurrentTechnique" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <option value="no-technique">@lang('shop::app.products.view.calculator.no-technique')</option> <!-- No technique option -->
                         <option v-for="technique in uniqueDescriptions" :key="technique" :value="technique">
                             @{{ technique }}
                         </option>
                     </select>
+                    
                 </div>
             </div>
 
@@ -23,7 +25,9 @@
                         <tr>
                             <th class="px-6 py-3 border-b-2 border-indigo-700">@lang('shop::app.products.view.calculator.product-name')</th>
                             <th class="px-6 py-3 border-b-2 border-indigo-700">@lang('shop::app.products.view.calculator.technique')</th>
+                            <th class="px-6 py-3 border-b-2 border-indigo-700">@lang('shop::app.products.view.calculator.setup-cost')</th>
                             <th class="px-6 py-3 border-b-2 border-indigo-700">@lang('shop::app.products.view.calculator.individual-product-price')</th>
+                            <th class="px-6 py-3 border-b-2 border-indigo-700">@lang('shop::app.products.view.calculator.manipulation')</th>
                             <th class="px-6 py-3 border-b-2 border-indigo-700">@lang('shop::app.products.view.calculator.quantity')</th>
                             <th class="px-6 py-3 border-b-2 border-indigo-700">@lang('shop::app.products.view.calculator.print-fee')</th>
                             <th class="px-6 py-3 border-b-2 border-indigo-700">@lang('shop::app.products.view.calculator.total-price')</th>
@@ -33,17 +37,22 @@
                         <tr v-for="technique in techniquesData" :key="technique.description" class="hover:bg-gray-100 transition-colors duration-150">
                             <td class="px-6 py-4 border-b border-gray-200 text-center">@{{ technique.product_name }}</td>
                             <td class="px-6 py-4 border-b border-gray-200 text-center">@{{ technique.print_technique }}</td>
+                            <td class="px-6 py-4 border-b border-gray-200 text-center">@{{ Number(technique.setup_cost).toFixed(2) }}</td>
                             <td class="px-6 py-4 border-b border-gray-200 text-center">@{{ parseFloat(product.price).toFixed(2) }} * </td>
+                            <td class="px-6 py-4 border-b border-gray-200 text-center">@{{ parseFloat(manipulationPrice).toFixed(2) }} * </td>
                             <td class="px-6 py-4 border-b border-gray-200 text-center">@{{ technique.quantity }}</td>
                             <td class="px-6 py-4 border-b border-gray-200 text-center">@{{ parseFloat(technique.technique_print_fee).toFixed(2) }} * </td>
-                            <td class="px-6 py-4 border-b border-gray-200 text-center">
-                                @{{ totalTechniquePrice }}
-                            </td>
+                            <td class="px-6 py-4 border-b border-gray-200 text-center">@{{ (Number(totalTechniquePrice) + (Number(parseFloat(product.price)).toFixed(2) * Number(technique.quantity))).toFixed(2) }}</td>
+
                         </tr>
                         <!-- Hidden inputs to hold technique-related data -->
                         <input name='technique-single-price' type='hidden' v-model="techniqueSinglePrice" />
                         <input name='technique-info' type='hidden' v-model="techniqueInfo" />
                         <input name='technique-price' type='hidden' v-model="techniquePrice" />
+                        <input name='position-id' type='hidden' v-model="positionId" />
+                        <input name='setup-price' type='hidden' v-model="setupPrice" />
+                        <input name='print-manipulation' type='hidden' v-model="manipulationPrice" />
+                        
                     </tbody>
                     <p class="mt-4 ml-2 mb-2 text-sm text-zinc-500 max-sm:mt-4 max-xs:text-xs">
                         <i>* @lang('shop::app.products.view.price-no-tax')</i>
@@ -68,6 +77,9 @@
                 techniquePrice: '', // This will store the total price
                 techniqueInfo: '',
                 techniqueSinglePrice: '',
+                positionId: '',
+                setupPrice: '',
+                manipulationPrice: 0
             };
         },
 
@@ -84,7 +96,7 @@
             totalTechniquePrice() {
                 if (this.techniquesData.length > 0) {
                     const technique = this.techniquesData[0];
-                    return ((Number(this.product.price || 0) + Number(technique.price || 0)) * Number(technique.quantity || 0)).toFixed(2);
+                    return ((Number(technique.price) * technique.quantity) + Number(technique.setup_cost) + Number(technique.printManipulation)).toFixed(2);
                 }
                 return "0.00";
             }
@@ -98,10 +110,34 @@
 
         methods: {
             updateCurrentTechnique() {
-                this.currentTechnique = this.product.print_techniques.find(
-                    technique => technique.description === this.selectedTechnique
-                );
-                this.calculatePrices();
+                if (this.selectedTechnique === 'no-technique') {
+                    // Set all technique properties to 0
+                    this.techniquesData = [{
+                        product_name: this.product.name,
+                        techniqueInfo: "@lang('shop::app.products.view.calculator.no-technique')",
+                        quantity: 0,
+                        price: 0,
+                        setup_cost: 0,
+                        total_price: 0,
+                        technique_print_fee: 0,
+                        print_fee: 0,
+                        product_price_qty: 0,
+                        total_product_and_print: 0,
+                        printManipulation: 0,
+                    }];
+                    this.techniqueSinglePrice = 0;
+                    this.techniqueInfo = "@lang('shop::app.products.view.calculator.no-technique')",
+                    this.techniquePrice = 0;
+                    this.positionId = null;
+                    this.setupPrice = 0;
+                    this.manipulationPrice = 0;
+                } else {
+                    // Proceed with normal technique selection
+                    this.currentTechnique = this.product.print_techniques.find(
+                        technique => technique.description === this.selectedTechnique
+                    );
+                    this.calculatePrices();
+                }
             },
 
             calculatePrices() {
@@ -113,7 +149,9 @@
                     params: {
                         technique_id: this.currentTechnique.id,
                         quantity: quantity,
-                        product_id: this.product.id
+                        product_id: this.product.id,
+                        position_id: this.currentTechnique.position_id,
+                        setup: this.currentTechnique.setup
                     }
                 })
                 .then(response => {
@@ -130,13 +168,17 @@
                         technique_print_fee: data.technique_print_fee,
                         print_fee: data.print_fee,
                         product_price_qty: data.product_price_qty,
-                        total_product_and_print: data.total_product_and_print
+                        total_product_and_print: data.total_product_and_print,
+                        printManipulation: data.print_manipulation
                     }];
-
+                                        
                     // Set techniqueSinglePrice to the calculated print fee
                     this.techniqueSinglePrice = parseFloat(data.technique_print_fee).toFixed(2);
                     this.techniqueInfo = this.currentTechnique.description;
                     this.techniquePrice = this.totalTechniquePrice;
+                    this.positionId = this.currentTechnique.position_id;
+                    this.setupPrice = this.currentTechnique.setup;
+                    this.manipulationPrice = data.print_manipulation; 
                 })
                 .catch(error => {
                     console.error('Error calculating price:', error);

@@ -521,6 +521,11 @@ class Configurable extends AbstractType
      */
     public function prepareForCart($data)
     {
+        $printPrice = '0.00';
+
+        if (isset($data['technique-price'])) {
+            $printPrice = $data['technique-price'];
+        }
         $data['quantity'] = parent::handleQuantity((int) $data['quantity']);
 
         if (empty($data['selected_configurable_option'])) {
@@ -536,7 +541,6 @@ class Configurable extends AbstractType
         }
 
         $price = $childProduct->getTypeInstance()->getFinalPrice();
-
         return [
             [
                 'product_id'        => $this->product->id,
@@ -545,19 +549,25 @@ class Configurable extends AbstractType
                 'type'              => $this->product->type,
                 'quantity'          => $data['quantity'],
                 'price'             => $convertedPrice = core()->convertPrice($price),
+                'price_incl_tax'    => $convertedPrice,
                 'base_price'        => $price,
                 'total'             => $convertedPrice * $data['quantity'],
                 'base_total'        => $price * $data['quantity'],
                 'weight'            => $childProduct->weight,
                 'total_weight'      => $childProduct->weight * $data['quantity'],
                 'base_total_weight' => $childProduct->weight * $data['quantity'],
+                'base_price_incl_tax' => $price,
+                'total_incl_tax'      => $convertedPrice * $data['quantity'],
+                'base_total_incl_tax' => $price * $data['quantity'],
                 'additional'        => $this->getAdditionalOptions($data),
+                'print_price'       => $printPrice 
             ], [
-                'parent_id'  => $this->product->id,
-                'product_id' => (int) $data['selected_configurable_option'],
-                'sku'        => $childProduct->sku,
-                'name'       => $childProduct->name,
-                'type'       => $childProduct->type,
+                'parent_id'           => $this->product->id,
+                'product_id'          => (int) $data['selected_configurable_option'],
+                'sku'                 => $childProduct->sku,
+                'name'                => $childProduct->name,
+                'type'                => $childProduct->type,
+                'print_price'         => $printPrice,
                 'additional' => [
                     'product_id' => (int) $data['selected_configurable_option'],
                     'parent_id'  => $this->product->id,
