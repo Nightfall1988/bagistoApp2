@@ -29,11 +29,12 @@ class XDConnectProductMapperService extends BaseService
 
     private function mapParentProducts(): Collection
     {
-
-        $parentProducts = collect($this->data)->map(function (array $row) {
+        $attributeFamilyId = $this->productImportRepository->getDefaultAttributeFamily()->id;
+        $parentProducts = collect($this->data)->map(function (array $row) use ($attributeFamilyId) {
             return [
-                'sku'  => $row['ModelCode'],
-                'type' => 'configurable',
+                'sku'                 => $row['ModelCode'],
+                'type'                => 'configurable',
+                'attribute_family_id' => $attributeFamilyId,
             ];
         });
 
@@ -45,14 +46,16 @@ class XDConnectProductMapperService extends BaseService
     private function mapVariantProducts(Collection $parentProductCollection): void
     {
         $parentProducts = $this->productImportRepository->getProducts($parentProductCollection);
+        $attributeFamilyId = $this->productImportRepository->getDefaultAttributeFamily()->id;
 
-        $variantProducts = collect($this->data)->map(function (array $row) use ($parentProducts) {
+        $variantProducts = collect($this->data)->map(function (array $row) use ($parentProducts, $attributeFamilyId) {
             $parentId = $parentProducts[$row['ModelCode']]->id;
 
             return [
-                'sku'       => $row['ItemCode'],
-                'type'      => 'simple',
-                'parent_id' => $parentId,
+                'sku'                 => $row['ItemCode'],
+                'type'                => 'simple',
+                'parent_id'           => $parentId,
+                'attribute_family_id' => $attributeFamilyId,
             ];
         });
 
@@ -64,7 +67,10 @@ class XDConnectProductMapperService extends BaseService
         //XDConnect configurable product is only meant to unify all the simple variants together, so the configurable parent product doesn't have product flat
         $products = $this->productImportRepository->getProducts($this->getSKUCodesFromJson());
 
-        $productFlats = collect($this->data)->map(function (array $row) use ($products) {
+        $defaultChannelCode = $this->productImportRepository->getDefaultChannel()->code;
+        $defaultAttributeFamilyId = $this->productImportRepository->getDefaultAttributeFamily()->id;
+
+        $productFlats = collect($this->data)->map(function (array $row) use ($products, $defaultChannelCode, $defaultAttributeFamilyId) {
             return [
                 'sku'                       => $row['ItemCode'],
                 'type'                      => 'simple',
@@ -80,6 +86,9 @@ class XDConnectProductMapperService extends BaseService
                 'new'                       => '1',
                 'featured'                  => '1',
                 'status'                    => '1',
+                'channel'                   => $defaultChannelCode,
+                'attribute_family_id'       => $defaultAttributeFamilyId,
+                'visible_individually'      => 1,
 
             ];
         });
@@ -188,13 +197,15 @@ class XDConnectProductMapperService extends BaseService
                 'category_id'=> $this->categoryAssignmentService->XDConnectMapTypeToDefaultCategory($row['MainCategory']),
             ];
 
-            $categories[] = [
-                'product_id' => $products[$row['ItemCode']]->id,
-                'category_id'=> $this->categoryAssignmentService->XDConnectMapSubTypeToDefaultCategory($row['SubCategory']),
-            ];
+            if (! empty($row['SubCategory'])) {
+                $categories[] = [
+                    'product_id' => $products[$row['ItemCode']]->id,
+                    'category_id'=> $this->categoryAssignmentService->XDConnectMapSubTypeToDefaultCategory($row['SubCategory']),
+                ];
+            }
 
             return $categories;
-        });
+        })->filter();
 
         $this->productImportRepository->upsertProductCategories($parentCategories);
     }

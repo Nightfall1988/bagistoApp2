@@ -22,10 +22,12 @@ class StrickerProductMapperService extends BaseService
 
     public function mapProducts(): void
     {
-        $parentProducts = collect($this->data['Products'])->map(function (array $row) {
+        $attributeFamilyId = $this->productImportRepository->getDefaultAttributeFamily()->id;
+        $parentProducts = collect($this->data['Products'])->map(function (array $row) use ($attributeFamilyId) {
             return [
-                'sku'  => $row['ProdReference'],
-                'type' => 'configurable',
+                'sku'                 => $row['ProdReference'],
+                'type'                => 'configurable',
+                'attribute_family_id' => $attributeFamilyId,
             ];
         });
 
@@ -35,8 +37,10 @@ class StrickerProductMapperService extends BaseService
     public function mapProductFlats(): void
     {
         $products = $this->productImportRepository->getProducts($this->getSKUCodesFromProductJson());
+        $defaultChannelCode = $this->productImportRepository->getDefaultChannel()->code;
+        $defaultAttributeFamilyId = $this->productImportRepository->getDefaultAttributeFamily()->id;
 
-        $parentFlats = collect($this->data['Products'])->flatMap(function (array $row) use ($products) {
+        $parentFlats = collect($this->data['Products'])->flatMap(function (array $row) use ($products, $defaultChannelCode, $defaultAttributeFamilyId) {
             $flatProducts = [];
 
             $flatProducts[] = [
@@ -53,7 +57,9 @@ class StrickerProductMapperService extends BaseService
                 'new'                       => '1',
                 'featured'                  => '1',
                 'status'                    => '1',
-
+                'channel'                   => $defaultChannelCode,
+                'attribute_family_id'       => $defaultAttributeFamilyId,
+                'visible_individually'      => 1,
             ];
 
             return $flatProducts;
@@ -133,12 +139,14 @@ class StrickerProductMapperService extends BaseService
     public function mapOptionals(): void
     {
         $products = $this->productImportRepository->getProducts($this->getParentSKUCodesFromOptionalsJson());
+        $attributeFamilyId = $this->productImportRepository->getDefaultAttributeFamily()->id;
 
-        $optionals = collect($this->data['OptionalsComplete'])->map(function (array $row) use ($products) {
+        $optionals = collect($this->data['OptionalsComplete'])->map(function (array $row) use ($products, $attributeFamilyId) {
             return [
-                'sku'       => $row['Sku'],
-                'type'      => 'simple',
-                'parent_id' => $products[$row['ProdReference']]->id,
+                'sku'                 => $row['Sku'],
+                'type'                => 'simple',
+                'parent_id'           => $products[$row['ProdReference']]->id,
+                'attribute_family_id' => $attributeFamilyId,
             ];
         });
 
@@ -148,8 +156,10 @@ class StrickerProductMapperService extends BaseService
     public function mapOptionalFlats(): void
     {
         $products = $this->productImportRepository->getProducts($this->getOptionalsSKUCodesFromOptionalsJson());
+        $defaultChannelCode = $this->productImportRepository->getDefaultChannel()->code;
+        $defaultAttributeFamilyId = $this->productImportRepository->getDefaultAttributeFamily()->id;
 
-        $optionalFlats = collect($this->data['OptionalsComplete'])->map(function (array $row) use ($products) {
+        $optionalFlats = collect($this->data['OptionalsComplete'])->map(function (array $row) use ($products, $defaultChannelCode, $defaultAttributeFamilyId) {
             return [
                 'sku'                        => $row['Sku'],
                 'type'                       => 'simple',
@@ -165,7 +175,9 @@ class StrickerProductMapperService extends BaseService
                 'new'                        => '1',
                 'featured'                   => '1',
                 'status'                     => '1',
-
+                'channel'                    => $defaultChannelCode,
+                'attribute_family_id'        => $defaultAttributeFamilyId,
+                'visible_individually'       => 0,
             ];
         });
 
@@ -189,6 +201,7 @@ class StrickerProductMapperService extends BaseService
             ];
         });
     }
+
     private function getOptionalsSKUCodesFromOptionalsJson(): Collection
     {
         return collect($this->data['OptionalsComplete'])->map(function ($item) {
