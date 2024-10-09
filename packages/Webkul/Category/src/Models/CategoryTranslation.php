@@ -33,6 +33,7 @@ class CategoryTranslation extends Model implements CategoryTranslationContract
         'meta_description',
         'meta_keywords',
         'locale_id',
+        'locale'
     ];
 
     /**

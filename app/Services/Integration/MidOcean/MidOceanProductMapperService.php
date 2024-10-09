@@ -16,7 +16,6 @@ class MidOceanProductMapperService extends BaseService
         $this->productImportRepository = $productImportRepository;
     }
 
-
     public function mapProducts(): void
     {
         $this->mapVariantProducts(
@@ -26,10 +25,12 @@ class MidOceanProductMapperService extends BaseService
 
     private function mapParentProducts(): Collection
     {
-        $parentProducts = collect($this->data)->map(function (array $row) {
+        $attributeFamilyId = $this->productImportRepository->getDefaultAttributeFamily()->id;
+        $parentProducts = collect($this->data)->map(function (array $row) use ($attributeFamilyId) {
             return [
-                'sku'  => $row['master_code'],
-                'type' => 'configurable',
+                'sku'                 => $row['master_code'],
+                'type'                => 'configurable',
+                'attribute_family_id' => $attributeFamilyId,
             ];
         });
         $this->productImportRepository->upsertProducts($parentProducts);
@@ -40,15 +41,17 @@ class MidOceanProductMapperService extends BaseService
     private function mapVariantProducts(Collection $parentProductCollection): void
     {
         $parentProducts = $this->productImportRepository->getProducts($parentProductCollection);
+        $attributeFamilyId = $this->productImportRepository->getDefaultAttributeFamily()->id;
 
-        $variantProducts = collect($this->data)->flatMap(function (array $row) use ($parentProducts) {
+        $variantProducts = collect($this->data)->flatMap(function (array $row) use ($parentProducts, $attributeFamilyId) {
             $parentId = $parentProducts[$row['master_code']]->id ?? null;
 
-            return collect($row['variants'])->map(function ($variant) use ($parentId) {
+            return collect($row['variants'])->map(function ($variant) use ($parentId, $attributeFamilyId) {
                 return [
-                    'sku'       => $variant['sku'],
-                    'type'      => 'simple',
-                    'parent_id' => $parentId,
+                    'sku'                 => $variant['sku'],
+                    'type'                => 'simple',
+                    'parent_id'           => $parentId,
+                    'attribute_family_id' => $attributeFamilyId,
                 ];
             });
         });
@@ -78,8 +81,11 @@ class MidOceanProductMapperService extends BaseService
         ['id'=> 20, 'code'=>'width'],
         ['id'=> 21, 'code'=>'height'],
         ['id'=> 22, 'code'=>'net_weight'],
-        ['id'=> 10, 'code'=>'short_description'],
+        ['id'=> 9, 'code'=>'short_description'],
+        ['id'=> 10, 'code'=>'long_description'],
         ['id'=> 29, 'code'=>'material'],
+        ['id'=> 27, 'code'=>'master_id'],
+        ['id'=> 2, 'code'=>'product_name'],
     ];
 
     protected const CONFIGURABLE_ATR_MAP = [
@@ -114,10 +120,36 @@ class MidOceanProductMapperService extends BaseService
                 }
             }
 
+            $this->mapURLKeys($productAttributes, $products, $item);
+
             return $productAttributes;
         })->filter();
 
         $this->productImportRepository->upsertProductAttributeValues($productAttributes);
+    }
+
+    protected const URL_KEY_ATTRIBUTE_ID = 3;
+
+    private function mapURLKeys(array &$productAttributes, Collection $products, array $item): void
+    {
+        $productAttributes[] = [
+            'attribute_id'  => self::URL_KEY_ATTRIBUTE_ID,
+            'product_id'    => $products[$item['master_code']]->id,
+            'text_value'    => Str::slug((isset($item['product_name']) ? $item['product_name'].'-' : null).$item['master_code']),
+            'channel'       => 'default',
+            'locale'        => 'en',
+            'unique_id'     => 'default|en|'.$products[$item['master_code']]->id.'|'.self::URL_KEY_ATTRIBUTE_ID,
+        ];
+        foreach ($item['variants'] as $variant) {
+            $productAttributes[] = [
+                'attribute_id'  => self::URL_KEY_ATTRIBUTE_ID,
+                'product_id'    => $products[$variant['sku']]->id,
+                'text_value'    => Str::slug((isset($item['product_name']) ? $item['product_name'].'-' : null).$item['master_code']),
+                'channel'       => 'default',
+                'locale'        => 'en',
+                'unique_id'     => 'default|en|'.$products[$variant['sku']]->id.'|'.self::URL_KEY_ATTRIBUTE_ID,
+            ];
+        }
     }
 
     private function mapConfigurableAttributeValue(array &$productAttributes, array $attribute, Collection $products, array $item): void
@@ -246,7 +278,10 @@ class MidOceanProductMapperService extends BaseService
     {
         $products = $this->productImportRepository->getProducts($this->getSKUCodesFromJson());
 
-        $productFlats = collect($this->data)->flatMap(function (array $row) use ($products) {
+        $defaultChannelCode = $this->productImportRepository->getDefaultChannel()->code;
+        $defaultAttributeFamilyId = $this->productImportRepository->getDefaultAttributeFamily()->id;
+
+        $productFlats = collect($this->data)->flatMap(function (array $row) use ($products, $defaultChannelCode, $defaultAttributeFamilyId) {
             $flatProducts = [];
 
             $flatProducts[] = [
@@ -265,6 +300,9 @@ class MidOceanProductMapperService extends BaseService
                 'new'                       => '1',
                 'featured'                  => '1',
                 'status'                    => '1',
+                'channel'                   => $defaultChannelCode,
+                'attribute_family_id'       => $defaultAttributeFamilyId,
+                'visible_individually'      => 1,
 
             ];
 
@@ -285,6 +323,9 @@ class MidOceanProductMapperService extends BaseService
                     'new'                       => '1',
                     'featured'                  => '1',
                     'status'                    => '1',
+                    'channel'                   => $defaultChannelCode,
+                    'attribute_family_id'       => $defaultAttributeFamilyId,
+                    'visible_individually'      => 0,
                 ];
             }
 

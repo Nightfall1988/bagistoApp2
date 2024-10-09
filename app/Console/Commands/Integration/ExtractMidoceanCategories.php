@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Webkul\Category\Models\Category;
 use Webkul\Category\Models\CategoryTranslation;
+use Webkul\Core\Models\Locale;
 
 class ExtractMidoceanCategories extends AbstractCategoryExtractCommand
 {
@@ -96,6 +97,7 @@ class ExtractMidoceanCategories extends AbstractCategoryExtractCommand
 
     protected function insertTransformedData(array $categories): void
     {
+        $enLocaleId = Locale::where('code', 'en')->first()->id;
         foreach ($categories as $categoryData) {
             $translation = CategoryTranslation::where('slug', $categoryData['slug'])->first();
 
@@ -104,9 +106,10 @@ class ExtractMidoceanCategories extends AbstractCategoryExtractCommand
                     'status'    => 1,
                 ]);
                 $category->translations()->create([
-                    'slug'             => $categoryData['slug'],
-                    'name'             => $categoryData['name'],
-                    'locale'           => 'en',
+                    'slug'                => $categoryData['slug'],
+                    'name'                => $categoryData['name'],
+                    'locale'              => 'en',
+                    'locale_id'           => $enLocaleId,
                 ]);
             }
         }

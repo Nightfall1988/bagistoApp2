@@ -18,6 +18,7 @@ use Hitexis\Product\Models\ProductInventory;
 use Hitexis\Product\Models\ProductInventoryIndex;
 use Hitexis\Product\Models\ProductPriceIndex;
 use Illuminate\Support\Collection;
+use Webkul\Attribute\Models\AttributeFamily;
 use Webkul\Category\Models\CategoryTranslation;
 use Webkul\Core\Models\Channel;
 use Webkul\Customer\Models\CustomerGroup;
@@ -62,6 +63,11 @@ class ProductImportRepository extends BaseImportRepository
             });
     }
 
+    public function getDefaultAttributeFamily(): AttributeFamily
+    {
+        return AttributeFamily::where('code', 'default')->first();
+    }
+
     public function getDefaultChannel(): Channel
     {
         return Channel::where('code', 'default')->first();
@@ -79,7 +85,7 @@ class ProductImportRepository extends BaseImportRepository
                 Product::upsert(
                     $chunk->all(),
                     ['sku'],
-                    ['type']
+                    ['type', 'attribute_family_id']
                 );
             });
         });
@@ -92,7 +98,7 @@ class ProductImportRepository extends BaseImportRepository
                 Product::upsert(
                     $chunk->all(),
                     ['sku'],
-                    ['type', 'parent_id']
+                    ['type', 'parent_id', 'attribute_family_id']
                 );
             });
         });
@@ -119,7 +125,7 @@ class ProductImportRepository extends BaseImportRepository
                 ProductFlat::upsert(
                     $chunk->all(),
                     ['sku'],
-                    ['type', 'product_number', 'name', 'short_description', 'description', 'weight', 'url_key', 'meta_title', 'meta_description', 'product_id']
+                    ['type', 'product_number', 'name', 'short_description', 'description', 'weight', 'url_key', 'meta_title', 'meta_description', 'product_id', 'channel', 'attribute_family_id', 'visible_individually']
                 );
             });
         });
