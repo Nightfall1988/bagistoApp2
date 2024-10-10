@@ -7,5 +7,8 @@ use Hitexis\PrintCalculator\Contracts\PrintManipulation as PrintManipulationCont
 
 class PrintManipulationProxy extends ModelProxy implements PrintManipulationContract
 {
-
+    public static function modelClass()
+    {
+        return PrintManipulation::class;
+    }
 }

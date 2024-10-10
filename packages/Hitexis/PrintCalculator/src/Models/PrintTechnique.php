@@ -3,6 +3,7 @@
 namespace Hitexis\PrintCalculator\Models;
 
 use Hitexis\PrintCalculator\Contracts\PrintTechnique as PrintTechniqueContract;
+use Hitexis\PrintCalculator\Models\PrintManipulationProxy;
 use Hitexis\Product\Models\ProductProxy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model as BasePrintTechnique;
@@ -11,6 +12,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class PrintTechnique extends BasePrintTechnique implements PrintTechniqueContract
 {
     use HasFactory;
+
+    protected $primaryKey = 'technique_id';  // Set primary key to technique_id
+    public $incrementing = false;
 
     /**
      * The attributes that are mass assignable.
@@ -34,13 +38,9 @@ class PrintTechnique extends BasePrintTechnique implements PrintTechniqueContrac
     /**
      * Get the wholesale options.
      */
-    public function product(): belongsTo
+    public function products()
     {
-        return $this->belongsTo(ProductProxy::modelClass());
+        return $this->belongsToMany(ProductProxy::modelClass(), 'position_print_techniques', 'print_technique_id', 'printing_position_id');
     }
 
-    public function print_manipulations()
-    {
-        return $this->belongsToMany(PrintManipulation::class, 'print_technique_manipulation');
-    }
 }

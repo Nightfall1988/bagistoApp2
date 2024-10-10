@@ -564,17 +564,38 @@ class Product extends BaseProduct implements ProductContract
         return $this->belongsToMany(MarkupProxy::modelClass(),'markup_product', 'product_id', 'markup_id');
     }
 
-    /**
-     * Get print techniques.
-     */
-    public function print_techniques(): HasMany
+    public function productPrintData()
     {
-        return $this->hasMany(PrintTechniqueProxy::modelClass());
+        return $this->hasMany(ProductPrintDataProxy::modelClass(), 'product_id', 'id');
     }
 
+    /**
+     * Get the print techniques for the product through print positions and manipulations.
+     *
+     * @return BelongsToMany
+     */
+    public function print_techniques()
+    {
+        return $this->belongsToMany(
+            PrintTechniqueProxy::modelClass(),       // Make sure this is the proxy, not the direct model
+            'position_print_techniques',      // Pivot table
+            'printing_position_id',           // Foreign key in the pivot table
+            'print_technique_id',             // Foreign key for print technique in pivot table
+            'id',                             // Primary key in the Product model (if different, adjust accordingly)
+            'technique_id'                    // Key in the print_techniques table
+        );
+    }
+    
+    // Relationship with print manipulations
     public function print_manipulations()
     {
-        return $this->belongsToMany(PrintManipulationProxy::class, 'print_technique_manipulation');
+        return $this->hasManyThrough(
+            PrintManipulationProxy::modelClass(),  // Intermediate model
+            'product_id',             // Foreign key on ProductPrintData
+            'id',                     // Foreign key on PrintManipulation
+            'id',                     // Local key on Product
+            'print_manipulation_id'    // Local key on ProductPrintData
+        );
     }
 
     public function getColors()

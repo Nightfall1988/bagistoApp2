@@ -51,6 +51,9 @@ class PrintCalculatorController extends Controller
 
     public function calculatePricing(Request $request)
     {
+        $product = $this->productRepository->findOrFail($request->product_id);
+
+        dd($product->print_manipulations);
         $techniqueId = $request->input('technique_id');
         $quantity = $request->input('quantity');
         $productId = $request->input('product_id');

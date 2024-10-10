@@ -6,5 +6,9 @@ use Hitexis\PrintCalculator\Contracts\PrintTechnique as PrintTechniqueContract;
 
 class PrintTechniqueProxy extends ModelProxy implements PrintTechniqueContract
 {
+    public static function modelClass()
+    {
+        return PrintTechnique::class;
+    }
 
 }
