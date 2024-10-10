@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Webkul\Category\Repositories\CategoryRepository;
 use Webkul\Marketing\Repositories\URLRewriteRepository;
 use Hitexis\Product\Repositories\HitexisProductRepository;
+use Hitexis\Product\Models\ProductProxy;
 use Hitexis\Product\Repositories\ProductInventoryRepository;
 use Webkul\Theme\Repositories\ThemeCustomizationRepository;
 use Webkul\Shop\Http\Controllers\ProductsCategoriesProxyController as ProductsCategoriesBaseController;
@@ -85,6 +86,12 @@ class HitexisProductsCategoriesProxyController extends Controller
                 abort(404);
             }
 
+            $product = ProductProxy::with([
+                'productPrintData.printManipulation',                  // Get print manipulations through product print data
+                'productPrintData.printingPositions.printTechnique', // Get printing positions and their techniques
+                'productPrintData.printingPositions.printTechnique.variableCosts' // Get variable costs for print techniques
+            ])->find($product->id);
+            
             visitor()->visit($product);
 
             if ($product->type == 'simple') {
@@ -95,12 +102,10 @@ class HitexisProductsCategoriesProxyController extends Controller
                 }
             }
 
-            if (empty($product->print_techniques)) {
+            if (empty($product->productPrintData)) {
                 return view('hitexis-shop::products.view', compact('product', 'quantities'));
             } else {
-                $techniques = $product->print_techniques;
-                // dd($product->print_techniques);
-
+                $techniques = $product->productPrintData;
                 return view('hitexis-shop::products.view', compact('product', 'techniques', 'quantities'));
             }
         }

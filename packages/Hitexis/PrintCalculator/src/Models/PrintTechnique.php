@@ -8,6 +8,8 @@ use Hitexis\Product\Models\ProductProxy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model as BasePrintTechnique;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Hitexis\PrintCalculator\Models\PrintTechniqueVariableCostsProxy;
+use Hitexis\PrintCalculator\Models\PositionPrintTechniquesProxy;
 
 class PrintTechnique extends BasePrintTechnique implements PrintTechniqueContract
 {
@@ -40,7 +42,18 @@ class PrintTechnique extends BasePrintTechnique implements PrintTechniqueContrac
      */
     public function products()
     {
-        return $this->belongsToMany(ProductProxy::modelClass(), 'position_print_techniques', 'print_technique_id', 'printing_position_id');
+        return $this->belongsToMany(ProductProxy::modelClass(), 'position_print_techniques', 'print_technique_id', 'product_id');
     }
 
+    // Relationship to variable costs
+    public function variableCosts()
+    {
+        return $this->hasMany(PrintTechniqueVariableCostsProxy::modelClass(), 'print_technique_id');
+    }
+
+    // Relationship to position print techniques
+    public function printPositions()
+    {
+        return $this->belongsToMany(PrintPositionsProxy::modelClass(), 'position_print_techniques');
+    }
 }

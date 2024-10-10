@@ -664,6 +664,7 @@ return [
                 'tax-amount'                 => 'Nodokļa summa',
                 'tax'                        => 'PVN',
                 'vat-number'                 => 'PVN numurs',
+                'electronic'                 => 'Šis rēķins ir sagatavots elekrtoniski un ir derīgs bez paraksta.'
             ],
         ],
 

@@ -3,6 +3,7 @@
 namespace Hitexis\PrintCalculator\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Hitexis\PrintCalculator\Models\PrintTechniqueProxy;
 
 use Illuminate\Database\Eloquent\Model;
 class PrintTechniqueVariableCosts extends Model
@@ -19,5 +20,10 @@ class PrintTechniqueVariableCosts extends Model
         'area_to',
         'pricing_data',
     ];
+
+    public function printTechnique()
+    {
+        return $this->belongsTo(PrintTechniqueProxy::modelClass(), 'print_technique_id');
+    }
 
 }

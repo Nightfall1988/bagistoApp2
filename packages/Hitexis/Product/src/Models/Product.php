@@ -27,6 +27,7 @@ use Hitexis\Product\Type\AbstractType;
 use Hitexis\Wholesale\Models\WholesaleProxy;
 use Hitexis\PrintCalculator\Models\PrintTechniqueProxy;
 use Hitexis\PrintCalculator\Models\PrintManipulationProxy;
+use Hitexis\PrintCalculator\Models\ProductPrintDataProxy;
 use Hitexis\Markup\Models\MarkupProxy;
 
 
@@ -566,35 +567,19 @@ class Product extends BaseProduct implements ProductContract
 
     public function productPrintData()
     {
-        return $this->hasMany(ProductPrintDataProxy::modelClass(), 'product_id', 'id');
+        return $this->hasMany(ProductPrintDataProxy::modelClass(), 'product_id');
     }
 
-    /**
-     * Get the print techniques for the product through print positions and manipulations.
-     *
-     * @return BelongsToMany
-     */
-    public function print_techniques()
-    {
-        return $this->belongsToMany(
-            PrintTechniqueProxy::modelClass(),       // Make sure this is the proxy, not the direct model
-            'position_print_techniques',      // Pivot table
-            'printing_position_id',           // Foreign key in the pivot table
-            'print_technique_id',             // Foreign key for print technique in pivot table
-            'id',                             // Primary key in the Product model (if different, adjust accordingly)
-            'technique_id'                    // Key in the print_techniques table
-        );
-    }
-    
-    // Relationship with print manipulations
-    public function print_manipulations()
+    // Relationship to print manipulations through product print data
+    public function printManipulations()
     {
         return $this->hasManyThrough(
-            PrintManipulationProxy::modelClass(),  // Intermediate model
-            'product_id',             // Foreign key on ProductPrintData
-            'id',                     // Foreign key on PrintManipulation
-            'id',                     // Local key on Product
-            'print_manipulation_id'    // Local key on ProductPrintData
+            PrintManipulationProxy::modelClass(),
+            ProductPrintDataProxy::modelClass(),
+            'product_id',            // Foreign key on product_print_data
+            'id',                    // Foreign key on print_manipulations
+            'id',                    // Local key on products
+            'print_manipulation_id'   // Local key on product_print_data
         );
     }
 

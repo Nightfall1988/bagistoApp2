@@ -213,5 +213,8 @@
                 </td>
             </tr>
         </table>
+        <div>
+            <p>@lang('admin::app.sales.invoices.invoice-pdf.electronic')</p>
+        </div>
     </div>
 @endcomponent

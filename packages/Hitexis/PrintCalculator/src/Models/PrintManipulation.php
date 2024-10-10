@@ -33,11 +33,16 @@ class PrintManipulation extends BasePrintManipulation implements PrintManipulati
 
     public function products()
     {
-        return $this->hasMany(Product::class, 'print_manipulation_id');
+        return $this->belongsToMany(
+            ProductProxy::modelClass(), 
+            'product_print_data', 
+            'print_manipulation_id', 
+            'product_id'
+        );
     }
 
     public function productPrintData()
     {
-        return $this->hasMany(ProductPrintDataProxy::class, 'print_manipulation_id');
+        return $this->hasMany(ProductPrintDataProxy::modelClass(), 'print_manipulation_id');
     }
 }
