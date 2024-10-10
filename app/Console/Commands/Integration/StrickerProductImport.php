@@ -208,8 +208,10 @@ class StrickerProductImport extends AbstractProductImportCommand
     {
         $this->productMapperService->loadData($data);
         $this->productMapperService->mapProducts();
+        $this->productMapperService->mapProductSupplierCodes();
         $this->productMapperService->mapProductFlats();
         $this->productMapperService->mapProductCategories();
+        $this->productMapperService->mapAttributeOptions();
         $this->productMapperService->mapProductAttributeValues();
     }
 
@@ -217,6 +219,7 @@ class StrickerProductImport extends AbstractProductImportCommand
     {
         $this->productMapperService->loadData($data);
         $this->productMapperService->mapOptionals();
+        $this->productMapperService->mapOptionalsSupplierCodes();
         $this->productMapperService->mapOptionalFlats();
     }
 

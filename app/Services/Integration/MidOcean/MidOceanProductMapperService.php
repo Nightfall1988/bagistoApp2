@@ -4,6 +4,7 @@ namespace App\Services\Integration\MidOcean;
 
 use App\Repositories\Integration\ProductImportRepository;
 use App\Services\Integration\BaseService;
+use Hitexis\Product\Models\Product;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
@@ -59,6 +60,21 @@ class MidOceanProductMapperService extends BaseService
         $this->productImportRepository->upsertVariants($variantProducts);
     }
 
+    public function mapSupplierCodes(): void
+    {
+        $products = $this->productImportRepository->getProducts($this->getSKUCodesFromJson());
+        $midOceanIdentifier = env('MIDOECAN_IDENTIFIER', 'midocean');
+
+        $supplierCodes = collect($products)->map(function (Product $row) use ($midOceanIdentifier) {
+            return [
+                'product_id'    => $row->id,
+                'supplier_code' => $midOceanIdentifier,
+            ];
+        });
+
+        $this->productImportRepository->upsertSupplierCodes($supplierCodes);
+    }
+
     private function getSKUCodesFromJson(): Collection
     {
         return collect($this->data)->flatMap(function ($item) {
@@ -94,14 +110,14 @@ class MidOceanProductMapperService extends BaseService
 
     protected const VARIANT_ATR_MAP = [
         ['id'=> 1, 'code'=>'sku'],
-        ['id'=> 23, 'code'=>'pms_color'],
     ];
 
     public function mapProductAttributeValues(): void
     {
         $products = $this->productImportRepository->getProducts($this->getSKUCodesFromJson());
+        $attributeOptions = $this->productImportRepository->getAttributeOptionsByName();
 
-        $productAttributes = collect($this->data)->flatMap(function ($item) use ($products) {
+        $productAttributes = collect($this->data)->flatMap(function ($item) use ($products, $attributeOptions) {
             $productAttributes = [];
             foreach (self::COMMON_ATR_MAP as $attribute) {
                 if (! empty($item[$attribute['code']])) {
@@ -115,12 +131,11 @@ class MidOceanProductMapperService extends BaseService
                 }
             }
             foreach (self::VARIANT_ATR_MAP as $attribute) {
-                if (! empty($item[$attribute['code']])) {
-                    $this->mapVariantAttributeValue($productAttributes, $attribute, $products, $item);
-                }
+                $this->mapVariantAttributeValue($productAttributes, $attribute, $products, $item, false);
             }
 
             $this->mapURLKeys($productAttributes, $products, $item);
+            $this->mapColors($productAttributes, $products, $item, $attributeOptions);
 
             return $productAttributes;
         })->filter();
@@ -136,6 +151,7 @@ class MidOceanProductMapperService extends BaseService
             'attribute_id'  => self::URL_KEY_ATTRIBUTE_ID,
             'product_id'    => $products[$item['master_code']]->id,
             'text_value'    => Str::slug((isset($item['product_name']) ? $item['product_name'].'-' : null).$item['master_code']),
+            'integer_value' => null,
             'channel'       => 'default',
             'locale'        => 'en',
             'unique_id'     => 'default|en|'.$products[$item['master_code']]->id.'|'.self::URL_KEY_ATTRIBUTE_ID,
@@ -144,10 +160,29 @@ class MidOceanProductMapperService extends BaseService
             $productAttributes[] = [
                 'attribute_id'  => self::URL_KEY_ATTRIBUTE_ID,
                 'product_id'    => $products[$variant['sku']]->id,
-                'text_value'    => Str::slug((isset($item['product_name']) ? $item['product_name'].'-' : null).$item['master_code']),
+                'text_value'    => Str::slug((isset($row['product_name']) ? $row['product_name'].'-' : null).$variant['sku']),
+                'integer_value' => null,
                 'channel'       => 'default',
                 'locale'        => 'en',
                 'unique_id'     => 'default|en|'.$products[$variant['sku']]->id.'|'.self::URL_KEY_ATTRIBUTE_ID,
+            ];
+        }
+    }
+
+    protected const COLOR_ATTRIBUTE_KEY = 23;
+
+    private function mapColors(array &$productAttributes, Collection $products, array $item, Collection $attributeOptions): void
+    {
+
+        foreach ($item['variants'] as $variant) {
+            $productAttributes[] = [
+                'attribute_id'     => self::COLOR_ATTRIBUTE_KEY,
+                'product_id'       => $products[$variant['sku']]->id,
+                'integer_value'    => $attributeOptions[$variant['color_group']]->id,
+                'text_value'       => null,
+                'channel'          => 'default',
+                'locale'           => 'en',
+                'unique_id'        => 'default|en|'.$products[$variant['sku']]->id.'|'.self::COLOR_ATTRIBUTE_KEY,
             ];
         }
     }
@@ -158,23 +193,29 @@ class MidOceanProductMapperService extends BaseService
             'attribute_id'  => $attribute['id'],
             'product_id'    => $products[$item['master_code']]->id,
             'text_value'    => $item[$attribute['code']],
+            'integer_value' => null,
             'channel'       => 'default',
             'locale'        => 'en',
             'unique_id'     => 'default|en|'.$products[$item['master_code']]->id.'|'.$attribute['id'],
         ];
     }
 
-    private function mapVariantAttributeValue(array &$productAttributes, array $attribute, Collection $products, array $item): void
+    private function mapVariantAttributeValue(array &$productAttributes, array $attribute, Collection $products, array $item, bool $commonAttribute = true): void
     {
         foreach ($item['variants'] as $variant) {
-            $productAttributes[] = [
-                'attribute_id'  => $attribute['id'],
-                'product_id'    => $products[$variant['sku']]->id,
-                'text_value'    => $item[$attribute['code']],
-                'channel'       => 'default',
-                'locale'        => 'en',
-                'unique_id'     => 'default|en|'.$products[$variant['sku']]->id.'|'.$attribute['id'],
-            ];
+            $attributeValue = $commonAttribute ? $item[$attribute['code']] ?? null : $variant[$attribute['code']] ?? null;
+
+            if (! empty($attributeValue)) {
+                $productAttributes[] = [
+                    'attribute_id'  => $attribute['id'],
+                    'product_id'    => $products[$variant['sku']]->id,
+                    'text_value'    => $attributeValue,
+                    'integer_value' => null,
+                    'channel'       => 'default',
+                    'locale'        => 'en',
+                    'unique_id'     => 'default|en|'.$products[$variant['sku']]->id.'|'.$attribute['id'],
+                ];
+            }
         }
     }
 
@@ -237,13 +278,13 @@ class MidOceanProductMapperService extends BaseService
             if (isset($row['variants'][0]['category_level1'])) {
                 $productCategories[] = [
                     'product_id' => $products[$row['master_code']]->id,
-                    'category_id'=> $categories[trim($row['variants'][0]['category_level1'])]->id,
+                    'category_id'=> $categories[trim($row['variants'][0]['category_level1'])]->category_id,
                 ];
             }
             if (isset($row['variants'][0]['category_level2'])) {
                 $productCategories[] = [
                     'product_id' => $products[$row['master_code']]->id,
-                    'category_id'=> $categories[trim($row['variants'][0]['category_level2'])]->id,
+                    'category_id'=> $categories[trim($row['variants'][0]['category_level2'])]->category_id,
                 ];
             }
 
@@ -251,19 +292,19 @@ class MidOceanProductMapperService extends BaseService
                 if (isset($variant['category_level1'])) {
                     $productCategories[] = [
                         'product_id' => $products[$variant['sku']]->id,
-                        'category_id'=> $categories[trim($variant['category_level1'])]->id,
+                        'category_id'=> $categories[trim($variant['category_level1'])]->category_id,
                     ];
                 }
                 if (isset($variant['category_level2'])) {
                     $productCategories[] = [
                         'product_id' => $products[$variant['sku']]->id,
-                        'category_id'=> $categories[trim($variant['category_level2'])]->id,
+                        'category_id'=> $categories[trim($variant['category_level2'])]->category_id,
                     ];
                 }
                 if (isset($variant['category_level3'])) {
                     $productCategories[] = [
                         'product_id' => $products[$variant['sku']]->id,
-                        'category_id'=> $categories[trim($variant['category_level3'])]->id,
+                        'category_id'=> $categories[trim($variant['category_level3'])]->category_id,
                     ];
                 }
             }

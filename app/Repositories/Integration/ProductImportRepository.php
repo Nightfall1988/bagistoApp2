@@ -17,6 +17,7 @@ use Hitexis\Product\Models\ProductFlat;
 use Hitexis\Product\Models\ProductInventory;
 use Hitexis\Product\Models\ProductInventoryIndex;
 use Hitexis\Product\Models\ProductPriceIndex;
+use Hitexis\Product\Models\ProductSupplier;
 use Illuminate\Support\Collection;
 use Webkul\Attribute\Models\AttributeFamily;
 use Webkul\Category\Models\CategoryTranslation;
@@ -32,7 +33,7 @@ class ProductImportRepository extends BaseImportRepository
 
     public function getCategories(): Collection
     {
-        return CategoryTranslation::all()->keyBy('name');
+        return CategoryTranslation::where('locale', 'en')->get()->keyBy('name');
     }
 
     public function getCustomerGroups(): Collection
@@ -53,6 +54,11 @@ class ProductImportRepository extends BaseImportRepository
     public function getProductPrintDataFromProducts(Collection $products): Collection
     {
         return ProductPrintData::whereIn('product_id', $products->pluck('id'))->get(['id', 'product_id'])->keyBy('product_id');
+    }
+
+    public function getAttributeOptionsByName(): Collection
+    {
+        return AttributeOption::all()->keyBy('admin_name');
     }
 
     public function getPrintingPositionsFromPrintData(Collection $printData): Collection
@@ -163,7 +169,7 @@ class ProductImportRepository extends BaseImportRepository
                 ProductAttributeValue::upsert(
                     $chunk->all(),
                     ['product_id', 'attribute_id'],
-                    ['text_value', 'channel', 'locale'],
+                    ['text_value', 'channel', 'locale', 'integer_value'],
                 );
             });
         });
@@ -307,6 +313,19 @@ class ProductImportRepository extends BaseImportRepository
                     $chunk->all(),
                     ['product_id', 'position'],
                     ['position', 'type']
+                );
+            });
+        });
+    }
+
+    public function upsertSupplierCodes(Collection $supplierCodes): void
+    {
+        $this->handleUpsert(function () use ($supplierCodes) {
+            $supplierCodes->chunk($this->upsertBatchSize)->each(function (Collection $chunk) {
+                ProductSupplier::upsert(
+                    $chunk->all(),
+                    ['product_id'],
+                    ['supplier_code']
                 );
             });
         });
