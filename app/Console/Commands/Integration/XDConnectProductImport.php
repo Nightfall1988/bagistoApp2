@@ -121,10 +121,11 @@ class XDConnectProductImport extends AbstractProductImportCommand
     {
         $this->productMapperService->loadData($data);
         $this->productMapperService->mapProducts();
+        $this->productMapperService->mapSupplierCodes();
         $this->productMapperService->mapProductFlats();
+        $this->productMapperService->mapAttributeOptions();
         $this->productMapperService->mapProductCategories();
         $this->productMapperService->mapProductAttributeValues();
-        $this->productMapperService->mapAttributeOptions();
         $this->productMapperService->mapProductImageURLs();
     }
 

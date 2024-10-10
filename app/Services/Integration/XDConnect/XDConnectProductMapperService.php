@@ -5,6 +5,7 @@ namespace App\Services\Integration\XDConnect;
 use App\Repositories\Integration\ProductImportRepository;
 use App\Services\Integration\BaseService;
 use App\Services\Integration\CategoryAssignmentService;
+use Hitexis\Product\Models\Product;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
@@ -60,6 +61,21 @@ class XDConnectProductMapperService extends BaseService
         });
 
         $this->productImportRepository->upsertVariants($variantProducts);
+    }
+
+    public function mapSupplierCodes(): void
+    {
+        $products = $this->productImportRepository->getProducts($this->getSKUCodesFromJson());
+        $xdConnectIdentifier = env('XDCONNECT_IDENTIFIER', 'xdconnect');
+
+        $supplierCodes = collect($products)->map(function (Product $row) use ($xdConnectIdentifier) {
+            return [
+                'product_id'    => $row->id,
+                'supplier_code' => $xdConnectIdentifier,
+            ];
+        });
+
+        $this->productImportRepository->upsertSupplierCodes($supplierCodes);
     }
 
     public function mapProductFlats(): void
@@ -122,21 +138,29 @@ class XDConnectProductMapperService extends BaseService
     public function mapProductAttributeValues(): void
     {
         $products = $this->productImportRepository->getProducts($this->getSKUCodesFromJson());
+        $attributeOptions = $this->productImportRepository->getAttributeOptionsByName();
 
-        $productAttributes = collect($this->data)->flatMap(function ($item) use ($products) {
+        $productAttributes = collect($this->data)->flatMap(function ($item) use ($products, $attributeOptions) {
             $productAttributes = [];
             foreach (self::COMMON_ATR_MAP as $attribute) {
                 if (! empty($item[$attribute['code']])) {
-                    $value = $item[$attribute['code']];
+                    $text_value = $item[$attribute['code']];
+                    $integer_value = null;
 
                     if ($attribute['id'] == 3) {
-                        $value = Str::slug($item['ModelCode'].'-'.$item['ItemCode']);
+                        $text_value = Str::slug($item['ModelCode'].'-'.$item['ItemCode']);
+                    }
+                    if ($attribute['id'] == 23 || $attribute['id'] == 24) {
+                        if (isset($attributeOptions[$item[$attribute['code']]])) {
+                            $integer_value = $attributeOptions[$item[$attribute['code']]]->id;
+                        }
                     }
 
                     $productAttributes[] = [
                         'attribute_id'  => $attribute['id'],
                         'product_id'    => $products[$item['ItemCode']]->id,
-                        'text_value'    => $value,
+                        'text_value'    => $text_value,
+                        'integer_value' => $integer_value,
                         'channel'       => 'default',
                         'locale'        => 'en',
                         'unique_id'     => 'default|en|'.$products[$item['ItemCode']]->id.'|'.$attribute['id'],
@@ -159,7 +183,7 @@ class XDConnectProductMapperService extends BaseService
         ['id' => 23, 'code' => 'Color'],  // Color corresponds to Color
         ['id' => 23, 'code' => 'PMSColor1'],  // Color corresponds to Color
         ['id' => 23, 'code' => 'PMSColor2'],  // Color corresponds to Color
-        ['id' => 24, 'code' => 'Size'],  // Size corresponds to a potential Size field
+        ['id' => 24, 'code' => 'ItemDimensions'],  // Size corresponds to a potential Size field
         ['id' => 25, 'code' => 'Brand'],  // Brand corresponds to Brand
         ['id' => 29, 'code' => 'Material'],  // Material corresponds to Material
         ['id' => 30, 'code' => 'ItemDimensions'],  // Dimensions corresponds to ItemDimensions

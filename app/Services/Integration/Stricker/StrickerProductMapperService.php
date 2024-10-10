@@ -5,6 +5,7 @@ namespace App\Services\Integration\Stricker;
 use App\Repositories\Integration\ProductImportRepository;
 use App\Services\Integration\BaseService;
 use App\Services\Integration\CategoryAssignmentService;
+use Hitexis\Product\Models\Product;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
@@ -32,6 +33,21 @@ class StrickerProductMapperService extends BaseService
         });
 
         $this->productImportRepository->upsertProducts($parentProducts);
+    }
+
+    public function mapProductSupplierCodes(): void
+    {
+        $products = $this->productImportRepository->getProducts($this->getSKUCodesFromProductJson());
+        $midOceanIdentifier = env('STRICKER_IDENTIFIER', 'stricker');
+
+        $supplierCodes = collect($products)->map(function (Product $row) use ($midOceanIdentifier) {
+            return [
+                'product_id'    => $row->id,
+                'supplier_code' => $midOceanIdentifier,
+            ];
+        });
+
+        $this->productImportRepository->upsertSupplierCodes($supplierCodes);
     }
 
     public function mapProductFlats(): void
@@ -111,18 +127,50 @@ class StrickerProductMapperService extends BaseService
         ['id' => 17, 'code' => 'ShortDescription'],     // meta_description
     ];
 
+    public function mapAttributeOptions(): void
+    {
+        $attributeOptions = collect($this->data['Products'])->flatMap(function ($item) {
+            $attributeOptions = [];
+            foreach (self::COMMON_ATR_MAP as $attribute) {
+                if (! empty($item[$attribute['code']])) {
+                    $value = $item[$attribute['code']];
+
+                    $attributeOptions[] = [
+                        'attribute_id'  => $attribute['id'],
+                        'admin_name'    => $value,
+                    ];
+                }
+            }
+
+            return $attributeOptions;
+        })->filter();
+
+        $this->productImportRepository->upsertAttributeOptions($attributeOptions);
+    }
+
     public function mapProductAttributeValues(): void
     {
         $products = $this->productImportRepository->getProducts($this->getSKUCodesFromProductJson());
+        $attributeOptions = $this->productImportRepository->getAttributeOptionsByName();
 
-        $productAttributes = collect($this->data['Products'])->flatMap(function ($item) use ($products) {
+        $productAttributes = collect($this->data['Products'])->flatMap(function ($item) use ($products, $attributeOptions) {
             $productAttributes = [];
             foreach (self::COMMON_ATR_MAP as $attribute) {
                 if (! empty($item[$attribute['code']])) {
+                    $text_value = $item[$attribute['code']];
+                    $integer_value = null;
+
+                    if ($attribute['id'] == 23 || $attribute['id'] == 24) {
+                        if (isset($attributeOptions[$item[$attribute['code']]])) {
+                            $integer_value = $attributeOptions[$item[$attribute['code']]]->id;
+                        }
+                    }
+
                     $productAttributes[] = [
                         'attribute_id'  => $attribute['id'],
                         'product_id'    => $products[$item['ProdReference']]->id,
-                        'text_value'    => $item[$attribute['code']],
+                        'text_value'    => $text_value,
+                        'integer_value' => $integer_value,
                         'channel'       => 'default',
                         'locale'        => 'en',
                         'unique_id'     => 'default|en|'.$products[$item['ProdReference']]->id.'|'.$attribute['id'],
@@ -152,7 +200,20 @@ class StrickerProductMapperService extends BaseService
 
         $this->productImportRepository->upsertProducts($optionals);
     }
+    public function mapOptionalsSupplierCodes(): void
+    {
+        $products = $this->productImportRepository->getProducts($this->getOptionalsSKUCodesFromOptionalsJson());
+        $midOceanIdentifier = env('STRICKER_IDENTIFIER', 'stricker');
 
+        $supplierCodes = collect($products)->map(function (Product $row) use ($midOceanIdentifier) {
+            return [
+                'product_id'    => $row->id,
+                'supplier_code' => $midOceanIdentifier,
+            ];
+        });
+
+        $this->productImportRepository->upsertSupplierCodes($supplierCodes);
+    }
     public function mapOptionalFlats(): void
     {
         $products = $this->productImportRepository->getProducts($this->getOptionalsSKUCodesFromOptionalsJson());

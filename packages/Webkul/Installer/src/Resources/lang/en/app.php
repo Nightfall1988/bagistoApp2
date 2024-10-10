@@ -68,6 +68,11 @@ return [
                 '4xs' => '4XS',
                 '5xs' => '5XS',
                 'yellow' => 'Yellow',
+                'lime'          => 'Lime',
+                'turquoise'     => 'Turquoise',
+                'orange'        => 'Orange',
+                'royal-blue'    => 'Royal Blue',
+                'blue'          => 'Blue',
                 'materials' => [
                     'paper' => 'Paper',
                     'glass-soda-lime' => 'Glass Soda Lime',

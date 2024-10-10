@@ -276,7 +276,7 @@ class CategoryAssignmentService
         $categories = $this->getCategories();
         if (array_key_exists($categoryName, $this->midocean_to_stricker_category) &&
             isset($categories[$this->midocean_to_stricker_category[$categoryName]])) {
-            return $categories[$this->midocean_to_stricker_category[$categoryName]]->id;
+            return $categories[$this->midocean_to_stricker_category[$categoryName]]->category_id;
         }
 
         return $categories['Uncategorized']->id;
@@ -287,7 +287,7 @@ class CategoryAssignmentService
         $categories = $this->getCategories();
         if (array_key_exists($categoryName, $this->midocean_to_stricker_subcategory) &&
             isset($categories[$this->midocean_to_stricker_subcategory[$categoryName]])) {
-            return $categories[$this->midocean_to_stricker_subcategory[$categoryName]]->id;
+            return $categories[$this->midocean_to_stricker_subcategory[$categoryName]]->category_id;
         }
 
         return $categories['Uncategorized']->id;
@@ -298,7 +298,7 @@ class CategoryAssignmentService
         $categories = $this->getCategories();
         if (array_key_exists($categoryName, $this->midocean_to_xdconnects_category) &&
             isset($categories[$this->midocean_to_xdconnects_category[$categoryName]])) {
-            return $categories[$this->midocean_to_xdconnects_category[$categoryName]]->id;
+            return $categories[$this->midocean_to_xdconnects_category[$categoryName]]->category_id;
         }
 
         return $categories['Uncategorized']->id;
@@ -309,7 +309,7 @@ class CategoryAssignmentService
         $categories = $this->getCategories();
         if (array_key_exists($categoryName, $this->midocean_to_xdconnects_subcategory) &&
             isset($categories[$this->midocean_to_xdconnects_subcategory[$categoryName]])) {
-            return $categories[$this->midocean_to_xdconnects_subcategory[$categoryName]]->id;
+            return $categories[$this->midocean_to_xdconnects_subcategory[$categoryName]]->category_id;
         }
 
         return $categories['Uncategorized']->id;

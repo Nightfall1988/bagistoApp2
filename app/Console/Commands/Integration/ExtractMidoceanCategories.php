@@ -95,43 +95,135 @@ class ExtractMidoceanCategories extends AbstractCategoryExtractCommand
         return $uniqueCategories;
     }
 
+    const LV_CATEGORIES=[
+        'officewriting'          => 'Biroja piederumi',
+        'officeaccessories'      => 'Biroja aksesuāri',
+        'bagstravel'             => 'Somas un ceļojuma piederumi',
+        'backpacksbusinessbags'  => 'Mugursomas un darba somas',
+        'premiumstools'          => 'Premiums & Tools',
+        'keyrings'               => 'Atslēgu piekariņi',
+        'notebooks'              => 'Piezīmju grāmatiņas',
+        'christmaswinter'        => 'Christmas & Winter',
+        'textile'                => 'Tekstils',
+        'decoration'             => 'Dekorācijas',
+        'drinkware'              => 'Dzērienu trauki',
+        'giftbag'                => 'Dāvanu maisiņi',
+        'kidsgames'              => 'Bērniem un spēles',
+        'stuffedanimals'         => 'Mīkstās rotaļlietas',
+        'eatingdrinking'         => 'Ēšanai un dzeršanai',
+        'kitchenware'            => 'Virtuves piederumi',
+        'wellnesscare'           => 'Veselība un kopšana',
+        'homeliving'             => 'Māja un dzīvesstils',
+        'shoppingbags'           => 'Iepirkuma somas',
+        'others'                 => 'Citi',
+        'catalogues'             => 'Katalogi',
+        'umbrellasraingarments'  => 'Lietussargi un lietus apģērbi',
+        'raingear'               => 'Lietus inventārs',
+        'painting'               => 'Gleznošana',
+        'antistresscandies'      => 'Pret stresu/Konfektes',
+        'sportsrecreation'       => 'Sports un atpūta',
+        'beachitems'             => 'Pludmales preces',
+        'sportoutdoorbags'       => 'Sporta un āra somas',
+        'travelaccessories'      => 'Ceļojumu piederumi',
+        'outdoor'                => 'Brīvā dabā',
+        'apparelaccessories'     => 'Apģērbi un aksesuāri',
+        'accessories'            => 'Aksesuāri',
+        'personalcare'           => 'Personīgā aprūpe',
+        'barware'                => 'Bāra piederumi',
+        'toolstorches'           => 'Instrumenti un lāpas',
+        'writing'                => 'Rakstīšana',
+        'portfolios'             => 'Portfeļi',
+        'games'                  => 'Spēles',
+        'caraccessories'         => 'Auto piederumi',
+        'headgear'               => 'Galvas piederumi',
+        'events'                 => 'Pasākumi',
+        'umbrellas'              => 'Lietussargi',
+        'sporthealth'            => 'Sports un veselība',
+        'firstaid'               => 'Pirmā palīdzība',
+        'technologyaccessories'  => 'Tehnoloģijas un piederumi',
+        'usbs'                   => 'USB',
+        'wirelesschargers'       => 'Bezvadu lādētāji',
+        'audiosound'             => 'Audio un skaņa',
+        'phoneaccessories'       => 'Tālruņu piederumi',
+        'lunchware'              => 'Pusdienu trauki',
+        'powerbanks'             => 'Ārējie lādētāji',
+        'ballpens'               => 'Pildspalvas',
+        'textilecategory'        => 'Tekstils',
+        'textilesologroup'       => 'Tekstils no SOLO Grupas',
+        'corporateworkwear'      => 'Korporatīvie un Darba apģērbi',
+        'brand'                  => 'Brenda',
+        'windproofumbrellas'     => 'Vēja necaurlaidīgi lietussargi',
+    ];
+
     protected function insertTransformedData(array $categories): void
     {
         $enLocaleId = Locale::where('code', 'en')->first()->id;
+        $lvLocaleId = Locale::where('code', 'lv')->first()->id;
+
         foreach ($categories as $categoryData) {
+            $parentCategory = null;
+            if (! empty($categoryData['parent_slug'])) {
+                $parentTranslation = CategoryTranslation::where('slug', $categoryData['parent_slug'])->first();
+                $parentCategory = $parentTranslation ? $parentTranslation->category : null;
+            }
+
             $translation = CategoryTranslation::where('slug', $categoryData['slug'])->first();
 
             if (! $translation) {
                 $category = Category::create([
                     'status'    => 1,
+                    'parent_id' => $parentCategory ? $parentCategory->id : null,
                 ]);
+
                 $category->translations()->create([
-                    'slug'                => $categoryData['slug'],
-                    'name'                => $categoryData['name'],
-                    'locale'              => 'en',
-                    'locale_id'           => $enLocaleId,
+                    'slug'      => $categoryData['slug'],
+                    'name'      => $categoryData['name'],
+                    'locale'    => 'en',
+                    'locale_id' => $enLocaleId,
                 ]);
+
+                $transformedSlug = str_replace('-', '', $categoryData['slug']);
+
+                if (isset(self::LV_CATEGORIES[$transformedSlug])) {
+                    $category->translations()->create([
+                        'slug'      => Str::slug(trim(self::LV_CATEGORIES[$transformedSlug])),
+                        'name'      => self::LV_CATEGORIES[$transformedSlug],
+                        'locale'    => 'lv',
+                        'locale_id' => $lvLocaleId,
+                    ]);
+                }
             }
         }
     }
 
     protected function extractCategories(array $variant, array &$uniqueCategories): void
     {
-        $existingSlugs = array_column($uniqueCategories, 'slug');
-
+        $previousCategory = null;
         foreach ($variant as $key => $value) {
             if (stripos($key, 'category_level') !== false && ! empty($value)) {
                 $category = trim($value);
                 $slug = Str::slug($category);
 
-                if (! in_array($slug, $existingSlugs)) {
+                if (! $this->categoryExists($slug, $uniqueCategories)) {
                     $uniqueCategories[] = [
-                        'slug' => $slug,
-                        'name' => $category,
+                        'slug'        => $slug,
+                        'name'        => $category,
+                        'parent_slug' => $previousCategory ? $previousCategory['slug'] : null,
                     ];
-                    $existingSlugs[] = $slug;
                 }
+                $previousCategory = ['slug' => $slug, 'name' => $category];
             }
         }
+    }
+
+    protected function categoryExists(string $slug, array $categories): bool
+    {
+        foreach ($categories as $category) {
+            if ($category['slug'] === $slug) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
