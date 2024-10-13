@@ -136,6 +136,7 @@ class MidOceanProductMapperService extends BaseService
 
             $this->mapURLKeys($productAttributes, $products, $item);
             $this->mapColors($productAttributes, $products, $item, $attributeOptions);
+            $this->mapProductVisibilities($productAttributes, $products, $item);
 
             return $productAttributes;
         })->filter();
@@ -152,6 +153,7 @@ class MidOceanProductMapperService extends BaseService
             'product_id'    => $products[$item['master_code']]->id,
             'text_value'    => Str::slug((isset($item['product_name']) ? $item['product_name'].'-' : null).$item['master_code']),
             'integer_value' => null,
+            'boolean_value' => null,
             'channel'       => 'default',
             'locale'        => 'en',
             'unique_id'     => 'default|en|'.$products[$item['master_code']]->id.'|'.self::URL_KEY_ATTRIBUTE_ID,
@@ -162,6 +164,7 @@ class MidOceanProductMapperService extends BaseService
                 'product_id'    => $products[$variant['sku']]->id,
                 'text_value'    => Str::slug((isset($row['product_name']) ? $row['product_name'].'-' : null).$variant['sku']),
                 'integer_value' => null,
+                'boolean_value' => null,
                 'channel'       => 'default',
                 'locale'        => 'en',
                 'unique_id'     => 'default|en|'.$products[$variant['sku']]->id.'|'.self::URL_KEY_ATTRIBUTE_ID,
@@ -180,9 +183,40 @@ class MidOceanProductMapperService extends BaseService
                 'product_id'       => $products[$variant['sku']]->id,
                 'integer_value'    => $attributeOptions[$variant['color_group']]->id,
                 'text_value'       => null,
+                'boolean_value'    => null,
                 'channel'          => 'default',
                 'locale'           => 'en',
                 'unique_id'        => 'default|en|'.$products[$variant['sku']]->id.'|'.self::COLOR_ATTRIBUTE_KEY,
+            ];
+        }
+    }
+
+    protected const PRODUCT_VISIBILITY_ATTRIBUTE_KEY = 7;
+
+    private function mapProductVisibilities(array &$productAttributes, Collection $products, array $item): void
+    {
+        $hasSingleVariant = count($item['variants']) === 1;
+
+        $productAttributes[] = [
+            'attribute_id'  => self::PRODUCT_VISIBILITY_ATTRIBUTE_KEY,
+            'product_id'    => $products[$item['master_code']]->id,
+            'text_value'    => null,
+            'integer_value' => null,
+            'boolean_value' => $hasSingleVariant ? 0 : 1,
+            'channel'       => 'default',
+            'locale'        => 'en',
+            'unique_id'     => 'default|en|'.$products[$item['master_code']]->id.'|'.self::PRODUCT_VISIBILITY_ATTRIBUTE_KEY,
+        ];
+        foreach ($item['variants'] as $variant) {
+            $productAttributes[] = [
+                'attribute_id'  => self::PRODUCT_VISIBILITY_ATTRIBUTE_KEY,
+                'product_id'    => $products[$variant['sku']]->id,
+                'text_value'    => null,
+                'integer_value' => null,
+                'boolean_value' => $hasSingleVariant ? 1 : 0,
+                'channel'       => 'default',
+                'locale'        => 'en',
+                'unique_id'     => 'default|en|'.$products[$variant['sku']]->id.'|'.self::PRODUCT_VISIBILITY_ATTRIBUTE_KEY,
             ];
         }
     }
@@ -194,6 +228,7 @@ class MidOceanProductMapperService extends BaseService
             'product_id'    => $products[$item['master_code']]->id,
             'text_value'    => $item[$attribute['code']],
             'integer_value' => null,
+            'boolean_value' => null,
             'channel'       => 'default',
             'locale'        => 'en',
             'unique_id'     => 'default|en|'.$products[$item['master_code']]->id.'|'.$attribute['id'],
@@ -211,6 +246,7 @@ class MidOceanProductMapperService extends BaseService
                     'product_id'    => $products[$variant['sku']]->id,
                     'text_value'    => $attributeValue,
                     'integer_value' => null,
+                    'boolean_value' => null,
                     'channel'       => 'default',
                     'locale'        => 'en',
                     'unique_id'     => 'default|en|'.$products[$variant['sku']]->id.'|'.$attribute['id'],
@@ -325,6 +361,8 @@ class MidOceanProductMapperService extends BaseService
         $productFlats = collect($this->data)->flatMap(function (array $row) use ($products, $defaultChannelCode, $defaultAttributeFamilyId) {
             $flatProducts = [];
 
+            $hasSingleVariant = count($row['variants']) === 1;
+
             $flatProducts[] = [
                 'sku'                       => $row['master_code'],
                 'type'                      => 'configurable',
@@ -343,8 +381,7 @@ class MidOceanProductMapperService extends BaseService
                 'status'                    => '1',
                 'channel'                   => $defaultChannelCode,
                 'attribute_family_id'       => $defaultAttributeFamilyId,
-                'visible_individually'      => 1,
-
+                'visible_individually'      => $hasSingleVariant ? 0 : 1,
             ];
 
             foreach ($row['variants'] as $variant) {
@@ -366,7 +403,7 @@ class MidOceanProductMapperService extends BaseService
                     'status'                    => '1',
                     'channel'                   => $defaultChannelCode,
                     'attribute_family_id'       => $defaultAttributeFamilyId,
-                    'visible_individually'      => 0,
+                    'visible_individually'      => $hasSingleVariant ? 1 : 0,
                 ];
             }
 

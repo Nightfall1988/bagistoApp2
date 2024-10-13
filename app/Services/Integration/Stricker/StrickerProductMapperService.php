@@ -171,6 +171,7 @@ class StrickerProductMapperService extends BaseService
                         'product_id'    => $products[$item['ProdReference']]->id,
                         'text_value'    => $text_value,
                         'integer_value' => $integer_value,
+                        'boolean_value' => null,
                         'channel'       => 'default',
                         'locale'        => 'en',
                         'unique_id'     => 'default|en|'.$products[$item['ProdReference']]->id.'|'.$attribute['id'],
@@ -178,10 +179,28 @@ class StrickerProductMapperService extends BaseService
                 }
             }
 
+            $this->mapProductVisibilities($productAttributes, $products, $item);
+
             return $productAttributes;
         })->filter();
 
         $this->productImportRepository->upsertProductAttributeValues($productAttributes);
+    }
+
+    protected const PRODUCT_VISIBILITY_ATTRIBUTE_KEY = 7;
+
+    private function mapProductVisibilities(array &$productAttributes, Collection $products, array $item): void
+    {
+        $productAttributes[] = [
+            'attribute_id'  => self::PRODUCT_VISIBILITY_ATTRIBUTE_KEY,
+            'product_id'    => $products[$item['ProdReference']]->id,
+            'text_value'    => null,
+            'integer_value' => null,
+            'boolean_value' => true,
+            'channel'       => 'default',
+            'locale'        => 'en',
+            'unique_id'     => 'default|en|'.$products[$item['ProdReference']]->id.'|'.self::PRODUCT_VISIBILITY_ATTRIBUTE_KEY,
+        ];
     }
 
     public function mapOptionals(): void
@@ -200,6 +219,7 @@ class StrickerProductMapperService extends BaseService
 
         $this->productImportRepository->upsertProducts($optionals);
     }
+
     public function mapOptionalsSupplierCodes(): void
     {
         $products = $this->productImportRepository->getProducts($this->getOptionalsSKUCodesFromOptionalsJson());
@@ -214,6 +234,7 @@ class StrickerProductMapperService extends BaseService
 
         $this->productImportRepository->upsertSupplierCodes($supplierCodes);
     }
+
     public function mapOptionalFlats(): void
     {
         $products = $this->productImportRepository->getProducts($this->getOptionalsSKUCodesFromOptionalsJson());
