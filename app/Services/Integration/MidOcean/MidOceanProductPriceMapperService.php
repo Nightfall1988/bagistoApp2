@@ -62,6 +62,8 @@ class MidOceanProductPriceMapperService extends BaseService
                     'sku'        => $row['sku'],
                     'price'      => $this->valueToFloat($row['price']),
                     'product_id' => $this->products[$row['sku']]->id,
+                    'locale'     => 'en',
+                    'channel'    => 'default',
                 ];
             }
 

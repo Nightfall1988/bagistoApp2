@@ -3,7 +3,6 @@
 namespace App\Console\Commands\Integration;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Artisan;
 
 class ExecuteProductImports extends Command
 {
@@ -30,20 +29,25 @@ class ExecuteProductImports extends Command
     {
         $startTime = microtime(true);
 
-        $this->info("Running MidOcean Import...\n");
-        Artisan::call('integration:midocean:import', [], $this->output);
+        $this->info('Running MidOcean Import...');
+        passthru('php artisan integration:midocean:import');
 
-        $this->info("\nRunning Stricker Import...\n");
-        Artisan::call('integration:stricker:import', [], $this->output);
+        $this->info("\nRunning Stricker Import...");
+        passthru('php artisan integration:stricker:import');
 
-        $this->info("\nRunning XDConnect Import...\n");
-        Artisan::call('integration:xdconnect:import', [], $this->output);
+        $this->info("\nRunning XDConnect Import...");
+        passthru('php artisan integration:xdconnect:import');
 
         $endTime = microtime(true);
         $executionTime = $endTime - $startTime;
 
         $this->info("\nAll product import commands have been executed successfully.");
         $this->line('<fg=yellow>Execution time: '.round($executionTime, 2).' seconds</>', 'info');
+
+        passthru('php artisan lv:duplicate-populate');
+
+        $this->info("\nRunning image download...");
+        passthru('php artisan app:download-and-upsert-product-images');
 
         return Command::SUCCESS;
     }

@@ -108,7 +108,7 @@ class StrickerProductMapperService extends BaseService
         $this->productImportRepository->upsertProductCategories($parentCategories);
     }
 
-    protected const COMMON_ATR_MAP = [
+    protected const PROD_ATR_MAP = [
         ['id' => 1,  'code' => 'ProdReference'],         // sku
         ['id' => 2,  'code' => 'Name'],                 // name
         ['id' => 3,  'code' => 'SEOName'],              // url_key
@@ -118,7 +118,6 @@ class StrickerProductMapperService extends BaseService
         ['id' => 20, 'code' => 'BoxWidthMM'],           // width
         ['id' => 21, 'code' => 'BoxHeightMM'],          // height
         ['id' => 22, 'code' => 'BoxWeightKG'],          // weight (net_weight)
-        ['id' => 23, 'code' => 'Colors'],               // color
         ['id' => 24, 'code' => 'CombinedSizes'],        // size
         ['id' => 25, 'code' => 'Brand'],                // brand
         ['id' => 29, 'code' => 'Materials'],            // material
@@ -131,7 +130,7 @@ class StrickerProductMapperService extends BaseService
     {
         $attributeOptions = collect($this->data['Products'])->flatMap(function ($item) {
             $attributeOptions = [];
-            foreach (self::COMMON_ATR_MAP as $attribute) {
+            foreach (self::PROD_ATR_MAP as $attribute) {
                 if (! empty($item[$attribute['code']])) {
                     $value = $item[$attribute['code']];
 
@@ -148,59 +147,33 @@ class StrickerProductMapperService extends BaseService
         $this->productImportRepository->upsertAttributeOptions($attributeOptions);
     }
 
-    public function mapProductAttributeValues(): void
+    protected const OPT_ATR_MAP = [
+        ['id' => 24, 'code' => 'CombinedSizes'],        // size
+        ['id' => 23, 'code' => 'ColorDesc1'],           // color
+        ['id' => 25, 'code' => 'Brand'],                // brand
+        ['id' => 29, 'code' => 'Materials'],            // material
+        ['id' => 30, 'code' => 'CombinedSizes'],        // dimensions
+    ];
+
+    public function mapOptionalsAttributeOptions(): void
     {
-        $products = $this->productImportRepository->getProducts($this->getSKUCodesFromProductJson());
-        $attributeOptions = $this->productImportRepository->getAttributeOptionsByName();
-
-        $productAttributes = collect($this->data['Products'])->flatMap(function ($item) use ($products, $attributeOptions) {
-            $productAttributes = [];
-            foreach (self::COMMON_ATR_MAP as $attribute) {
+        $attributeOptions = collect($this->data['OptionalsComplete'])->flatMap(function ($item) {
+            $attributeOptions = [];
+            foreach (self::OPT_ATR_MAP as $attribute) {
                 if (! empty($item[$attribute['code']])) {
-                    $text_value = $item[$attribute['code']];
-                    $integer_value = null;
+                    $value = $item[$attribute['code']];
 
-                    if ($attribute['id'] == 23 || $attribute['id'] == 24) {
-                        if (isset($attributeOptions[$item[$attribute['code']]])) {
-                            $integer_value = $attributeOptions[$item[$attribute['code']]]->id;
-                        }
-                    }
-
-                    $productAttributes[] = [
+                    $attributeOptions[] = [
                         'attribute_id'  => $attribute['id'],
-                        'product_id'    => $products[$item['ProdReference']]->id,
-                        'text_value'    => $text_value,
-                        'integer_value' => $integer_value,
-                        'boolean_value' => null,
-                        'channel'       => 'default',
-                        'locale'        => 'en',
-                        'unique_id'     => 'default|en|'.$products[$item['ProdReference']]->id.'|'.$attribute['id'],
+                        'admin_name'    => $value,
                     ];
                 }
             }
 
-            $this->mapProductVisibilities($productAttributes, $products, $item);
-
-            return $productAttributes;
+            return $attributeOptions;
         })->filter();
 
-        $this->productImportRepository->upsertProductAttributeValues($productAttributes);
-    }
-
-    protected const PRODUCT_VISIBILITY_ATTRIBUTE_KEY = 7;
-
-    private function mapProductVisibilities(array &$productAttributes, Collection $products, array $item): void
-    {
-        $productAttributes[] = [
-            'attribute_id'  => self::PRODUCT_VISIBILITY_ATTRIBUTE_KEY,
-            'product_id'    => $products[$item['ProdReference']]->id,
-            'text_value'    => null,
-            'integer_value' => null,
-            'boolean_value' => true,
-            'channel'       => 'default',
-            'locale'        => 'en',
-            'unique_id'     => 'default|en|'.$products[$item['ProdReference']]->id.'|'.self::PRODUCT_VISIBILITY_ATTRIBUTE_KEY,
-        ];
+        $this->productImportRepository->upsertAttributeOptions($attributeOptions);
     }
 
     public function mapOptionals(): void
@@ -291,5 +264,116 @@ class StrickerProductMapperService extends BaseService
                 'sku'=> $item['Sku'],
             ];
         });
+    }
+
+    private function mapAttributeValues(array $data, array $attributeMap, Collection $products, Collection $attributeOptions, callable $visibilityMapper, callable $statusMapper, $referenceKey): Collection
+    {
+        return collect($data)->flatMap(function ($item) use ($products, $attributeOptions, $attributeMap, $visibilityMapper, $statusMapper, $referenceKey) {
+            $productAttributes = [];
+
+            foreach ($attributeMap as $attribute) {
+                if (! empty($item[$attribute['code']])) {
+                    $text_value = $item[$attribute['code']];
+                    $integer_value = null;
+
+                    if (in_array($attribute['id'], [23, 24]) && isset($attributeOptions[$item[$attribute['code']]])) {
+                        $integer_value = $attributeOptions[$item[$attribute['code']]]->id;
+                        $text_value = null;
+                    }
+
+                    $productAttributes[] = [
+                        'attribute_id'  => $attribute['id'],
+                        'product_id'    => $products[$item[$referenceKey]]->id,
+                        'text_value'    => $text_value,
+                        'integer_value' => $integer_value,
+                        'boolean_value' => null,
+                        'channel'       => 'default',
+                        'locale'        => 'en',
+                        'unique_id'     => 'default|en|'.$products[$item[$referenceKey]]->id.'|'.$attribute['id'],
+                    ];
+                }
+            }
+
+            $visibilityMapper($productAttributes, $products, $item);
+            $statusMapper($productAttributes, $products, $item);
+
+            return $productAttributes;
+        });
+    }
+
+    public function mapOptionalsAttributeValues(): void
+    {
+        $products = $this->productImportRepository->getProducts($this->getOptionalsSKUCodesFromOptionalsJson());
+        $attributeOptions = $this->productImportRepository->getAttributeOptionsByName();
+
+        $productAttributes = $this->mapAttributeValues(
+            $this->data['OptionalsComplete'],
+            self::OPT_ATR_MAP,
+            $products,
+            $attributeOptions,
+            function (&$productAttributes, $products, $item) {
+                $this->mapVisibilities($productAttributes, $products, $item, 'Sku');
+            },
+            function (&$productAttributes, $products, $item) {
+                $this->mapStatuses($productAttributes, $products, $item, 'Sku');
+            },
+            'Sku'
+        );
+
+        $this->productImportRepository->upsertProductAttributeValues($productAttributes);
+    }
+
+    public function mapProductAttributeValues(): void
+    {
+        $products = $this->productImportRepository->getProducts($this->getSKUCodesFromProductJson());
+        $attributeOptions = $this->productImportRepository->getAttributeOptionsByName();
+
+        $productAttributes = $this->mapAttributeValues(
+            $this->data['Products'],
+            self::PROD_ATR_MAP,
+            $products,
+            $attributeOptions,
+            function (&$productAttributes, $products, $item) {
+                $this->mapVisibilities($productAttributes, $products, $item, 'ProdReference');
+            },
+            function (&$productAttributes, $products, $item) {
+                $this->mapStatuses($productAttributes, $products, $item, 'ProdReference');
+            },
+            'ProdReference'
+        );
+
+        $this->productImportRepository->upsertProductAttributeValues($productAttributes);
+    }
+
+    protected const PRODUCT_VISIBILITY_ATTRIBUTE_KEY = 7;
+
+    protected const PRODUCT_STATUS_ATTRIBUTE_KEY = 8;
+
+    private function mapVisibilities(array &$productAttributes, Collection $products, array $item, string $referenceKey): void
+    {
+        $productAttributes[] = [
+            'attribute_id'  => self::PRODUCT_VISIBILITY_ATTRIBUTE_KEY,
+            'product_id'    => $products[$item[$referenceKey]]->id,
+            'text_value'    => null,
+            'integer_value' => null,
+            'boolean_value' => true,
+            'channel'       => 'default',
+            'locale'        => 'en',
+            'unique_id'     => 'default|en|'.$products[$item[$referenceKey]]->id.'|'.self::PRODUCT_VISIBILITY_ATTRIBUTE_KEY,
+        ];
+    }
+
+    private function mapStatuses(array &$productAttributes, Collection $products, array $item, string $referenceKey): void
+    {
+        $productAttributes[] = [
+            'attribute_id'  => self::PRODUCT_STATUS_ATTRIBUTE_KEY,
+            'product_id'    => $products[$item[$referenceKey]]->id,
+            'text_value'    => null,
+            'integer_value' => null,
+            'boolean_value' => true,
+            'channel'       => 'default',
+            'locale'        => 'en',
+            'unique_id'     => 'default|en|'.$products[$item[$referenceKey]]->id.'|'.self::PRODUCT_STATUS_ATTRIBUTE_KEY,
+        ];
     }
 }

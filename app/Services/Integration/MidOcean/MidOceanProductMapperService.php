@@ -137,6 +137,7 @@ class MidOceanProductMapperService extends BaseService
             $this->mapURLKeys($productAttributes, $products, $item);
             $this->mapColors($productAttributes, $products, $item, $attributeOptions);
             $this->mapProductVisibilities($productAttributes, $products, $item);
+            $this->mapProductStatuses($productAttributes, $products, $item);
 
             return $productAttributes;
         })->filter();
@@ -217,6 +218,34 @@ class MidOceanProductMapperService extends BaseService
                 'channel'       => 'default',
                 'locale'        => 'en',
                 'unique_id'     => 'default|en|'.$products[$variant['sku']]->id.'|'.self::PRODUCT_VISIBILITY_ATTRIBUTE_KEY,
+            ];
+        }
+    }
+
+    protected const PRODUCT_STATUS_ATTRIBUTE_KEY = 8;
+
+    private function mapProductStatuses(array &$productAttributes, Collection $products, array $item): void
+    {
+        $productAttributes[] = [
+            'attribute_id'  => self::PRODUCT_STATUS_ATTRIBUTE_KEY,
+            'product_id'    => $products[$item['master_code']]->id,
+            'text_value'    => null,
+            'integer_value' => null,
+            'boolean_value' => 1,
+            'channel'       => 'default',
+            'locale'        => 'en',
+            'unique_id'     => 'default|en|'.$products[$item['master_code']]->id.'|'.self::PRODUCT_STATUS_ATTRIBUTE_KEY,
+        ];
+        foreach ($item['variants'] as $variant) {
+            $productAttributes[] = [
+                'attribute_id'  => self::PRODUCT_STATUS_ATTRIBUTE_KEY,
+                'product_id'    => $products[$variant['sku']]->id,
+                'text_value'    => null,
+                'integer_value' => null,
+                'boolean_value' => 1,
+                'channel'       => 'default',
+                'locale'        => 'en',
+                'unique_id'     => 'default|en|'.$products[$variant['sku']]->id.'|'.self::PRODUCT_STATUS_ATTRIBUTE_KEY,
             ];
         }
     }
@@ -418,8 +447,9 @@ class MidOceanProductMapperService extends BaseService
         $products = $this->productImportRepository->getProducts($this->getSKUCodesFromJson());
         $productImageURLs = collect($this->data)->flatMap(function ($row) use ($products) {
             $imageURLs = [];
-
             $productId = $products[$row['master_code']]->id;
+            /*
+            Mapping of documents, not needed for now
             $position = 1;
             if (isset($row['digital_assets'])) {
                 foreach ($row['digital_assets'] as $digitalAsset) {
@@ -431,20 +461,32 @@ class MidOceanProductMapperService extends BaseService
                     ];
                     $position++;
                 }
-            }
-            if (isset($row['variants'])) {
+            }*/
+            if (isset($row['variants'][0]['digital_assets'])) {
+                $firstVariantImage = collect($row['variants'][0]['digital_assets'])->firstWhere('type', 'image');
+                if ($firstVariantImage) {
+                    $imageURLs[] = [
+                        'url'       => $firstVariantImage['url'],
+                        'product_id'=> $productId,
+                        'position'  => 1,
+                        'type'      => $firstVariantImage['type'],
+                    ];
+                }
+
                 foreach ($row['variants'] as $variant) {
-                    $position = 1;
                     $variantProductId = $products[$variant['sku']]->id;
+                    $position = 1;
                     if (isset($variant['digital_assets'])) {
                         foreach ($variant['digital_assets'] as $digitalAsset) {
-                            $imageURLs[] = [
-                                'url'       => $digitalAsset['url'],
-                                'product_id'=> $variantProductId,
-                                'position'  => $position,
-                                'type'      => $digitalAsset['type'],
-                            ];
-                            $position++;
+                            if ($digitalAsset['type'] == 'image') {
+                                $imageURLs[] = [
+                                    'url'        => $digitalAsset['url'],
+                                    'product_id' => $variantProductId,
+                                    'position'   => $position,
+                                    'type'       => $digitalAsset['type'],
+                                ];
+                                $position++;
+                            }
                         }
                     }
                 }

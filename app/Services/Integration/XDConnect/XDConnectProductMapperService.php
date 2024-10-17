@@ -170,6 +170,7 @@ class XDConnectProductMapperService extends BaseService
             }
 
             $this->mapProductVisibilities($productAttributes, $products, $item);
+            $this->mapProductStatuses($productAttributes, $products, $item);
 
             return $productAttributes;
         })->filter();
@@ -190,6 +191,20 @@ class XDConnectProductMapperService extends BaseService
             'channel'       => 'default',
             'locale'        => 'en',
             'unique_id'     => 'default|en|'.$products[$item['ItemCode']]->id.'|'.self::PRODUCT_VISIBILITY_ATTRIBUTE_KEY,
+        ];
+    }
+    protected const PRODUCT_STATUS_ATTRIBUTE_KEY = 8;
+    private function mapProductStatuses(array &$productAttributes, Collection $products, array $item): void
+    {
+        $productAttributes[] = [
+            'attribute_id'  => self::PRODUCT_STATUS_ATTRIBUTE_KEY,
+            'product_id'    => $products[$item['ItemCode']]->id,
+            'text_value'    => null,
+            'integer_value' => null,
+            'boolean_value' => true,
+            'channel'       => 'default',
+            'locale'        => 'en',
+            'unique_id'     => 'default|en|'.$products[$item['ItemCode']]->id.'|'.self::PRODUCT_STATUS_ATTRIBUTE_KEY,
         ];
     }
 
