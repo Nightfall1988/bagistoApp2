@@ -57,6 +57,8 @@ class XDConnectProductPriceMapperService extends BaseService
                 'sku'        => $row['ItemCode'],
                 'price'      => (float) $row['ItemPriceGross_Qty1'],
                 'product_id' => $this->products[$row['ItemCode']]->id,
+                'channel'    => 'default',
+                'locale'     => 'en',
             ];
         });
 

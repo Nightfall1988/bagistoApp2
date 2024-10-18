@@ -6,17 +6,27 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up(): void
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up()
     {
         Schema::table('product_flat', function (Blueprint $table) {
-            $table->unique('sku');
+            $table->index(['sku', 'locale'], 'sku_locale_index');
         });
     }
 
-    public function down(): void
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
     {
         Schema::table('product_flat', function (Blueprint $table) {
-            $table->dropUnique(['sku']);
+            $table->dropIndex('sku_locale_index');
         });
     }
 };

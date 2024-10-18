@@ -2,6 +2,7 @@
 
 namespace App\Repositories\Integration;
 
+use App\Repositories\BaseImportRepository;
 use Hitexis\Attribute\Models\AttributeOption;
 use Hitexis\PrintCalculator\Models\PositionPrintTechniques;
 use Hitexis\PrintCalculator\Models\PrintingPositions;
@@ -130,8 +131,8 @@ class ProductImportRepository extends BaseImportRepository
             $productFlats->chunk($batchSize)->each(function (Collection $chunk) {
                 ProductFlat::upsert(
                     $chunk->all(),
-                    ['sku'],
-                    ['type', 'product_number', 'name', 'short_description', 'description', 'weight', 'url_key', 'meta_title', 'meta_description', 'product_id', 'channel', 'attribute_family_id', 'visible_individually']
+                    ['product_id', 'channel', 'locale'],
+                    ['sku', 'type', 'product_number', 'name', 'short_description', 'description', 'weight', 'url_key', 'meta_title', 'meta_description', 'attribute_family_id', 'visible_individually']
                 );
             });
         });
@@ -143,8 +144,8 @@ class ProductImportRepository extends BaseImportRepository
             $productFlats->chunk($this->upsertBatchSize)->each(function (Collection $chunk) {
                 ProductFlat::upsert(
                     $chunk->all(),
-                    ['sku'],
-                    ['price', 'product_id']
+                    ['product_id', 'channel', 'locale'],
+                    ['price']
                 );
             });
         });

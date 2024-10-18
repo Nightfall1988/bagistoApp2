@@ -1,5 +1,5 @@
 <?php
-namespace App\Repositories\Integration;
+namespace App\Repositories;
 
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;

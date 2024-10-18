@@ -221,6 +221,8 @@ class StrickerProductImport extends AbstractProductImportCommand
         $this->productMapperService->mapOptionals();
         $this->productMapperService->mapOptionalsSupplierCodes();
         $this->productMapperService->mapOptionalFlats();
+        $this->productMapperService->mapOptionalsAttributeOptions();
+        $this->productMapperService->mapOptionalsAttributeValues();
     }
 
     private function processPrintData(array $data): void
