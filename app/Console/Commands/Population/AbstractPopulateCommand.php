@@ -14,7 +14,6 @@ abstract class AbstractPopulateCommand extends Command
 
     public function handle(): void
     {
-        // TEST
         $data = $this->getData();
         $transformedData = $this->transformData($data);
         $this->upsertData($transformedData);
