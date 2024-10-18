@@ -37,17 +37,13 @@ class DuplicateProductAttributeValuesCommand extends AbstractPopulateCommand
         return $this->repository->getEnLocaleProductAttributesWithNoLvCounterParts();
     }
 
-    protected const URL_KEY_ATTRIBUTE_ID = 3;
-
     protected function transformData(Collection $data): Collection
     {
         return $data->map(function ($productAttributeValue) {
             return [
                 'locale'            => 'lv',
                 'channel'           => $productAttributeValue->channel,
-                'text_value'        => $productAttributeValue->attribute_id == self::URL_KEY_ATTRIBUTE_ID
-                    ? $productAttributeValue->text_value
-                    : $productAttributeValue->text_value,
+                'text_value'        => $productAttributeValue->text_value,
                 'boolean_value'     => $productAttributeValue->boolean_value,
                 'integer_value'     => $productAttributeValue->integer_value,
                 'float_value'       => $productAttributeValue->float_value,
