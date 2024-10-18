@@ -50,7 +50,7 @@ class Tax
 
         /* finally round tax amounts now (to reduce rounding differences) */
         foreach ($taxes as $taxRate => $taxAmount) {
-            $taxes[$taxRate] = round($taxAmount, self::TAX_AMOUNT_PRECISION);
+            $taxes[$taxRate] = round($taxAmount, self::TAX_AMOUNT_PRECISION) + round($that->shipping_tax_amount, self::TAX_AMOUNT_PRECISION);
         }
 
         return $taxes;

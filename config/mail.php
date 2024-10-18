@@ -37,8 +37,8 @@ return [
             'host'        => env('MAIL_HOST', 'smtp.gmail.com'),
             'port'        => env('MAIL_PORT', 587),
             'encryption'  => env('MAIL_ENCRYPTION', 'tls'),
-            'username'    => env('MAIL_USERNAME', 'grigorijs.mamilovs@gmail.com'),
-            'password'    => env('MAIL_PASSWORD', 'hhcmathllvofoqse'),
+            'username'    => env('MAIL_USERNAME', 'orders@logoprint.lv'),
+            'password'    => env('MAIL_PASSWORD', 'yonahcevaeekkiko'),
             'timeout'     => null,
             'verify_peer' => false,
         ],
@@ -89,8 +89,8 @@ return [
     |
     */
     'from' => [
-        'address' => env('MAIL_FROM_ADDRESS', 'default@example.com'),
-        'name'    => env('MAIL_FROM_NAME', 'Default Name'),
+        'address' => env('MAIL_FROM_ADDRESS', 'orders@logoprint.lv'),
+        'name'    => env('MAIL_FROM_NAME', 'LogoPrint'),
     ],
 
     /*
@@ -102,8 +102,8 @@ return [
     |
     */
     'admin' => [
-        'address' => env('ADMIN_MAIL_ADDRESS', 'admin@example.com'),
-        'name'    => env('ADMIN_MAIL_NAME', 'Admin'),
+        'address' => env('ADMIN_MAIL_ADDRESS', 'orders@logoproint.lv'),
+        'name'    => env('ADMIN_MAIL_NAME', 'LogoPrint'),
     ],
 
     /*

@@ -163,7 +163,7 @@ class Configurable extends AbstractType
 
                     $this->updateVariant($variantData, $variantId);
                 }
-            } 
+            }
 
         }
 
@@ -560,7 +560,11 @@ class Configurable extends AbstractType
                 'total_incl_tax'      => $convertedPrice * $data['quantity'],
                 'base_total_incl_tax' => $price * $data['quantity'],
                 'additional'        => $this->getAdditionalOptions($data),
-                'print_price'       => $printPrice 
+                'print_price'               => $printPrice ?? null,
+                'print_name'                => $data["technique-info"] ?? null,
+                'print_single_price'        => $data["technique-single-price"] ?? null,
+                'print_setup'               => $data["setup-price"] ?? null,
+                'print_manipulation_cost'   => $data["print-manipulation"] ?? null,
             ], [
                 'parent_id'           => $this->product->id,
                 'product_id'          => (int) $data['selected_configurable_option'],

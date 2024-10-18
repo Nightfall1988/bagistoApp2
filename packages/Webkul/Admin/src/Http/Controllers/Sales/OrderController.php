@@ -124,8 +124,13 @@ class OrderController extends Controller
     public function view(int $id)
     {
         $order = $this->orderRepository->findOrFail($id);
+        if (!empty($order->items)) {
+            $totalPrintPrice = $order->items->sum(function ($item) {
+                return floatval($item->print_price);
+            });
+        }
 
-        return view('admin::sales.orders.view', compact('order'));
+        return view('admin::sales.orders.view', compact('order', 'totalPrintPrice'));
     }
 
     /**

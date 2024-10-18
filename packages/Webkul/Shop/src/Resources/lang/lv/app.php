@@ -980,7 +980,7 @@ return [
             'shipping-handling'          => 'Piegādes apstrāde',
             'subtotal-excl-tax'          => 'Starpsumma (bez PVN)',
             'subtotal-incl-tax'          => 'Starpsumma (Ar PVN)',
-
+            'electronic'                 => 'Šis rēķins ir sagatavots elekrtoniski un ir derīgs bez paraksta.'
         ],
     ],
 ];

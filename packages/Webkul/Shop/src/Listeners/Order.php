@@ -20,7 +20,6 @@ class Order extends Base
             if (! core()->getConfigData('emails.general.notifications.emails.general.notifications.new_order')) {
                 return;
             }
-
             $this->prepareMail($order, new CreatedNotification($order));
         } catch (\Exception $e) {
             report($e);

@@ -19,7 +19,7 @@
                             <img
                                 src="{{ $logo }}"
                                 alt="{{ config('app.name') }}"
-                                style="height: 40px; width: 110px;"
+                                style="height: 40px; width: 160px;"
                             />
                         @else
                             <img
@@ -27,7 +27,7 @@
                                 alt="{{ config('app.name') }}"
                                 width="131"
                                 height="29"
-                                style="width: 156px;height: 40px;"
+                                style="width: 160px;height: 40px;"
                             />
                         @endif
                     </a>
@@ -39,8 +39,7 @@
                 <!-- Email Footer -->
                 <p style="font-size: 16px;color: #202B3C;line-height: 24px;">
                     @lang('shop::app.emails.thanks', [
-                        'link' => 'mailto:shop@shop.com',
-                        'email' => 'shop@shop.com',
+                        'phone' => ' +37126383899',
                         'style' => 'color: #2969FF;'
                     ])
                 </p>

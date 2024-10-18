@@ -8,7 +8,7 @@ use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Mail\Mailables\Attachment;
 use Webkul\Admin\Mail\Mailable;
 use Webkul\Sales\Contracts\Order;
-use Barryvdh\DomPDF\Facade\PDF;
+use Barryvdh\DomPDF\Facade\Pdf;
 class CreatedNotification extends Mailable
 {
     /**
@@ -69,7 +69,7 @@ class CreatedNotification extends Mailable
     public function build()
     {
         $invoicePath = $this->generateInvoice();
-    
+
         return $this->view('hitexis-shop::emails.orders.created')
                     ->attach($invoicePath, [
                         'as' => 'invoice.pdf',

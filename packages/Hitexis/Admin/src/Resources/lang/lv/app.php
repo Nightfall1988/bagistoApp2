@@ -376,6 +376,7 @@ return [
                 'per-unit'                       => 'par vienību',
                 'price-incl-tax'                 => 'Cena (ar PVN) - :price',
                 'price-excl-tax'                 => 'Cena (bez PVN) - :price',
+                'print-price'                    => 'Drukas cena',
                 'price'                          => 'Cena - :price',
                 'processing'                     => 'Apstrādē',
                 'quantity'                       => 'Daudzums',
@@ -555,7 +556,7 @@ return [
                 'refund-limit-error'          => 'Atmaksas summa :amount nevar turpināt.',
                 'refund-shipping'             => 'Atmaksāšana Piegāde',
                 'sku'                         => 'SKU - :sku',
-                'subtotal'                    => 'Starpsumma',
+                'subtotal'                    => 'Kopā bez PVN',
                 'tax-amount'                  => 'Nodokļa summa',
                 'title'                       => 'Izveidot atmaksu',
                 'update-totals-btn'           => 'Atjaunināt kopsummas',
@@ -636,7 +637,7 @@ return [
 
             'invoice-pdf' => [
                 'bank-details'               => 'Bankas rekvizīti',
-                'bill-to'                    => 'Rēķins uz',
+                'bill-to'                    => 'Rēķina saņēmējs',
                 'contact-number'             => 'Kontakttālrunis',
                 'contact'                    => 'Kontakti',
                 'date'                       => 'Rēķina datums',
@@ -651,8 +652,10 @@ return [
                 'payment-terms'              => 'Maksājuma nosacījumi',
                 'price'                      => 'Cena',
                 'product-name'               => 'Produkta nosaukums',
+                'product-price'              => 'Kopējā produktu cena',
+                'print-total'                => 'Kopējā drukas cena',
                 'qty'                        => 'Quantity',
-                'ship-to'                    => 'Nosūtiet uz',
+                'ship-to'                    => 'Piegādes adrese',
                 'shipping-handling-excl-tax' => 'Piegādes apstrāde (bez PVN)',
                 'shipping-handling-incl-tax' => 'Piegādes apstrāde (ar Tax)',
                 'shipping-handling'          => 'Piegādes apstrāde',
@@ -660,7 +663,7 @@ return [
                 'sku'                        => 'SKU',
                 'subtotal-excl-tax'          => 'Starpsumma (bez PVN)',
                 'subtotal-incl-tax'          => 'Starpsumma (ar Tax)',
-                'subtotal'                   => 'Starpsumma',
+                'subtotal'                   => 'Kopā bez PVN',
                 'tax-amount'                 => 'Nodokļa summa',
                 'tax'                        => 'PVN',
                 'vat-number'                 => 'PVN numurs',
@@ -1047,7 +1050,7 @@ return [
 
         'markup' => [
             'create-title' => 'Izveidot uzcenojumu',
-            'edit-title' => 'Rediģēt uzcenojumu' 
+            'edit-title' => 'Rediģēt uzcenojumu'
         ],
 
         'attributes' => [
@@ -2085,7 +2088,7 @@ return [
                     'shipping-state'                            => 'Nosūtīšanas valsts',
                     'specific-coupon'                           => 'Īpašais kupons',
                     'status'                                    => 'Statuss',
-                    'subtotal'                                  => 'Starpsumma',
+                    'subtotal'                                  => 'Kopā bez PVN',
                     'title'                                     => 'Groza rediģēšanas noteikums',
                     'to'                                        => 'Kam',
                     'total-items-qty'                           => 'Kopējais vienību daudzums',
@@ -4556,7 +4559,7 @@ return [
             'sku'                        => 'SKU',
             'subtotal-excl-tax'          => 'Starpsumma (bez PVN)',
             'subtotal-incl-tax'          => 'Starpsumma (ar PVN',
-            'subtotal'                   => 'Starpsumma',
+            'subtotal'                   => 'Kopā bez PVN',
             'tax'                        => 'PVN',
             'tracking-number'            => 'Izsekošanas numurs : :tracking_number',
         ],

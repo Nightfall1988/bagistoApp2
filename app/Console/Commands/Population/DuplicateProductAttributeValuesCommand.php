@@ -46,7 +46,7 @@ class DuplicateProductAttributeValuesCommand extends AbstractPopulateCommand
                 'locale'            => 'lv',
                 'channel'           => $productAttributeValue->channel,
                 'text_value'        => $productAttributeValue->attribute_id == self::URL_KEY_ATTRIBUTE_ID
-                    ? $productAttributeValue->text_value.'-lv'
+                    ? $productAttributeValue->text_value
                     : $productAttributeValue->text_value,
                 'boolean_value'     => $productAttributeValue->boolean_value,
                 'integer_value'     => $productAttributeValue->integer_value,

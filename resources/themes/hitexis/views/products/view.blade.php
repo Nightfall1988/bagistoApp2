@@ -17,6 +17,7 @@
         }
     }
     $customAttributeValues = $properData;
+
 @endphp
 
 <!-- SEO Meta Content -->
@@ -203,8 +204,9 @@
                             </div>
                         </div>
 
+
                         <!-- Print Techniques and LogoTron -->
-                        @if (isset($product->print_techniques) && $product->print_techniques != '[]')
+                        @if (isset($product->productPrintData))
                             <div class="mt-8">
                                 @include('hitexis-shop::components.printcalculator.printcalculator', ['product' => $product])
                             </div>

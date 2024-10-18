@@ -246,7 +246,7 @@ class Cart
         $this->removeCart($guestCart);
     }
 
-    
+
     /**
      * Add items in a cart with some cart and item details.
      */
@@ -375,7 +375,7 @@ class Cart
             $item->base_total_incl_tax = $item->total;
             $item->discount_amount = $tempTotal - $item->total;
         }
-        
+
 
         return $item;
     }
@@ -424,7 +424,7 @@ class Cart
         foreach ($pricingData as $pricing) {
             // Convert MinQt to integer for comparison
             $minQuantity = (int)str_replace('.', '', $pricing['MinQt']);
-            
+
             // If the quantity is greater than or equal to MinQt, use this price
             if ($quantity >= $minQuantity) {
                 $price = $pricing['Price'];
@@ -443,7 +443,7 @@ class Cart
      * Get cart item by product.
      */
     public function getItemByProduct(array $data, ?array $parentData = null): ?Contracts\CartItem
-    {        
+    {
         $items = $this->cart->all_items;
 
         foreach ($items as $item) {
@@ -452,9 +452,9 @@ class Cart
                 if (! isset($data['additional']['parent_id'])) {
 
 
-                    if (sizeof($this->productRepository->find($item->product_id)->first()->wholesales) != 0) 
+                    if (sizeof($this->productRepository->find($item->product_id)->first()->wholesales) != 0)
                     {
-                        if ( isset($data['additional']['quantity'] ) &&  $data['additional']['quantity'] != 0) 
+                        if ( isset($data['additional']['quantity'] ) &&  $data['additional']['quantity'] != 0)
                         {
                             $wholesales = $this->productRepository->find($item->product_id)->first()->wholesales;
                             $wholesale = $this->getBestWholesalePromotion($item, $wholesales);
@@ -554,6 +554,7 @@ class Cart
         $fillableFields = [
             'default_address',
             'company_name',
+            'registration_number',
             'first_name',
             'last_name',
             'email',
@@ -830,18 +831,18 @@ class Cart
         if (! $this->validateItems()) {
             $this->refreshCart();
         }
-    
+
         if (! $this->cart) {
             return $this;
         }
-    
+
         Event::dispatch('checkout.cart.collect.totals.before', $this->cart);
-    
+
         $this->calculateItemsTax();
         $this->calculateShippingTax();
-    
+
         $this->refreshCart();
-    
+
         // Reset totals
         $this->cart->sub_total = $this->cart->base_sub_total = 0;
         $this->cart->sub_total_incl_tax = $this->cart->base_sub_total_incl_tax = 0;
@@ -851,65 +852,73 @@ class Cart
         $this->cart->shipping_amount = $this->cart->base_shipping_amount = 0;
         $this->cart->shipping_amount_incl_tax = $this->cart->base_shipping_amount_incl_tax = 0;
         $this->cart->print_price = 0; // Reset print price
-    
+
         $quantities = 0;
-        $totalPrintPrice = 0; // Track total print price
-    
+
         foreach ($this->cart->items as $item) {
 
             // Fetch print data for each item
-            $printPrice = $this->getPrintPrice($item);
-    
-            $itemTotalPrintPrice = $item->print_price;
-    
+            $printPrice = floatval($item->print_price);
+
             // Update totals for discount, tax, and print price
             $this->cart->discount_amount += $item->discount_amount;
             $this->cart->base_discount_amount += $item->base_discount_amount;
-    
-            $this->cart->tax_total += $item->tax_amount;
-            $this->cart->base_tax_total += $item->base_tax_amount;
-    
-            // Accumulate subtotal and include print price
 
-            $this->cart->sub_total += (float) ($item->total - $item->discount_amount) + (float)$itemTotalPrintPrice;
-            $this->cart->base_sub_total += $item->base_total;
-            $this->cart->print_price += $item->print_price; // Add each item's print price to total print price
-            $this->cart->print_name = $item->print_name; // Add each item's print price to total print price
-            $this->cart->print_setup = $item->print_setup; // Add each item's print price to total print price
-            $this->cart->print_manipulation += $item->print_manipulation_cost; // Add each item's print price to total print price
-            if ($this->cart->sub_total) {
-                $this->cart->sub_total_incl_tax += (float) $item->total_incl_tax;
-                $this->cart->base_sub_total_incl_tax += (float) $item->base_total_incl_tax;
-                $quantities += $item->quantity;
-            }
+            // Calculate the total amount for tax including print price
+            $itemTotalForTax = (float) ($item->total + $printPrice);
+            $itemBaseTotalForTax = (float) ($item->base_total + $item->base_print_price);
+
+            // Accumulate subtotal and include print price
+            $this->cart->sub_total += $itemTotalForTax;
+            $this->cart->base_sub_total += $itemBaseTotalForTax;
+
+            $this->cart->print_price += $printPrice;
+            $this->cart->print_name = $item->print_name;
+            $this->cart->print_setup = $item->print_setup;
+            $this->cart->print_manipulation += $item->print_manipulation_cost;
+
+            // Calculate tax based on the combined product price and print price
+            $taxPercent = $item->tax_percent;
+            $itemTaxAmount = ($itemTotalForTax * $taxPercent) / 100;
+            $itemBaseTaxAmount = ($itemBaseTotalForTax * $taxPercent) / 100;
+
+            // Add item tax to the cart's total tax
+            $this->cart->tax_total += $itemTaxAmount;
+            $this->cart->base_tax_total += $itemBaseTaxAmount;
+
+            // Calculate item totals including tax
+            $this->cart->sub_total_incl_tax += $itemTotalForTax + $itemTaxAmount;
+            $this->cart->base_sub_total_incl_tax += $itemBaseTotalForTax + $itemBaseTaxAmount;
+
+            $quantities += $item->quantity;
         }
 
         // Set item quantities and count
         $this->cart->items_qty = $quantities;
         $this->cart->items_count = $this->cart->items->count();
-    
+
         // Calculate grand total
         $this->cart->grand_total = $this->cart->sub_total + $this->cart->tax_total - $this->cart->discount_amount;
         $this->cart->base_grand_total = $this->cart->base_sub_total + $this->cart->base_tax_total - $this->cart->base_discount_amount;
-    
+
         // Add shipping costs to grand total
         if ($shipping = $this->cart->selected_shipping_rate) {
             $this->cart->tax_total += $shipping->tax_amount;
             $this->cart->base_tax_total += $shipping->base_tax_amount;
-    
+
             $this->cart->shipping_amount = $shipping->price;
             $this->cart->base_shipping_amount = $shipping->base_price;
-    
+
             $this->cart->shipping_amount_incl_tax = $shipping->price_incl_tax;
             $this->cart->base_shipping_amount_incl_tax = $shipping->base_price_incl_tax;
-    
+
             $this->cart->grand_total += $shipping->tax_amount + $shipping->price - $shipping->discount_amount;
             $this->cart->base_grand_total += $shipping->base_tax_amount + $shipping->base_price - $shipping->base_discount_amount;
-    
+
             $this->cart->discount_amount += $shipping->discount_amount;
             $this->cart->base_discount_amount += $shipping->base_discount_amount;
         }
-    
+
         // Round amounts
         $this->cart->discount_amount = round($this->cart->discount_amount, 2);
         $this->cart->base_discount_amount = round($this->cart->base_discount_amount, 2);
@@ -919,14 +928,14 @@ class Cart
         $this->cart->base_sub_total_incl_tax = round($this->cart->base_sub_total_incl_tax, 2);
         $this->cart->grand_total = round($this->cart->grand_total, 2);
         $this->cart->base_grand_total = round($this->cart->base_grand_total, 2);
-    
+
         // Assign cart currency
         $this->cart->cart_currency_code = core()->getCurrentCurrencyCode();
-    
+
         $this->cart->save();
-    
+
         Event::dispatch('checkout.cart.collect.totals.after', $this->cart);
-    
+
         return $this;
     }
 
@@ -994,7 +1003,7 @@ class Cart
                         'print_single_price'        => "$price",
                         'print_setup'               => "$setup",
                         'print_manipulation_cost'   => "$manipulationPrice",
-    
+
                     ], $itemId);
                 } else {
                     $this->cartItemRepository->update([
@@ -1007,16 +1016,16 @@ class Cart
                         'base_total_weight'         => $item->weight * $quantity,
                         'discount_amount'           => '0',
                         'print_price'               => "$itemFullPrintPrice",
-    
+
                     ], $itemId);
                 }
-                
-                
+
+
 
                 $this->flag = 1;
 
                 Event::dispatch('checkout.cart.update.after', $item);
-    
+
                 $this->collectTotals();
                 $this->flag = 0;
 
@@ -1084,22 +1093,22 @@ class Cart
                         'print_setup'         => "$setup",
                         'print_manipulation'  => "$manipulationPrice",
                     ], $itemId);
-        
+
                     Event::dispatch('checkout.cart.update.after', $item);
                 }
-        
+
                 $this->collectTotals();
-        
+
                 return true;
             }
         }
     }
- 
+
     public function getPrintPrice($item)
     {
         return $item->additional;
     }
-    
+
 
     /**
      * To validate if the product information is changed by admin and the items have been added to the cart before it.
@@ -1254,7 +1263,12 @@ class Cart
 
                     $item->base_price = $item->base_total / $item->quantity;
                 } else {
-                    $item->tax_amount = round(($item->total * $rate->tax_rate) / 100, 4);
+
+                    if (isset($item->print_price) && $item->print_price != '') {
+                        $item->tax_amount = round((($item->total + $item->print_price) * $rate->tax_rate) / 100, 4);
+                    } else {
+                        $item->tax_amount = round(($item->total * $rate->tax_rate) / 100, 4);
+                    }
 
                     $item->base_tax_amount = round(($item->base_total * $rate->tax_rate) / 100, 4);
 

@@ -1,239 +1,229 @@
-<v-print-calculator :product="{{ json_encode($product) }}"></v-print-calculator>
-@push('scripts')
-<div class="mt-8">
-    <script type="text/x-template" id="v-print-calculator-template">
-        <div class="p-4 bg-gray-100 rounded-lg shadow-md">
-            <div class="mb-4">
-                <label for="technique" class="block text-sm font-medium text-gray-700 mb-2">
-                    <h2 class="text-2xl font-bold text-indigo-600">@lang('shop::app.products.view.calculator.title')</h2>
-                </label>
-                <div>
-                    <select v-model="selectedTechnique" @change="updateCurrentTechnique" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                        <option value="no-technique">@lang('shop::app.products.view.calculator.no-technique')</option> <!-- No technique option -->
-                        <option v-for="technique in allTechniques" :key="technique.technique_id" :value="technique.technique_id">
-                            @{{ technique.description }}
-                        </option>
-                    </select>
+@inject('Tax', 'Webkul\Tax\Tax')
+
+@component('hitexis-shop::emails.layout')
+    <div style="margin-bottom: 34px;">
+        <span style="font-size: 22px;font-weight: 600;color: #121A26">
+            @lang('shop::app.emails.orders.created.title')
+        </span> <br>
+
+        <p style="font-size: 16px;color: #5E5E5E;line-height: 24px;">
+            @lang('shop::app.emails.dear', ['customer_name' => $invoice->order->customer_full_name]),👋
+        </p>
+
+        <p style="font-size: 16px;color: #5E5E5E;line-height: 24px;">
+            {!! __('shop::app.emails.orders.invoiced.title', [
+                'order_id' => '<a href="' . route('shop.customers.account.orders.view', $invoice->order->id) . '" style="color: #2969FF;">#' . $invoice->order->increment_id . '</a>',
+                'created_at' => core()->formatDate($invoice->order->created_at, 'Y-m-d H:i:s')
+                ])
+            !!}
+        </p>
+    </div>
+
+    <div style="font-size: 20px;font-weight: 600;color: #121A26">
+        @lang('shop::app.emails.orders.created.summary')
+    </div>
+
+    <div style="display: flex;flex-direction: row;margin-top: 20px;justify-content: space-between;margin-bottom: 40px;">
+        @if ($invoice->order->shipping_address)
+            <div style="line-height: 25px;">
+                <div style="font-size: 16px;font-weight: 600;color: #121A26;">
+                    @lang('shop::app.emails.orders.shipping-address')
+                </div>
+
+                <div style="font-size: 16px;font-weight: 400;color: #384860;margin-bottom: 40px;">
+                    {{ $invoice->order->shipping_address->company_name ?? '' }}<br/>
+                    {{ $invoice->order->shipping_address->name }}<br/>
+                    {{ $invoice->order->shipping_address->address }}<br/>
+                    {{ $invoice->order->shipping_address->postcode . " " . $invoice->order->shipping_address->city }}<br/>
+                    {{ $invoice->order->shipping_address->state }}<br/>
+                    ---<br/>
+                    @lang('shop::app.emails.orders.contact') : {{ $invoice->order->billing_address->phone }}
+                </div>
+
+                <div style="font-size: 16px;font-weight: 600;color: #121A26;">
+                    @lang('shop::app.emails.orders.shipping')
+                </div>
+
+                <div style="font-size: 16px;font-weight: 400;color: #384860;">
+                    {{ explode(' - ', $invoice->order->shipping_title)[0] }}
                 </div>
             </div>
+        @endif
 
-            <div class="price-grid bg-white rounded-lg shadow-lg overflow-hidden">
-                <table class="w-full bg-gray-50 border-separate border-spacing-0">
-                    <thead class="bg-indigo-100 text-midnightBlue uppercase text-sm">
-                        <tr>
-                            <th class="px-6 py-3 border-b-2 border-indigo-700">@lang('shop::app.products.view.calculator.product-name')</th>
-                            <th class="px-6 py-3 border-b-2 border-indigo-700">@lang('shop::app.products.view.calculator.technique')</th>
-                            <th class="px-6 py-3 border-b-2 border-indigo-700">@lang('shop::app.products.view.calculator.setup-cost')</th>
-                            <th class="px-6 py-3 border-b-2 border-indigo-700">@lang('shop::app.products.view.calculator.individual-product-price')</th>
-                            <th class="px-6 py-3 border-b-2 border-indigo-700">@lang('shop::app.products.view.calculator.manipulation')</th>
-                            <th class="px-6 py-3 border-b-2 border-indigo-700">@lang('shop::app.products.view.calculator.quantity')</th>
-                            <th class="px-6 py-3 border-b-2 border-indigo-700">@lang('shop::app.products.view.calculator.print-fee')</th>
-                            <th class="px-6 py-3 border-b-2 border-indigo-700">@lang('shop::app.products.view.calculator.total-price')</th>
-                        </tr>
-                    </thead>
-                    <tbody class="text-gray-700">
-                        <tr v-for="technique in techniquesData" :key="technique.description" class="hover:bg-gray-100 transition-colors duration-150">
-                            <td class="px-6 py-4 border-b border-gray-200 text-center">@{{ technique.product_name }}</td>
-                            <td class="px-6 py-4 border-b border-gray-200 text-center">@{{ technique.print_technique }} </td>
-                            <td class="px-6 py-4 border-b border-gray-200 text-center">@{{ Number(technique.setup_cost).toFixed(2) }} *</td>
-                            <td class="px-6 py-4 border-b border-gray-200 text-center">@{{ parseFloat(product.price).toFixed(2) }} *</td>
-                            <td class="px-6 py-4 border-b border-gray-200 text-center">@{{ parseFloat(manipulationPrice).toFixed(2) }} *</td>
-                            <td class="px-6 py-4 border-b border-gray-200 text-center">@{{ technique.quantity }}</td>
-                            <td class="px-6 py-4 border-b border-gray-200 text-center">@{{ parseFloat(technique.technique_print_fee).toFixed(2) }} *</td>
-                            <td class="px-6 py-4 border-b border-gray-200 text-center">@{{ printFullPrice }}</td>
-                        </tr>
-                        <!-- Hidden inputs to hold technique-related data -->
-                        <input name='technique-single-price' type='hidden' v-model="techniqueSinglePrice" />
-                        <input name='technique-info' type='hidden' v-model="techniqueInfo" />
-                        <input name='technique-price' type='hidden' v-model="techniquePrice" />
-                        <input name='position-id' type='hidden' v-model="positionId" />
-                        <input name='setup-price' type='hidden' v-model="setupPrice" />
-                        <input name='print-manipulation' type='hidden' v-model="manipulationPrice" />
-                        <input name='technique-id' type='hidden' v-model="techniqueId" /> <!-- New hidden input for technique ID -->
-                    </tbody>
-                    <p class="mt-4 ml-2 mb-2 text-sm text-zinc-500 max-sm:mt-4 max-xs:text-xs">
-                        <i>* @lang('shop::app.products.view.price-no-tax')</i>
-                    </p>
-                </table>
+        @if ($invoice->order->billing_address)
+            <div style="line-height: 25px;">
+                <div style="font-size: 16px;font-weight: 600;color: #121A26;">
+                    @lang('shop::app.emails.orders.billing-address')
+                </div>
+
+                <div style="font-size: 16px;font-weight: 400;color: #384860;margin-bottom: 40px;">
+                    {{ $invoice->order->billing_address->company_name ?? '' }}<br/>
+
+                    @if ($invoice->order->billing_address->registration_number)
+                        @lang('shop::app.emails.orders.registration-nr') {{ $invoice->order->billing_address->registration_number }}<br/>
+                    @endif
+
+                    {{ $invoice->order->billing_address->name }}<br/>
+                    {{ $invoice->order->billing_address->address }}<br/>
+                    {{ $invoice->order->billing_address->postcode . " " . $invoice->order->billing_address->city }}<br/>
+                    {{ $invoice->order->billing_address->state }}<br/>
+                    ---<br/>
+                    @lang('shop::app.emails.orders.contact') {{ $invoice->order->billing_address->phone }}
+                </div>
+
+                <div style="font-size: 16px;font-weight: 600;color: #121A26;">
+                    @lang('shop::app.emails.orders.payment')
+                </div>
+
+                <div style="font-size: 16px;font-weight: 400;color: #384860;">
+                    {{ core()->getConfigData('sales.payment_methods.' . $invoice->order->payment->method . '.title') }}
+                </div>
+
+                @php $additionalDetails = \Webkul\Payment\Payment::getAdditionalDetails($invoice->order->payment->method); @endphp
+
+                @if (! empty($additionalDetails))
+                    <div style="font-size: 16px; color: #384860;">
+                        <div>{{ $additionalDetails['title'] }}</div>
+                        <div>{{ $additionalDetails['value'] }}</div>
+                    </div>
+                @endif
             </div>
-        </div>
-    </script>
-</div>
+        @endif
+    </div>
 
-<script type="module">
-    app.component('v-print-calculator', {
-        template: '#v-print-calculator-template',
+    <div style="padding-bottom: 40px;border-bottom: 1px solid #CBD5E1;">
+        <table style="overflow-x: auto; border-collapse: collapse; border-spacing: 0;width: 100%">
+            <thead>
+                <tr style="color: #121A26;border-top: 1px solid #CBD5E1;border-bottom: 1px solid #CBD5E1;">
+                    @foreach (['sku', 'name', 'price', 'qty', 'base_total'] as $item)
+                        <th style="text-align: left;padding: 15px">
+                            @lang('shop::app.emails.orders.' . $item)
+                        </th>
+                    @endforeach
+                </tr>
+            </thead>
 
-        props: ['product'],
+            <tbody style="font-size: 16px;font-weight: 400;color: #384860;">
+                @foreach ($invoice->order->items as $item)
 
-        data() {
-            return {
-                selectedTechnique: '',
-                currentTechnique: null,
-                techniquesData: [],
-                techniquePrice: '', // This will store the total price
-                techniqueInfo: '',
-                techniqueSinglePrice: '',
-                positionId: '',
-                setupPrice: '',
-                manipulationPrice: 0,
-                techniqueId: '', // New technique ID to be used in hidden input
-                allTechniques: [] // To hold all print techniques
-            };
-        },
+                    {{-- Main product row --}}
+                    <tr>
+                        <td style="text-align: left;padding: 15px">{{ $item->sku }}</td>
+                        <td style="text-align: left;padding: 15px">{{ $item->name }}</td>
+                        <td style="text-align: left;padding: 15px">{{ core()->formatPrice(floatval(str_replace(',', '.', $item->price)), $invoice->order->order_currency_code) }}</td>
+                        <td style="text-align: left;padding: 15px">{{ $item->qty_ordered }}</td>
+                        <td style="text-align: left;padding: 15px">{{ core()->formatPrice(floatval(str_replace(',', '.', $item->base_total)), $invoice->order->order_currency_code) }}</td>
+                    </tr>
+                        <tr style="text-align: left;padding: 15px">
+                            @if (isset($item->additional['attributes']))
+                                @foreach ($item->additional['attributes'] as $attribute)
+                                    <td style="text-align: left;padding: 15px"><b>{{ $attribute['attribute_name'] }}: </b>{{ $attribute['option_label'] }}</td></br>
+                                @endforeach
+                            @endif
+                        </tr>
+                    {{-- Print details row --}}
+                    <tr>
+                        <td colspan="5" style="padding: 0; border: none;">
+                            <div style="padding: 10px; background-color: #F9F9F9; border-radius: 4px;">
+                                <b>@lang('shop::app.emails.orders.print-name-position'):</b>
+                                {{ rtrim($item->print_name ?? __('shop::app.products.view.calculator.no-technique'), ' -') }}<br/>
 
-        computed: {
-            totalTechniquePrice() {
-                if (this.techniquesData.length > 0) {
-                    const technique = this.techniquesData[0];
-                    return ((Number(technique.price) * technique.quantity) + Number(technique.setup_cost) + Number(technique.printManipulation)).toFixed(2);
-                }
-                return "0.00";
-            }
-        },
+                                @if (floatval($item->print_single_price) != 0)
+                                    <b>@lang('shop::app.emails.orders.print-single-price'):</b>
+                                    {{ core()->formatPrice(floatval($item->print_single_price) * $item->qty_ordered, $invoice->order->order_currency_code) }}<br/>
 
-        watch: {
-            selectedTechnique() {
-                this.updateCurrentTechnique();
-            },
-        },
+                                    <b>@lang('shop::app.emails.orders.print-setup'):</b>
+                                    {{ core()->formatPrice(floatval(str_replace(',', '.', $item->print_setup)), $invoice->order->order_currency_code) }}<br/>
 
-        methods: {
-            initializeTechniques() {
-                // Traverse through productPrintData, printingPositions, and printTechnique to get all techniques
-                if (Array.isArray(this.product.product_print_data)) {
-                    this.product.product_print_data.forEach(printData => {
-                        if (Array.isArray(printData.printing_positions)) {
-                            printData.printing_positions.forEach(position => {
-                                console.log(position);  // To check position data
-                                if (Array.isArray(position.print_technique)) {
-                                    position.print_technique.forEach(technique => {
-                                        this.allTechniques.push(technique);
-                                    });
-                                }
-                            });
-                        }
-                    });
-                }
-            },
+                                    <b>@lang('shop::app.emails.orders.print-manipulation'):</b>
+                                    {{ core()->formatPrice(floatval($item->print_manipulation_cost) * $item->qty_ordered, $invoice->order->order_currency_code) }}<br/>
 
-            updateCurrentTechnique() {
-                if (this.selectedTechnique === 'no-technique') {
-                    // Set all technique properties to 0 when no technique is selected
-                    this.techniquesData = [{
-                        product_name: this.product.name,
-                        techniqueInfo: "@lang('shop::app.products.view.calculator.no-technique')",
-                        quantity: 0,
-                        price: 0,
-                        setup_cost: 0,
-                        total_price: 0,
-                        technique_print_fee: 0,
-                        print_fee: 0,
-                        product_price_qty: 0,
-                        total_product_and_print: 0,
-                        printManipulation: 0,
-                    }];
-                    this.techniqueSinglePrice = 0;
-                    this.techniqueInfo = "@lang('shop::app.products.view.calculator.no-technique')";
-                    this.techniquePrice = 0;
-                    this.positionId = null;
-                    this.setupPrice = 0;
-                    this.manipulationPrice = 0;
-                    this.techniqueId = ''; // Reset technique ID
-                    this.printFullPrice = ''; // Reset technique ID
-                } else {
-                    // Find the selected technique from the allTechniques array
-                    this.currentTechnique = this.allTechniques.find(
-                        technique => technique.technique_id === this.selectedTechnique
-                    );
+                                    <b>@lang('shop::app.emails.orders.print-price'):</b>
+                                    {{ core()->formatPrice(floatval($item->print_price), $invoice->order->order_currency_code) }}<br/>
+                                @endif
+                            </div>
+                        </td>
+                    </tr>
 
-                    if (this.currentTechnique) {
-                        // Assign technique-related values
-                        this.techniqueId = this.currentTechnique.technique_id;
-                        this.techniqueInfo = this.currentTechnique.description;
-                        this.setupPrice = this.currentTechnique.setup;
-                        this.positionId = this.currentTechnique.pivot.printing_position_id; // Accessing the pivot data for the position
+                @endforeach
+            </tbody>
+        </table>
+    </div>
 
-                        // Optionally assign manipulation or price-related values based on the technique or backend response
-                        this.calculatePrices();
-                    }
-                }
-            },
+    <div style="font-size: 16px;color: #384860;line-height: 30px;padding-top: 20px;padding-bottom: 20px;">
+        <table style="width: 100%;">
+            @if (!is_null($invoice->order->print_price) && $invoice->order->print_price != '0.00')
+            <tr>
+                <td style="text-align: left;">
+                    @lang('shop::app.emails.orders.print-total')
+                </td>
+                <td style="text-align: right;">
+                    {{ core()->formatPrice(floatval($invoice->order->print_price), $invoice->order->order_currency_code) }}
+                </td>
+            </tr>
+            @endif
+            @if (!is_null($invoice->order->print_price) && $invoice->order->print_price != '0.00')
+            <tr>
+                <td style="text-align: left;">
+                    @lang('shop::app.emails.orders.product-sub-total')
+                </td>
+                <td style="text-align: right;">
+                    {{ core()->formatPrice(floatval($invoice->order->base_sub_total), $invoice->order->order_currency_code) }}
+                </td>
+            </tr>
+            @endif
 
-            calculatePrices() {
-                const quantity = this.getQuantityFromFieldQty();
-                if (!quantity || !this.currentTechnique) return;
+            @if ($invoice->order->shipping_address)
+            <tr>
+                <td style="text-align: left;">
+                    @lang('shop::app.emails.orders.shipping-handling')
+                </td>
+                <td style="text-align: right;">
+                    {{ core()->formatPrice($invoice->order->shipping_amount, $invoice->order->order_currency_code) }}
+                </td>
+            </tr>
+            @endif
 
-                // Call to backend to calculate the price, passing the required params
-                axios.get("{{ route('printcontroller.api.print.gettechnique') }}", {
-                    params: {
-                        technique_id: this.techniqueId,
-                        quantity: quantity,
-                        product_id: this.product.id,
-                        position_id: this.positionId,
-                        setup: this.setupPrice
-                    }
-                })
-                .then(response => {
-                    const data = response.data;
+            <tr>
+                <td style="text-align: left;">
+                    @lang('shop::app.emails.orders.subtotal')
+                </td>
+                <td style="text-align: right;">
+                    {{ core()->formatPrice($invoice->order->sub_total, $invoice->order->order_currency_code) }}
+                </td>
+            </tr>
 
-                    console.log(data);
-                    // Update techniquesData with backend-calculated data
-                    this.techniquesData = [{
-                        product_name: this.product.name,
-                        print_technique: this.currentTechnique.description,
-                        quantity: quantity,
-                        price: data.price,
-                        setup_cost: data.setup_cost,
-                        total_price: data.total_price,
-                        technique_print_fee: data.technique_print_fee,
-                        print_fee: data.print_fee,
-                        product_price_qty: data.product_price_qty,
-                        total_product_and_print: data.total_product_and_print,
-                        printManipulation: data.print_manipulation
-                    }];
+            @foreach (Webkul\Tax\Helpers\Tax::getTaxRatesWithAmount($invoice->order, false) as $taxRate => $taxAmount)
+            <tr>
+                <td style="text-align: left;">
+                    @lang('shop::app.emails.orders.tax') {{ $taxRate }} %
+                </td>
+                <td style="text-align: right;">
+                    {{ core()->formatPrice($taxAmount, $invoice->order->order_currency_code) }}
+                </td>
+            </tr>
+            @endforeach
 
-                    // Set techniqueSinglePrice to the calculated print fee
-                    this.techniqueSinglePrice = parseFloat(data.technique_print_fee).toFixed(2);
-                    this.techniquePrice = this.totalTechniquePrice;
-                    this.techniquePrice = this.totalTechniquePrice;
-                    this.manipulationPrice = data.print_manipulation;
-                    this.printFullPrice =  data.print_full_price
-                })
-                .catch(error => {
-                    console.error('Error calculating price:', error);
-                });
-            },
+            @if ($invoice->order->discount_amount > 0)
+            <tr>
+                <td style="text-align: left;">
+                    @lang('shop::app.emails.orders.discount')
+                </td>
+                <td style="text-align: right;">
+                    {{ core()->formatPrice($invoice->order->discount_amount, $invoice->order->order_currency_code) }}
+                </td>
+            </tr>
+            @endif
 
-            getQuantityFromFieldQty() {
-                const qtyField = document.querySelector('#field-qty input[type="hidden"]');
-                return qtyField ? parseInt(qtyField.value, 10) : null;
-            },
+            <tr style="font-weight: bold;">
+                <td style="text-align: left;">
+                    @lang('shop::app.emails.orders.grand-total')
+                </td>
+                <td style="text-align: right;">
+                    {{ core()->formatPrice($invoice->order->grand_total, $invoice->order->order_currency_code) }}
+                </td>
+            </tr>
+        </table>
+    </div>
 
-            observeQuantityChange() {
-                const qtyField = document.querySelector('#field-qty input[type="hidden"]');
-                if (!qtyField) return;
-
-                const observer = new MutationObserver(() => {
-                    this.updateCurrentTechnique();
-                });
-
-                observer.observe(qtyField, {
-                    attributes: true,
-                    attributeFilter: ['value']
-                });
-            },
-        },
-
-        mounted() {
-            this.initializeTechniques();
-            this.observeQuantityChange();
-
-            if (this.allTechniques.length > 0) {
-                this.selectedTechnique = this.allTechniques[0].technique_id;
-                this.updateCurrentTechnique();
-            }
-        },
-    });
-</script>
-@endpush
+@endcomponent

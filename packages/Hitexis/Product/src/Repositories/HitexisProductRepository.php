@@ -20,7 +20,6 @@ use Hitexis\Product\Contracts\Product;
 use Hitexis\Product\Adapters\ProductAdapter;
 use Webkul\Product\Repositories\ProductRepository as WebkulProductRepository;
 use Hitexis\Product\Models\Product as HitexisProductModel;
-use Illuminate\Support\Facades\Cache;
 
 class HitexisProductRepository extends Repository
 {
@@ -62,7 +61,7 @@ class HitexisProductRepository extends Repository
         if (!$typeClass) {
             throw new \InvalidArgumentException("Product type '{$data['type']}' not found in configuration.");
         }
-        
+
         $typeInstance = app(config('hitexis_product_types.'.$data['type'].'.class'));
         $product = $typeInstance->create($data);
 
@@ -77,13 +76,13 @@ class HitexisProductRepository extends Repository
     public function upserts(array $data)
     {
         $typeClass = config('product_types.' . $data['type'] . '.class');
-    
+
         if (!$typeClass) {
             throw new \InvalidArgumentException("Product type '{$data['type']}' not found in configuration.");
         }
-        
+
         $typeInstance = app(config('hitexis_product_types.' . $data['type'] . '.class'));
-    
+
         $existingProduct = $this->findOneByField('sku', $data['sku']);
 
         if ($existingProduct) {
@@ -93,7 +92,7 @@ class HitexisProductRepository extends Repository
         } else {
             $product = $typeInstance->create($data);
         }
-    
+
         return $product;
     }
 
@@ -229,7 +228,7 @@ class HitexisProductRepository extends Repository
         return $product;
     }
 
-    /**
+        /**
      * Return product by filtering through attribute values.
      *
      * @param  string  $code
@@ -346,56 +345,74 @@ class HitexisProductRepository extends Repository
             'visible_individually' => 1,
             'url_key'              => null,
         ], $params);
-    
-        // Update search query for name and description
+
         if (!empty($params['query'])) {
             $params['name'] = $params['query'];
             $params['description'] = $params['query'];
         }
-    
-        // Eager load necessary relationships
+
         $query = $this->with([
             'attribute_family',
             'images',
+            'videos',
+            'attribute_values',
             'price_indices',
             'inventory_indices',
-            'reviews'
+            'reviews',
+            'attribute_values'
         ])->scopeQuery(function ($query) use ($params) {
             $prefix = DB::getTablePrefix();
-            $customerGroup = $this->customerRepository->getCurrentGroup();
-    
+
             $qb = $query->distinct()
                 ->select('products.*')
-                ->leftJoin('product_price_indices', function ($join) use ($customerGroup) {
+                ->leftJoin('product_price_indices', function ($join) {
+                    $customerGroup = $this->customerRepository->getCurrentGroup();
                     $join->on('products.id', '=', 'product_price_indices.product_id')
-                         ->where('product_price_indices.customer_group_id', $customerGroup->id);
+                        ->where('product_price_indices.customer_group_id', $customerGroup->id);
                 });
-    
-            // Subquery to get necessary attribute values
-            $qb->leftJoin(DB::raw("(SELECT product_id, attribute_id, text_value, boolean_value FROM product_attribute_values) as pav"),
-                          'products.id', '=', 'pav.product_id');
-    
-            // Filter by visible_individually attribute
-            $qb->where(function ($query) {
-                $query->where('pav.attribute_id', 7)
-                      ->where('pav.boolean_value', 1);  // Visible individually
+
+            // Joins for description and short_description attributes
+            $descriptionAlias1 = 'description_9_product_attribute_values';
+            $descriptionAlias2 = 'description_10_product_attribute_values';
+
+            $qb->leftJoin('product_attribute_values as '.$descriptionAlias1, function ($join) use ($descriptionAlias1) {
+                $join->on('products.id', '=', $descriptionAlias1.'.product_id')
+                    ->where($descriptionAlias1.'.attribute_id', 9);
             });
-    
-            // Filter by name and description (attribute_id = 2 for name, 9/10 for descriptions)
+
+            $qb->leftJoin('product_attribute_values as '.$descriptionAlias2, function ($join) use ($descriptionAlias2) {
+                $join->on('products.id', '=', $descriptionAlias2.'.product_id')
+                    ->where($descriptionAlias2.'.attribute_id', 10);
+            });
+
+            // Join for visible_individually attribute
+            $visibleIndividuallyAlias = 'visible_individually_product_attribute_values';
+            $qb->leftJoin('product_attribute_values as '.$visibleIndividuallyAlias, function ($join) use ($visibleIndividuallyAlias) {
+                $join->on('products.id', '=', $visibleIndividuallyAlias.'.product_id')
+                    ->where($visibleIndividuallyAlias.'.attribute_id', 7)
+                    ->where($visibleIndividuallyAlias.'.boolean_value', 1);
+            });
+
+            // Join for name attribute
+            $nameAlias = 'name_product_attribute_values';
+            $qb->leftJoin('product_attribute_values as '.$nameAlias, function ($join) use ($nameAlias) {
+                $join->on('products.id', '=', $nameAlias.'.product_id')
+                    ->where($nameAlias.'.attribute_id', 2); // Assuming attribute_id = 2 for 'name'
+            });
+
+            // Filter by name and description
             if (!empty($params['query'])) {
-                $qb->where(function ($subQuery) use ($params) {
-                    $subQuery->where('pav.attribute_id', 2)
-                             ->where('pav.text_value', 'like', '%' . urldecode($params['query']) . '%')
-                             ->orWhere(function ($query) use ($params) {
-                                 $query->where('pav.attribute_id', 9)
-                                       ->where('pav.text_value', 'like', '%' . urldecode($params['query']) . '%')
-                                       ->orWhere('pav.attribute_id', 10)
-                                       ->where('pav.text_value', 'like', '%' . urldecode($params['query']) . '%');
-                             });
+                $qb->where(function ($subQuery) use ($params, $nameAlias, $descriptionAlias1, $descriptionAlias2) {
+                    $subQuery->where($nameAlias.'.text_value', 'like', '%' . urldecode($params['query']) . '%')
+                             ->orWhere($descriptionAlias1.'.text_value', 'like', '%' . urldecode($params['query']) . '%')
+                             ->orWhere($descriptionAlias2.'.text_value', 'like', '%' . urldecode($params['query']) . '%');
                 });
             }
-    
-            // Sorting
+
+            // Ensure visible_individually is set to 1
+            $qb->where($visibleIndividuallyAlias.'.boolean_value', 1);
+
+            // Sort collection
             $sortOptions = $this->getSortOptions($params);
             if ($sortOptions['order'] != 'rand') {
                 $attribute = $this->attributeRepository->findOneByField('code', $sortOptions['sort']);
@@ -403,27 +420,29 @@ class HitexisProductRepository extends Repository
                     if ($attribute->code === 'price') {
                         $qb->orderBy('product_price_indices.min_price', $sortOptions['order']);
                     } else {
-                        $qb->orderBy('pav.text_value', $sortOptions['order']);
+                        $alias = 'sort_product_attribute_values';
+                        $qb->leftJoin('product_attribute_values as '.$alias, function ($join) use ($alias, $attribute) {
+                            $join->on('products.id', '=', $alias.'.product_id')
+                                ->where($alias.'.attribute_id', $attribute->id)
+                                ->where($alias.'.channel', core()->getRequestedChannelCode())
+                                ->where($alias.'.locale', core()->getRequestedLocaleCode());
+                        })->orderBy($alias.'.'.$attribute->column_name, $sortOptions['order']);
                     }
                 } else {
                     $qb->orderBy('products.created_at', $sortOptions['order']);
                 }
             } else {
-                $qb->inRandomOrder();
+                return $qb->inRandomOrder();
             }
-    
+
             return $qb->groupBy('products.id');
         });
-    
-        // Cache result if applicable
-        $cacheKey = 'search_products_' . md5(serialize($params));
-        return Cache::remember($cacheKey, 60, function () use ($query, $params) {
-            $limit = $this->getPerPageLimit($params);
-            return $query->paginate($limit);
-        });
+
+        $limit = $this->getPerPageLimit($params);
+
+        return $query->paginate($limit);
     }
-    
-    
+
     /**
      * Create product.
      *
@@ -436,7 +455,7 @@ class HitexisProductRepository extends Repository
         if (!$typeClass) {
             throw new \InvalidArgumentException("Product type '{$data['type']}' not found in configuration.");
         }
-        
+
         $typeInstance = app(config('hitexis_product_types.' . $data['type'] . '.class'));
 
         $existingProduct = $this->findOneByField('sku',  $data['sku']);
@@ -575,145 +594,146 @@ class HitexisProductRepository extends Repository
         return $query->max('min_price') ?? 0;
     }
 
-    public function getCategoryProducts($params = [])
-    {
-        $customerGroup = $this->customerRepository->getCurrentGroup();
+            public function getCategoryProducts($params = [])
+        {
+            $customerGroup = $this->customerRepository->getCurrentGroup();
 
-        $query = $this->with([
-            'attribute_family',
-            'images',
-            'videos',
-            'attribute_values',
-            'price_indices',
-            'inventory_indices',
-            'reviews',
-        ])->scopeQuery(function ($query) use ($params, $customerGroup) {
-            $prefix = DB::getTablePrefix();
-    
-            // Start the query
-            $qb = $query->distinct()
-                ->select('products.*')
-                ->leftJoin('product_price_indices', function ($join) use ($customerGroup) {
-                    $join->on('products.id', '=', 'product_price_indices.product_id')
-                        ->where('product_price_indices.customer_group_id', $customerGroup->id);
-                })
-                ->leftJoin('product_categories', 'products.id', 'product_categories.product_id');
-    
-            // Filter by attributes like descriptions
-            $descriptionAlias1 = 'description_9_product_attribute_values';
-            $descriptionAlias2 = 'description_10_product_attribute_values';
-    
-            $qb->leftJoin('product_attribute_values as ' . $descriptionAlias1, function ($join) use ($descriptionAlias1) {
-                $join->on('products.id', '=', $descriptionAlias1 . '.product_id')
-                    ->where($descriptionAlias1 . '.attribute_id', 9);
-            });
-    
-            $qb->leftJoin('product_attribute_values as ' . $descriptionAlias2, function ($join) use ($descriptionAlias2) {
-                $join->on('products.id', '=', $descriptionAlias2 . '.product_id')
-                    ->where($descriptionAlias2 . '.attribute_id', 10);
-            });
-    
-            // Handle visibility of individual products
-            $visibleIndividuallyAlias = 'visible_individually_product_attribute_values';
-            $qb->leftJoin('product_attribute_values as ' . $visibleIndividuallyAlias, function ($join) use ($visibleIndividuallyAlias) {
-                $join->on('products.id', '=', $visibleIndividuallyAlias . '.product_id')
-                    ->where($visibleIndividuallyAlias . '.attribute_id', 7)
-                    ->where($visibleIndividuallyAlias . '.boolean_value', 1);
-            });
-    
-            // Join for product name
-            $nameAlias = 'name_product_attribute_values';
-            $qb->leftJoin('product_attribute_values as ' . $nameAlias, function ($join) use ($nameAlias) {
-                $join->on('products.id', '=', $nameAlias . '.product_id')
-                    ->where($nameAlias . '.attribute_id', 2);
-            });
-    
-            // Filter by category
-            if (!empty($params['category_id'])) {
-                $qb->where('product_categories.category_id', $params['category_id']);
-            }
-    
-            // Filter by color
-            if (!empty($params['color'])) {
-                $colorIds = explode(',', $params['color']);
-                $colorAlias = 'color_product_attribute_values';
-    
-                $qb->leftJoin('product_attribute_values as ' . $colorAlias, function ($join) use ($colorAlias) {
-                    $join->on('products.id', '=', $colorAlias . '.product_id')
-                        ->where($colorAlias . '.attribute_id', 23);
+            $query = $this->with([
+                'attribute_family',
+                'images',
+                'videos',
+                'attribute_values',
+                'price_indices',
+                'inventory_indices',
+                'reviews',
+            ])->scopeQuery(function ($query) use ($params, $customerGroup) {
+                $prefix = DB::getTablePrefix();
+
+                // Start the query
+                $qb = $query->distinct()
+                    ->select('products.*')
+                    ->leftJoin('product_price_indices', function ($join) use ($customerGroup) {
+                        $join->on('products.id', '=', 'product_price_indices.product_id')
+                            ->where('product_price_indices.customer_group_id', $customerGroup->id);
+                    })
+                    ->leftJoin('product_categories', 'products.id', 'product_categories.product_id');
+
+                // Filter by attributes like descriptions
+                $descriptionAlias1 = 'description_9_product_attribute_values';
+                $descriptionAlias2 = 'description_10_product_attribute_values';
+
+                $qb->leftJoin('product_attribute_values as ' . $descriptionAlias1, function ($join) use ($descriptionAlias1) {
+                    $join->on('products.id', '=', $descriptionAlias1 . '.product_id')
+                        ->where($descriptionAlias1 . '.attribute_id', 9);
                 });
-    
-                // For variants, check if parent_id exists
-                $qb->where(function ($query) use ($colorAlias, $colorIds) {
-                    $query->whereIn($colorAlias . '.integer_value', $colorIds)
-                        ->orWhere(function ($query) use ($colorAlias, $colorIds) {
-                            $query->whereIn($colorAlias . '.integer_value', $colorIds);
-                        });
+
+                $qb->leftJoin('product_attribute_values as ' . $descriptionAlias2, function ($join) use ($descriptionAlias2) {
+                    $join->on('products.id', '=', $descriptionAlias2 . '.product_id')
+                        ->where($descriptionAlias2 . '.attribute_id', 10);
                 });
-            }
-    
-            // Filter by size
-            if (!empty($params['size'])) {
-                $sizeIds = explode(',', $params['size']);
-                $sizeAlias = 'size_product_attribute_values';
-    
-                $qb->leftJoin('product_attribute_values as ' . $sizeAlias, function ($join) use ($sizeAlias) {
-                    $join->on('products.id', '=', $sizeAlias . '.product_id')
-                        ->where($sizeAlias . '.attribute_id', 24);
+
+                // Handle visibility of individual products
+                $visibleIndividuallyAlias = 'visible_individually_product_attribute_values';
+                $qb->leftJoin('product_attribute_values as ' . $visibleIndividuallyAlias, function ($join) use ($visibleIndividuallyAlias) {
+                    $join->on('products.id', '=', $visibleIndividuallyAlias . '.product_id')
+                        ->where($visibleIndividuallyAlias . '.attribute_id', 7)
+                        ->where($visibleIndividuallyAlias . '.boolean_value', 1);
                 });
-    
-                // For variants, handle size filtering
-                $qb->where(function ($query) use ($sizeAlias, $sizeIds) {
-                    $query->whereIn($sizeAlias . '.integer_value', $sizeIds)
-                        ->orWhereIn($sizeAlias . '.integer_value', $sizeIds);
+
+                // Join for product name
+                $nameAlias = 'name_product_attribute_values';
+                $qb->leftJoin('product_attribute_values as ' . $nameAlias, function ($join) use ($nameAlias) {
+                    $join->on('products.id', '=', $nameAlias . '.product_id')
+                        ->where($nameAlias . '.attribute_id', 2);
                 });
-            }
-    
-            // Filter by price range
-            if (!empty($params['price'])) {
-                $priceRange = explode(',', $params['price']);
-                $minPrice = isset($priceRange[0]) ? floatval($priceRange[0]) : 0;
-                $maxPrice = isset($priceRange[1]) ? floatval($priceRange[1]) : null;
-    
-                $qb->where(function ($query) use ($minPrice, $maxPrice) {
-                    $query->where('product_price_indices.min_price', '>=', $minPrice);
-                    if ($maxPrice !== null) {
-                        $query->where('product_price_indices.min_price', '<=', $maxPrice);
-                    }
-                });
-            }
-    
-            // Ensure only visible products are included
-            $qb->where($visibleIndividuallyAlias . '.boolean_value', 1);
-    
-            // Sorting
-            $sortOptions = $this->getSortOptions($params);
-            if ($sortOptions['order'] != 'rand') {
-                $attribute = $this->attributeRepository->findOneByField('code', $sortOptions['sort']);
-                if ($attribute) {
-                    if ($attribute->code === 'price') {
-                        $qb->orderBy('product_price_indices.min_price', $sortOptions['order']);
+
+                // Filter by category
+                if (!empty($params['category_id'])) {
+                    $qb->where('product_categories.category_id', $params['category_id']);
+                }
+
+                // Filter by color
+                if (!empty($params['color'])) {
+                    $colorIds = explode(',', $params['color']);
+                    $colorAlias = 'color_product_attribute_values';
+
+                    $qb->leftJoin('product_attribute_values as ' . $colorAlias, function ($join) use ($colorAlias) {
+                        $join->on('products.id', '=', $colorAlias . '.product_id')
+                            ->where($colorAlias . '.attribute_id', 23);
+                    });
+
+                    // For variants, check if parent_id exists
+                    $qb->where(function ($query) use ($colorAlias, $colorIds) {
+                        $query->whereIn($colorAlias . '.integer_value', $colorIds)
+                            ->orWhere(function ($query) use ($colorAlias, $colorIds) {
+                                $query->whereIn($colorAlias . '.integer_value', $colorIds);
+                            });
+                    });
+                }
+
+                // Filter by size
+                if (!empty($params['size'])) {
+                    $sizeIds = explode(',', $params['size']);
+                    $sizeAlias = 'size_product_attribute_values';
+
+                    $qb->leftJoin('product_attribute_values as ' . $sizeAlias, function ($join) use ($sizeAlias) {
+                        $join->on('products.id', '=', $sizeAlias . '.product_id')
+                            ->where($sizeAlias . '.attribute_id', 24);
+                    });
+
+                    // For variants, handle size filtering
+                    $qb->where(function ($query) use ($sizeAlias, $sizeIds) {
+                        $query->whereIn($sizeAlias . '.integer_value', $sizeIds)
+                            ->orWhereIn($sizeAlias . '.integer_value', $sizeIds);
+                    });
+                }
+
+                // Filter by price range
+                if (!empty($params['price'])) {
+                    $priceRange = explode(',', $params['price']);
+                    $minPrice = isset($priceRange[0]) ? floatval($priceRange[0]) : 0;
+                    $maxPrice = isset($priceRange[1]) ? floatval($priceRange[1]) : null;
+
+                    $qb->where(function ($query) use ($minPrice, $maxPrice) {
+                        $query->where('product_price_indices.min_price', '>=', $minPrice);
+                        if ($maxPrice !== null) {
+                            $query->where('product_price_indices.min_price', '<=', $maxPrice);
+                        }
+                    });
+                }
+
+                // Ensure only visible products are included
+                $qb->where($visibleIndividuallyAlias . '.boolean_value', 1);
+
+                // Sorting
+                $sortOptions = $this->getSortOptions($params);
+                if ($sortOptions['order'] != 'rand') {
+                    $attribute = $this->attributeRepository->findOneByField('code', $sortOptions['sort']);
+                    if ($attribute) {
+                        if ($attribute->code === 'price') {
+                            $qb->orderBy('product_price_indices.min_price', $sortOptions['order']);
+                        } else {
+                            $alias = 'sort_product_attribute_values';
+                            $qb->leftJoin('product_attribute_values as ' . $alias, function ($join) use ($alias, $attribute) {
+                                $join->on('products.id', '=', $alias . '.product_id')
+                                    ->where($alias . '.attribute_id', $attribute->id)
+                                    ->where($alias . '.channel', core()->getRequestedChannelCode())
+                                    ->where($alias . '.locale', core()->getRequestedLocaleCode());
+                            })->orderBy($alias . '.' . $attribute->column_name, $sortOptions['order']);
+                        }
                     } else {
-                        $alias = 'sort_product_attribute_values';
-                        $qb->leftJoin('product_attribute_values as ' . $alias, function ($join) use ($alias, $attribute) {
-                            $join->on('products.id', '=', $alias . '.product_id')
-                                ->where($alias . '.attribute_id', $attribute->id)
-                                ->where($alias . '.channel', core()->getRequestedChannelCode())
-                                ->where($alias . '.locale', core()->getRequestedLocaleCode());
-                        })->orderBy($alias . '.' . $attribute->column_name, $sortOptions['order']);
+                        $qb->orderBy('products.created_at', $sortOptions['order']);
                     }
                 } else {
-                    $qb->orderBy('products.created_at', $sortOptions['order']);
+                    return $qb->inRandomOrder();
                 }
-            } else {
-                return $qb->inRandomOrder();
-            }
-    
-            return $qb->groupBy('products.id');
-        });
-    
-        $limit = $this->getPerPageLimit($params);
-    
-        return $query->paginate($limit);
-    }    
+
+                return $qb->groupBy('products.id');
+            });
+
+            $limit = $this->getPerPageLimit($params);
+
+            return $query->paginate($limit);
+        }
+
 }

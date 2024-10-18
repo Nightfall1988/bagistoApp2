@@ -1,4 +1,5 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
 <html>
     <head>
         <!-- meta tags -->
@@ -67,6 +68,15 @@
             .table thead th:last-child {
                 border-right: solid 1px #d3d3d3;
             }
+            
+            .footer {
+               position: fixed;
+               bottom: 0;
+               width: 100%;
+               text-align: center;
+               padding: 10px;
+               background-color: #f1f1f1;
+            }
 
             .table tbody td {
                 padding: 5px 10px;
@@ -132,11 +142,11 @@
             }
 
             .invoice-text {
-                font-size: 40px; 
-                color: #3c41ff; 
+                font-size: 40px;
+                color: #3c41ff;
                 font-weight: bold;
-                position: absolute; 
-                width: 100%; 
+                position: absolute;
+                width: 100%;
                 left: 0;
                 text-align: center;
                 top: -6px;
@@ -146,7 +156,7 @@
                 height: 35px;
                 width: 35px;
             }
-            
+
             .header {
                 padding: 0px 2px;
                 width:100%;
@@ -182,7 +192,7 @@
                             <div class="merchant-details">
                                 <div class="row">
                                     <span class="label">
-                                        @lang('shop::app.customers.account.orders.invoice-pdf.invoice-id'): 
+                                        @lang('shop::app.customers.account.orders.invoice-pdf.invoice-id'):
                                     </span>
 
                                     <span class="value">
@@ -218,15 +228,15 @@
                             <div class="merchant-details">
                                 @if (core()->getConfigData('sales.shipping.origin.contact'))
                                     <span class="merchant-details-title">
-                                        @lang('shop::app.customers.account.orders.invoice-pdf.contact-number'): 
-                                    </span> 
-                                    
+                                        @lang('shop::app.customers.account.orders.invoice-pdf.contact-number'):
+                                    </span>
+
                                     {{ core()->getConfigData('sales.shipping.origin.contact') }}
                                 @endif
 
                                 @if (core()->getConfigData('sales.shipping.origin.vat_number'))
                                     <span class="merchant-details-title">
-                                        @lang('shop::app.customers.account.orders.invoice-pdf.vat-number'): 
+                                        @lang('shop::app.customers.account.orders.invoice-pdf.vat-number'):
 
                                     </span>
 
@@ -238,17 +248,17 @@
                         <div class="col-6" style="padding-left: 80px">
                             <div class="row">
                                 <span class="label">
-                                    @lang('shop::app.customers.account.orders.invoice-pdf.order-id'): 
+                                    @lang('shop::app.customers.account.orders.invoice-pdf.order-id'):
                                 </span>
 
                                 <span class="value">
                                     #{{ $invoice->order->increment_id }}
                                 </span>
                             </div>
-                           
+
                             <div class="row">
                                 <span class="label">
-                                    @lang('shop::app.customers.account.orders.invoice-pdf.order-date'): 
+                                    @lang('shop::app.customers.account.orders.invoice-pdf.order-date'):
                                 </span>
 
                                 <span class="value">
@@ -272,7 +282,7 @@
                                 <div class="row" style="padding-top: 20px">
                                     <span class="merchant-details-title">
                                         @lang('shop::app.customers.account.orders.invoice-pdf.bank-details'):
-                                    </span> 
+                                    </span>
                                     <div>{{ core()->getConfigData('sales.shipping.origin.bank_details') }}</div>
                                 </div>
                             @endif
@@ -393,7 +403,7 @@
                                             <div class="item-options">
 
                                                 @foreach ($item->additional['attributes'] as $attribute)
-                                                    <b>{{ $attribute['attribute_name'] }} : </b>{{ $attribute['option_label'] }}</br>
+                                                    <b>{{ $attribute['attribute_name'] }}: </b>{{ $attribute['option_label'] }}</br>
                                                 @endforeach
 
                                             </div>
@@ -416,6 +426,17 @@
                 </div>
 
                 <table class="sale-summary">
+                                        <tr>
+                        <td>
+                            @lang('shop::app.customers.account.orders.invoice-pdf.shipping-handling')
+                        </td>
+
+                        <td>-</td>
+
+                        <td>
+                            {{ core()->formatPrice($invoice->shipping_amount, $invoice->order->order_currency_code) }}
+                        </td>
+                    </tr>
                     <tr>
                         <td>
                             @lang('shop::app.customers.account.orders.invoice-pdf.subtotal')
@@ -425,18 +446,6 @@
 
                         <td>
                             {{ core()->formatPrice($invoice->sub_total, $invoice->order->order_currency_code) }}
-                        </td>
-                    </tr>
-
-                    <tr>
-                        <td>
-                            @lang('shop::app.customers.account.orders.invoice-pdf.shipping-handling')
-                        </td>
-
-                        <td>-</td>
-
-                        <td>
-                            {{ core()->formatPrice($invoice->shipping_amount, $invoice->order->order_currency_code) }}
                         </td>
                     </tr>
 
@@ -484,6 +493,9 @@
                         </td>
                     </tr>
                 </table>
+            </div>
+            <div class="footer">
+                <p>@lang('shop::app.emails.orders.electronic')</p>
             </div>
         </div>
     </body>

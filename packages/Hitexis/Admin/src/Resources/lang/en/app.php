@@ -638,6 +638,8 @@ return [
                 'bank-details'               => 'Bank Details',
                 'bill-to'                    => 'Bill to',
                 'contact-number'             => 'Contact Number',
+                'print-total'                => 'Print price',
+                'product-price'              => 'Product price',
                 'contact'                    => 'Contact',
                 'date'                       => 'Invoice Date',
                 'discount'                   => 'Discount',
@@ -1047,7 +1049,7 @@ return [
 
         'markup' => [
             'create-title' => 'Create Markup',
-            'edit-title' => 'Edit Markup' 
+            'edit-title' => 'Edit Markup'
         ],
 
         'attributes' => [

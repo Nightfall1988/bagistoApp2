@@ -102,10 +102,10 @@ class HitexisProductsCategoriesProxyController extends Controller
                 }
             }
 
-            if (empty($product->productPrintData)) {
+            if (empty($product->print_techniques)) {
                 return view('hitexis-shop::products.view', compact('product', 'quantities'));
             } else {
-                $techniques = $product->productPrintData;
+                $techniques = $product->print_techniques;
                 return view('hitexis-shop::products.view', compact('product', 'techniques', 'quantities'));
             }
         }

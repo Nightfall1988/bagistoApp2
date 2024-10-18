@@ -104,7 +104,7 @@ return [
                     'select-country' => 'Select Country',
                     'vat-id'         => 'Vat ID',
 
-    
+
                 'create' => [
                     'add-address'    => 'Add Address',
                     'city'           => 'City',
@@ -123,7 +123,7 @@ return [
                     'title'          => 'Address',
                     'vat-id'         => 'Vat ID',
                 ],
-    
+
                 'edit' => [
                     'city'           => 'City',
                     'company-name'   => 'Company Name',
@@ -141,11 +141,11 @@ return [
                     'title'          => 'Address',
                     'vat-id'         => 'Vat ID',
                 ],
-    
+
                 'account' => [
                     'home' => 'Home'
                 ]
-            ], 
+            ],
         ],
         'addresses' => [
             'index' => [
@@ -439,7 +439,7 @@ return [
             'material'                     => "Material",
             'dimensions'                   => "Dimensions",
             'price-no-tax'                 => "Prices displayed do not include VAT",
-            
+
             'calculator' => [
                 'title'                    => 'Select print type',
                 'individual-product-price' => 'Product price',
@@ -610,7 +610,7 @@ return [
                 'title'                => 'Mini Cart',
             ],
         ],
-        
+
         'cart' => [
             'continue-to-checkout'      => 'Continue to Checkout',
             'illegal'                   => 'Quantity cannot be lesser than one.',
@@ -629,7 +629,7 @@ return [
             'success-remove'            => 'Item is successfully removed from the cart.',
             'suspended-account-message' => 'Your account has been suspended.',
 
-                        
+
             'mini-cart' => [
                 'continue-to-checkout' => 'Continue to Checkout',
                 'empty-cart'           => 'Your cart is empty',
@@ -722,7 +722,7 @@ return [
                 'sub-total-incl-tax'        => 'Subtotal (Incl. Tax)',
                 'sub-total'                 => 'Subtotal',
                 'tax'                       => 'Tax',
-                
+
 
                 'estimate-shipping' => [
                     'country'        => 'Country',
@@ -1009,7 +1009,7 @@ return [
             'shipping-handling'          => 'Shipping Handling',
             'subtotal-excl-tax'          => 'Subtotal (Excl. Tax)',
             'subtotal-incl-tax'          => 'Subtotal (Incl. Tax)',
-
+            'electronic'                 => 'This invoice is prepared electronically and is valid without a signature.'
         ],
     ],
 ];

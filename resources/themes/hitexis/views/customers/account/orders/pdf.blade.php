@@ -34,6 +34,15 @@
                 color: #000;
             }
 
+           .footer {
+               position: fixed;
+               bottom: 0;
+               width: 100%;
+               text-align: center;
+               padding: 10px;
+               background-color: #f1f1f1;
+            }
+
             .container {
                 padding: 20px;
                 display: block;
@@ -100,8 +109,8 @@
             }
 
             .logo {
-                height: 70px;
-                width: 70px;
+                height: 40px;
+                width: 160px;
             }
 
             .merchant-details {
@@ -132,11 +141,11 @@
             }
 
             .invoice-text {
-                font-size: 40px; 
-                color: #3c41ff; 
+                font-size: 40px;
+                color: #3c41ff;
                 font-weight: bold;
-                position: absolute; 
-                width: 100%; 
+                position: absolute;
+                width: 100%;
                 left: 0;
                 text-align: center;
                 top: -6px;
@@ -146,7 +155,7 @@
                 height: 35px;
                 width: 35px;
             }
-            
+
             .header {
                 padding: 0px 2px;
                 width:100%;
@@ -182,7 +191,7 @@
                             <div class="merchant-details">
                                 <div class="row">
                                     <span class="label">
-                                        @lang('shop::app.customers.account.orders.invoice-pdf.invoice-id'): 
+                                        @lang('shop::app.customers.account.orders.invoice-pdf.invoice-id'):
                                     </span>
 
                                     <span class="value">
@@ -201,7 +210,7 @@
                                 </div>
 
                                 <div style="padding-top: 20px">
-                                    <span class="merchant-details-title">{{ core()->getConfigData('sales.shipping.origin.store_name') ? core()->getConfigData('sales.shipping.origin.store_name') : '' }}</span>
+                                    <span class="merchant-details-title">{{ core()->getConfigData('sales.shipping.origin.store_name') ? core()->getConfigData('sales.shipping.origin.store_name'): '' }}</span>
                                 </div>
 
                                 <div>{{ core()->getConfigData('sales.shipping.origin.address') ?? '' }}</div>
@@ -218,15 +227,15 @@
                             <div class="merchant-details">
                                 @if (core()->getConfigData('sales.shipping.origin.contact'))
                                     <span class="merchant-details-title">
-                                        @lang('shop::app.customers.account.orders.invoice-pdf.contact-number'): 
-                                    </span> 
-                                    
+                                        @lang('shop::app.customers.account.orders.invoice-pdf.contact-number'):
+                                    </span>
+
                                     {{ core()->getConfigData('sales.shipping.origin.contact') }}
                                 @endif
 
                                 @if (core()->getConfigData('sales.shipping.origin.vat_number'))
                                     <span class="merchant-details-title">
-                                        @lang('shop::app.customers.account.orders.invoice-pdf.vat-number'): 
+                                        @lang('shop::app.customers.account.orders.invoice-pdf.vat-number'):
 
                                     </span>
 
@@ -238,17 +247,17 @@
                         <div class="col-6" style="padding-left: 80px">
                             <div class="row">
                                 <span class="label">
-                                    @lang('shop::app.customers.account.orders.invoice-pdf.order-id'): 
+                                    @lang('shop::app.customers.account.orders.invoice-pdf.order-id'):
                                 </span>
 
                                 <span class="value">
                                     #{{ $invoice->order->increment_id }}
                                 </span>
                             </div>
-                           
+
                             <div class="row">
                                 <span class="label">
-                                    @lang('shop::app.customers.account.orders.invoice-pdf.order-date'): 
+                                    @lang('shop::app.customers.account.orders.invoice-pdf.order-date'):
                                 </span>
 
                                 <span class="value">
@@ -272,7 +281,7 @@
                                 <div class="row" style="padding-top: 20px">
                                     <span class="merchant-details-title">
                                         @lang('shop::app.customers.account.orders.invoice-pdf.bank-details'):
-                                    </span> 
+                                    </span>
                                     <div>{{ core()->getConfigData('sales.shipping.origin.bank_details') }}</div>
                                 </div>
                             @endif
@@ -318,7 +327,7 @@
                                         <p>{{ $invoice->order->shipping_address->city }}</p>
                                         <p>{{ $invoice->order->shipping_address->state }}</p>
                                         <p>{{ core()->country_name($invoice->order->shipping_address->country) }} {{ $invoice->order->shipping_address->postcode }}</p>
-                                        @lang('shop::app.customers.account.orders.invoice-pdf.contact') : {{ $invoice->order->shipping_address->phone }}
+                                        @lang('shop::app.customers.account.orders.invoice-pdf.contact'): {{ $invoice->order->shipping_address->phone }}
                                     </td>
                                 @endif
                             </tr>
@@ -393,7 +402,7 @@
                                             <div class="item-options">
 
                                                 @foreach ($item->additional['attributes'] as $attribute)
-                                                    <b>{{ $attribute['attribute_name'] }} : </b>{{ $attribute['option_label'] }}</br>
+                                                    <b>{{ $attribute['attribute_name'] }}: </b>{{ $attribute['option_label'] }}</br>
                                                 @endforeach
 
                                             </div>
@@ -416,17 +425,6 @@
                 </div>
 
                 <table class="sale-summary">
-                    <tr>
-                        <td>
-                            @lang('shop::app.customers.account.orders.invoice-pdf.subtotal')
-                        </td>
-
-                        <td>-</td>
-
-                        <td>
-                            {{ core()->formatPrice($invoice->sub_total, $invoice->order->order_currency_code) }}
-                        </td>
-                    </tr>
 
                     <tr>
                         <td>
@@ -453,6 +451,17 @@
                             </td>
                         </tr>
                     @endif
+                    <tr>
+                        <td>
+                            @lang('shop::app.customers.account.orders.invoice-pdf.subtotal')
+                        </td>
+
+                        <td>-</td>
+
+                        <td>
+                            {{ core()->formatPrice((($invoice->sub_total + $invoice->shipping_amount) - $invoice->discount_amount), $invoice->order->order_currency_code) }}
+                        </td>
+                    </tr>
 
                     <tr>
                         <td>
@@ -485,6 +494,9 @@
                     </tr>
                 </table>
             </div>
+        </div>
+        <div class="footer">
+            <p>@lang('shop::app.emails.orders.electronic')</p>
         </div>
     </body>
 </html>

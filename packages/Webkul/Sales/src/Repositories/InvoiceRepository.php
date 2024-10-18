@@ -179,7 +179,11 @@ class InvoiceRepository extends Repository
              * Temporary property has been used to avoid request helper usage in listener.
              */
             $invoice->can_create_transaction = request()->has('can_create_transaction') && request()->input('can_create_transaction') == '1';
+            $pdf = \PDF::loadView('admin::sales.invoices.pdf', compact('invoice'));
 
+            // Save the generated PDF to public storage
+            $attachmentPath = 'invoices/invoice-' . $invoice->id . '-' . core()->formatDate($invoice->created_at, 'd-m-Y') . '.pdf';
+            \Storage::put($attachmentPath, $pdf->output());
             Event::dispatch('sales.invoice.save.after', $invoice);
         } catch (\Exception $e) {
             DB::rollBack();

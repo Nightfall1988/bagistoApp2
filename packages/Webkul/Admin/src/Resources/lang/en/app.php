@@ -664,7 +664,6 @@ return [
                 'tax-amount'                 => 'Tax Amount',
                 'tax'                        => 'Tax',
                 'vat-number'                 => 'Vat Number',
-                'electronic' => 'This invoice is prepared electronically and is valid without a signature."'
 
             ],
         ],

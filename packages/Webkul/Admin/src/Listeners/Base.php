@@ -37,7 +37,12 @@ class Base
 
         app()->setLocale($customerLocale);
 
+        $attachmentPath = storage_path('app/public/invoices/invoice-' . $entity->id . '-' . core()->formatDate($entity->created_at, 'd-m-Y') . '.pdf');
         try {
+
+            if ($attachmentPath && file_exists($attachmentPath)) {
+                $notification->attach($attachmentPath);
+            }
             Mail::queue($notification);
         } catch (\Exception $e) {
             \Log::error('Error in Sending Email'.$e->getMessage());

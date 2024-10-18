@@ -86,7 +86,7 @@
                         <div>{{ $additionalDetails['title'] }}</div>
                         <div>{{ $additionalDetails['value'] }}</div>
                     </div>
-                @endif 
+                @endif
             </div>
         @endif
     </div>
@@ -114,24 +114,31 @@
                         <td style="text-align: left;padding: 15px">{{ core()->formatPrice(floatval(str_replace(',', '.', $item->base_total)), $order->order_currency_code) }}</td>
                     </tr>
 
+                        <tr style="text-align: left;padding: 15px">
+                            @if (isset($item->additional['attributes']))
+                                @foreach ($item->additional['attributes'] as $attribute)
+                                    <td style="text-align: left;padding: 15px"><b>{{ $attribute['attribute_name'] }}: </b>{{ $attribute['option_label'] }}</td></br>
+                                @endforeach
+                            @endif
+                        </tr>
                     {{-- Print details row --}}
                     <tr>
                         <td colspan="5" style="padding: 0; border: none;">
                             <div style="padding: 10px; background-color: #F9F9F9; border-radius: 4px;">
                                 <b>@lang('shop::app.emails.orders.print-name-position'):</b>
                                 {{ rtrim($item->print_name ?? __('shop::app.products.view.calculator.no-technique'), ' -') }}<br/>
-                                
+
                                 @if (floatval($item->print_single_price) != 0)
-                                    <b>@lang('shop::app.emails.orders.print-single-price'):</b> 
+                                    <b>@lang('shop::app.emails.orders.print-single-price'):</b>
                                     {{ core()->formatPrice(floatval($item->print_single_price) * $item->qty_ordered, $order->order_currency_code) }}<br/>
-                                
-                                    <b>@lang('shop::app.emails.orders.print-setup'):</b> 
+
+                                    <b>@lang('shop::app.emails.orders.print-setup'):</b>
                                     {{ core()->formatPrice(floatval(str_replace(',', '.', $item->print_setup)), $order->order_currency_code) }}<br/>
-                                
-                                    <b>@lang('shop::app.emails.orders.print-manipulation'):</b> 
+
+                                    <b>@lang('shop::app.emails.orders.print-manipulation'):</b>
                                     {{ core()->formatPrice(floatval($item->print_manipulation_cost) * $item->qty_ordered, $order->order_currency_code) }}<br/>
-                                
-                                    <b>@lang('shop::app.emails.orders.print-price'):</b> 
+
+                                    <b>@lang('shop::app.emails.orders.print-price'):</b>
                                     {{ core()->formatPrice(floatval($item->print_price), $order->order_currency_code) }}<br/>
                                 @endif
                             </div>
@@ -165,15 +172,6 @@
                 </td>
             </tr>
             @endif
-            <tr>
-                <td style="text-align: left;">
-                    @lang('shop::app.emails.orders.subtotal')
-                </td>
-                <td style="text-align: right;">
-                    {{ core()->formatPrice($order->sub_total, $order->order_currency_code) }}
-                </td>
-            </tr>
-
             @if ($order->shipping_address)
             <tr>
                 <td style="text-align: left;">
@@ -185,6 +183,24 @@
             </tr>
             @endif
 
+            @if ($order->discount_amount > 0)
+            <tr>
+                <td style="text-align: left;">
+                    @lang('shop::app.emails.orders.discount')
+                </td>
+                <td style="text-align: right;">
+                    {{ core()->formatPrice($order->discount_amount, $order->order_currency_code) }}
+                </td>
+            </tr>
+            @endif
+            <tr>
+                <td style="text-align: left;">
+                    @lang('shop::app.emails.orders.subtotal')
+                </td>
+                <td style="text-align: right;">
+                    {{ core()->formatPrice((($order->sub_total + $order->shipping_amount) - $order->discount_amount), $order->order_currency_code) }}
+                </td>
+            </tr>
             @foreach (Webkul\Tax\Helpers\Tax::getTaxRatesWithAmount($order, false) as $taxRate => $taxAmount)
             <tr>
                 <td style="text-align: left;">
@@ -196,17 +212,6 @@
             </tr>
             @endforeach
 
-            @if ($order->discount_amount > 0)
-            <tr>
-                <td style="text-align: left;">
-                    @lang('shop::app.emails.orders.discount')
-                </td>
-                <td style="text-align: right;">
-                    {{ core()->formatPrice($order->discount_amount, $order->order_currency_code) }}
-                </td>
-            </tr>
-            @endif
-
             <tr style="font-weight: bold;">
                 <td style="text-align: left;">
                     @lang('shop::app.emails.orders.grand-total')
@@ -217,4 +222,5 @@
             </tr>
         </table>
     </div>
+
 @endcomponent

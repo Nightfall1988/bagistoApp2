@@ -645,14 +645,14 @@ return [
                 'remove'               => 'Noņemt',
                 'see-details'          => 'Skatīt detaļas',
                 'shopping-cart'        => 'Iepirkumu grozs',
-                'subtotal'             => 'Starpsumma',
+                'subtotal'             => 'Kopā bez PVN',
                 'view-cart'            => 'Skatīt grozu',
                 'excl-task'            => 'Bez PVN: ',
                 'back-to-shop'         => 'Turpināt iepirkties',
                 'order-product'        => 'Pirkuma noformēšana',
             ],
         ],
-        
+
         'cart' => [
             'continue-to-checkout'      => 'Turpiniet uz Grozu',
             'illegal'                   => 'Daudzums nevar būt mazāks par vienu.',
@@ -714,7 +714,7 @@ return [
                 'error'           => 'Kaut kas nogāja greizi',
                 'invalid'         => 'Kupona kods nav derīgs.',
                 'remove'          => 'Noņemt kuponu',
-                'subtotal'        => 'Starpsumma',
+                'subtotal'        => 'Kopā bez PVN',
                 'success-apply'   => 'Kupona kods ir veiksmīgi pievienots.',
             ],
 
@@ -725,7 +725,7 @@ return [
                 'remove'               => 'Noņemt',
                 'see-details'          => 'Skatīt detaļas',
                 'shopping-cart'        => 'Iepirkumu grozs',
-                'subtotal'             => 'Starpsumma',
+                'subtotal'             => 'Kopā bez PVN',
                 'view-cart'            => 'Skatīt grozu',
                 'excl-tax'             => 'Bez PVN: ',
                 'back-to-shop'         => 'Turpināt iepirkties',
@@ -838,7 +838,7 @@ return [
             'error'           => 'Kaut kas nogāja greizi',
             'invalid'         => 'Kupona kods nav derīgs.',
             'remove'          => 'Noņemt kuponu',
-            'subtotal'        => 'Starpsumma',
+            'subtotal'        => 'Kopā bez PVN',
             'success-apply'   => 'Kupona kods ir veiksmīgi pievienots.',
         ],
 
@@ -922,7 +922,7 @@ return [
 
     'emails' => [
         'dear'   => 'Cien. :customer_name',
-        'thanks' => 'Ja jums nepieciešama jebkāda veida palīdzība, lūdzu, sazinieties ar mums pa tel <a href=":link" style=":style">:email</a>.<br/>Paldies!',
+        'thanks' => 'Ja jums nepieciešama jebkāda veida palīdzība, lūdzu, sazinieties ar mums pa tel <a href="" style=":style">:phone</a>.<br/>Paldies!',
 
         'customers' => [
             'registration' => [
@@ -1037,7 +1037,7 @@ return [
             'shipping-address'  => 'Piegādes adrese',
             'shipping-handling' => 'Piegādes apstrāde',
             'sku'               => 'SKU',
-            'subtotal'          => 'Starpsumma',
+            'subtotal'          => 'Kopā bez PVN',
             'base_total'        => 'Kopā',
             'product-sub-total' => 'Kopējā produktu cena',
             'tax'               => 'PVN',
@@ -1048,7 +1048,7 @@ return [
             'shipping-handling'          => 'Piegādes apstrāde',
             'subtotal-excl-tax'          => 'Starpsumma (bez PVN)',
             'subtotal-incl-tax'          => 'Starpsumma (Ar PVN)',
-
+            'electronic'                 => 'Šis rēķins ir sagatavots elekrtoniski un ir derīgs bez paraksta.'
         ],
     ],
 ];
