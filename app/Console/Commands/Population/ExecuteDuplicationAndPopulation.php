@@ -33,6 +33,9 @@ class ExecuteDuplicationAndPopulation extends Command
         $this->info("\nRunning Product Super Attribute Population...\n");
         Artisan::call('populate:product-super-attributes', [], $this->output);
 
+        $this->info("\nRunning Configurable Product Price Population...\n");
+        Artisan::call('populate:configurable-product-prices', [], $this->output);
+
         $this->info("\nRunning Product Attribute Value Duplication...\n");
         Artisan::call('duplicate:product-attribute_values-lv', [], $this->output);
 

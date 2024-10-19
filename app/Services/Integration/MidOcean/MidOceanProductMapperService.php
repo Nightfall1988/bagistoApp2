@@ -100,7 +100,6 @@ class MidOceanProductMapperService extends BaseService
         ['id'=> 9, 'code'=>'short_description'],
         ['id'=> 10, 'code'=>'long_description'],
         ['id'=> 29, 'code'=>'material'],
-        ['id'=> 27, 'code'=>'master_id'],
         ['id'=> 2, 'code'=>'product_name'],
     ];
 
@@ -138,6 +137,7 @@ class MidOceanProductMapperService extends BaseService
             $this->mapColors($productAttributes, $products, $item, $attributeOptions);
             $this->mapProductVisibilities($productAttributes, $products, $item);
             $this->mapProductStatuses($productAttributes, $products, $item);
+            $this->mapProductNumbers($productAttributes, $products, $item);
 
             return $productAttributes;
         })->filter();
@@ -246,6 +246,34 @@ class MidOceanProductMapperService extends BaseService
                 'channel'       => 'default',
                 'locale'        => 'en',
                 'unique_id'     => 'default|en|'.$products[$variant['sku']]->id.'|'.self::PRODUCT_STATUS_ATTRIBUTE_KEY,
+            ];
+        }
+    }
+
+    protected const PRODUCT_NUMBER_ATTRIBUTE_KEY = 27;
+
+    private function mapProductNumbers(array &$productAttributes, Collection $products, array $item): void
+    {
+        $productAttributes[] = [
+            'attribute_id'  => self::PRODUCT_NUMBER_ATTRIBUTE_KEY,
+            'product_id'    => $products[$item['master_code']]->id,
+            'text_value'    => $item['master_id'],
+            'integer_value' => null,
+            'boolean_value' => null,
+            'channel'       => 'default',
+            'locale'        => 'en',
+            'unique_id'     => 'default|en|'.$products[$item['master_code']]->id.'|'.self::PRODUCT_NUMBER_ATTRIBUTE_KEY,
+        ];
+        foreach ($item['variants'] as $variant) {
+            $productAttributes[] = [
+                'attribute_id'  => self::PRODUCT_NUMBER_ATTRIBUTE_KEY,
+                'product_id'    => $products[$variant['sku']]->id,
+                'text_value'    => $item['master_id'].'-'.$variant['sku'],
+                'integer_value' => null,
+                'boolean_value' => null,
+                'channel'       => 'default',
+                'locale'        => 'en',
+                'unique_id'     => 'default|en|'.$products[$variant['sku']]->id.'|'.self::PRODUCT_NUMBER_ATTRIBUTE_KEY,
             ];
         }
     }

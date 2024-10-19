@@ -139,4 +139,19 @@ class PopulationRepository extends BaseImportRepository
             ->select('product_url_images.*')
             ->get();
     }
+
+    public function getConfigurableProductsWithNoPrices(): Collection
+    {
+        return Product::where('type', 'configurable')
+            ->whereHas('product_flats', function ($query) {
+                $query->whereNull('price');
+            })
+            ->with([
+                'product_flats' => function ($query) {
+                    $query->whereNull('price');
+                },
+                'variants.product_flats',
+            ])
+            ->get();
+    }
 }
