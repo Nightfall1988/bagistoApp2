@@ -30,17 +30,20 @@ class ExecuteDuplicationAndPopulation extends Command
     {
         $startTime = microtime(true);
 
+        $this->info("\nRunning XDConnect Configurable Product Population...\n");
+        passthru('php artisan populate:xdconnect-configurable-product-flats');
+
         $this->info("\nRunning Product Super Attribute Population...\n");
-        Artisan::call('populate:product-super-attributes', [], $this->output);
+        passthru('php artisan populate:product-super-attributes');
 
         $this->info("\nRunning Configurable Product Price Population...\n");
-        Artisan::call('populate:configurable-product-prices', [], $this->output);
+        passthru('php artisan populate:configurable-product-prices');
 
         $this->info("\nRunning Product Attribute Value Duplication...\n");
-        Artisan::call('duplicate:product-attribute_values-lv', [], $this->output);
+        passthru('php artisan duplicate:product-attribute_values-lv');
 
         $this->info("\nRunning Product Flat Duplication...\n");
-        Artisan::call('duplicate:product-flat-lv', [], $this->output);
+        passthru('php artisan duplicate:product-flat-lv');
 
         $endTime = microtime(true);
         $executionTime = $endTime - $startTime;

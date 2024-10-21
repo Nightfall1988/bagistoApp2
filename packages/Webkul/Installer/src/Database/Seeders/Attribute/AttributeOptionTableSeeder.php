@@ -120,27 +120,27 @@ class AttributeOptionTableSeeder extends Seeder
                 'id'           => 20,
                 'admin_name'   => trans('installer::app.seeders.attribute.attribute-options.blue', [], $defaultLocale),
                 'sort_order'   => 1,
-                'attribute_id' => 24,
+                'attribute_id' => 23,
             ], [
                 'id'           => 21,
                 'admin_name'   => trans('installer::app.seeders.attribute.attribute-options.orange', [], $defaultLocale),
                 'sort_order'   => 1,
-                'attribute_id' => 24,
+                'attribute_id' => 23,
             ], [
                 'id'           => 22,
                 'admin_name'   => trans('installer::app.seeders.attribute.attribute-options.lime', [], $defaultLocale),
                 'sort_order'   => 1,
-                'attribute_id' => 24,
+                'attribute_id' => 23,
             ], [
                 'id'           => 23,
                 'admin_name'   => trans('installer::app.seeders.attribute.attribute-options.turquoise', [], $defaultLocale),
                 'sort_order'   => 1,
-                'attribute_id' => 24,
+                'attribute_id' => 23,
             ], [
                 'id'           => 24,
                 'admin_name'   => trans('installer::app.seeders.attribute.attribute-options.royal-blue', [], $defaultLocale),
                 'sort_order'   => 1,
-                'attribute_id' => 24,
+                'attribute_id' => 23,
             ],
         ]);
 

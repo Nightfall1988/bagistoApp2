@@ -3,9 +3,8 @@
 namespace Hitexis\PrintCalculator\Models;
 
 use Konekt\Concord\Proxies\ModelProxy;
-use Hitexis\PrintCalculator\Contracts\ProductUrlImages as ProductUrlImagesContract;
 
-class ProductUrlImagesProxy extends ModelProxy implements ProductUrlImagesContract
+class ProductUrlImagesProxy extends ModelProxy
 {
     public static function modelClass()
     {

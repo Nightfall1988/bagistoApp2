@@ -31,7 +31,7 @@ class PopulateConfigurableProductPricesCommand extends AbstractPopulateCommand
      *
      * @var string
      */
-    protected $description = 'Populates configurable product super attributes based on attributes of their children';
+    protected $description = 'Populates configurable product prices';
 
     /**
      * Execute the console command.

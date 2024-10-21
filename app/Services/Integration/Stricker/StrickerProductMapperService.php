@@ -61,6 +61,7 @@ class StrickerProductMapperService extends BaseService
 
             $flatProducts[] = [
                 'sku'                       => $row['ProdReference'],
+                'product_number'            => $row['ProdReference'],
                 'type'                      => 'configurable',
                 'name'                      => $row['Name'],
                 'short_description'         => '<p>'.($row['ShortDescription'] ?? null).'</p>',
@@ -109,21 +110,21 @@ class StrickerProductMapperService extends BaseService
     }
 
     protected const PROD_ATR_MAP = [
-        ['id' => 1,  'code' => 'ProdReference'],         // sku
+        ['id' => 1,  'code' => 'ProdReference'],        // sku
         ['id' => 2,  'code' => 'Name'],                 // name
-        ['id' => 3,  'code' => 'SEOName'],              // url_key
+        ['id' => 3,  'code' => 'ProdReference'],        // url_key
         ['id' => 9,  'code' => 'ShortDescription'],     // short_description
         ['id' => 10, 'code' => 'Description'],          // description
         ['id' => 19, 'code' => 'BoxLengthMM'],          // length
         ['id' => 20, 'code' => 'BoxWidthMM'],           // width
         ['id' => 21, 'code' => 'BoxHeightMM'],          // height
         ['id' => 22, 'code' => 'BoxWeightKG'],          // weight (net_weight)
-        ['id' => 24, 'code' => 'CombinedSizes'],        // size
         ['id' => 25, 'code' => 'Brand'],                // brand
         ['id' => 29, 'code' => 'Materials'],            // material
         ['id' => 30, 'code' => 'CombinedSizes'],        // dimensions
         ['id' => 16, 'code' => 'KeyWords'],             // meta_keywords
         ['id' => 17, 'code' => 'ShortDescription'],     // meta_description
+        ['id' => 27, 'code' => 'ProdReference'],        // product_number
     ];
 
     public function mapAttributeOptions(): void
@@ -148,11 +149,13 @@ class StrickerProductMapperService extends BaseService
     }
 
     protected const OPT_ATR_MAP = [
-        ['id' => 24, 'code' => 'CombinedSizes'],        // size
         ['id' => 23, 'code' => 'ColorDesc1'],           // color
         ['id' => 25, 'code' => 'Brand'],                // brand
         ['id' => 29, 'code' => 'Materials'],            // material
         ['id' => 30, 'code' => 'CombinedSizes'],        // dimensions
+        ['id' => 3,  'code' => 'Sku'],                  // url_key
+        ['id' => 2,  'code' => 'Name'],                 // name
+        ['id' => 27, 'code' => 'Sku'],                  // product_number
     ];
 
     public function mapOptionalsAttributeOptions(): void
@@ -217,6 +220,7 @@ class StrickerProductMapperService extends BaseService
         $optionalFlats = collect($this->data['OptionalsComplete'])->map(function (array $row) use ($products, $defaultChannelCode, $defaultAttributeFamilyId) {
             return [
                 'sku'                        => $row['Sku'],
+                'product_number'             => $row['Sku'],
                 'type'                       => 'simple',
                 'name'                       => $row['Name'],
                 'price'                      => $row['YourPrice'],
@@ -276,7 +280,7 @@ class StrickerProductMapperService extends BaseService
                     $text_value = $item[$attribute['code']];
                     $integer_value = null;
 
-                    if (in_array($attribute['id'], [23, 24]) && isset($attributeOptions[$item[$attribute['code']]])) {
+                    if (in_array($attribute['id'], [23, 24, 25]) && isset($attributeOptions[$item[$attribute['code']]])) {
                         $integer_value = $attributeOptions[$item[$attribute['code']]]->id;
                         $text_value = null;
                     }

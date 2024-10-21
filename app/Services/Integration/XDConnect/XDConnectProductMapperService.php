@@ -80,7 +80,6 @@ class XDConnectProductMapperService extends BaseService
 
     public function mapProductFlats(): void
     {
-        //XDConnect configurable product is only meant to unify all the simple variants together, so the configurable parent product doesn't have product flat
         $products = $this->productImportRepository->getProducts($this->getSKUCodesFromJson());
 
         $defaultChannelCode = $this->productImportRepository->getDefaultChannel()->code;
@@ -150,9 +149,10 @@ class XDConnectProductMapperService extends BaseService
                     if ($attribute['id'] == 3) {
                         $text_value = Str::slug($item['ModelCode'].'-'.$item['ItemCode']);
                     }
-                    if ($attribute['id'] == 23 || $attribute['id'] == 24) {
+                    if ($attribute['id'] == 23 || $attribute['id'] == 24 || $attribute['id'] == 25) {
                         if (isset($attributeOptions[$item[$attribute['code']]])) {
                             $integer_value = $attributeOptions[$item[$attribute['code']]]->id;
+                            $text_value = null;
                         }
                     }
 
@@ -193,7 +193,9 @@ class XDConnectProductMapperService extends BaseService
             'unique_id'     => 'default|en|'.$products[$item['ItemCode']]->id.'|'.self::PRODUCT_VISIBILITY_ATTRIBUTE_KEY,
         ];
     }
+
     protected const PRODUCT_STATUS_ATTRIBUTE_KEY = 8;
+
     private function mapProductStatuses(array &$productAttributes, Collection $products, array $item): void
     {
         $productAttributes[] = [
@@ -217,7 +219,7 @@ class XDConnectProductMapperService extends BaseService
         ['id' => 23, 'code' => 'Color'],  // Color corresponds to Color
         ['id' => 23, 'code' => 'PMSColor1'],  // Color corresponds to Color
         ['id' => 23, 'code' => 'PMSColor2'],  // Color corresponds to Color
-        ['id' => 24, 'code' => 'ItemDimensions'],  // Size corresponds to a potential Size field
+        ['id' => 24, 'code' => 'Size'],  // Size corresponds to a potential Size field
         ['id' => 25, 'code' => 'Brand'],  // Brand corresponds to Brand
         ['id' => 29, 'code' => 'Material'],  // Material corresponds to Material
         ['id' => 30, 'code' => 'ItemDimensions'],  // Dimensions corresponds to ItemDimensions

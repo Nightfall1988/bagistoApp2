@@ -1,6 +1,7 @@
 <?php
 namespace Hitexis\Product\Models;
 
+use Hitexis\PrintCalculator\Models\ProductUrlImagesProxy;
 use Illuminate\Database\Eloquent\Model as BaseProduct;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Hitexis\Product\Contracts\Product as ProductContract;
@@ -83,7 +84,7 @@ class Product extends BaseProduct implements ProductContract
     {
         return $this->status;
     }
-    
+
     /**
      * Get the product flat entries that are associated with product.
      * May be one for each locale and each channel.
@@ -171,6 +172,12 @@ class Product extends BaseProduct implements ProductContract
     public function images(): HasMany
     {
         return $this->hasMany(ProductImageProxy::modelClass(), 'product_id')
+            ->orderBy('position');
+    }
+
+    public function image_urls(): HasMany
+    {
+        return $this->hasMany(ProductUrlImagesProxy::modelClass(), 'product_id')
             ->orderBy('position');
     }
 
