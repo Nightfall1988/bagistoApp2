@@ -56,11 +56,16 @@ class DownloadAndUpsertProductImages extends Command
 
     protected function downloadImage(string $url, int $productId): string
     {
-        $response = Http::get($url);
+        $url = trim($url);
+
+        $encodedUrl = filter_var($url, FILTER_VALIDATE_URL) ? $url : urlencode($url);
+
+        $response = Http::withOptions([
+            'verify' => ! env('BYPASS_CERTIFICATE', false),
+        ])->get($encodedUrl);
 
         if ($response->successful()) {
-            $fileName = 'product/'.$productId.'/'.basename($url);
-
+            $fileName = 'product/'.$productId.'/'.basename($encodedUrl);
             Storage::disk('public')->put($fileName, $response->body());
 
             return $fileName;
