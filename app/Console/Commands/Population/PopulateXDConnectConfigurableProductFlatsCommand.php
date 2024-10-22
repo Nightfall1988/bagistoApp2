@@ -159,16 +159,18 @@ class PopulateXDConnectConfigurableProductFlatsCommand extends AbstractPopulateC
 
         return $attributeValues;
     }
-    private function addImageFromFirstVariant($row, $variant): array
+    private function addImageFromFirstVariant($row, $variant): array|null
     {
-        return [
-            'url'       => $variant->url,
-            'product_id'=> $row->id,
-            'position'  => 1,
-            'type'      => $variant->type,
-        ];
+        if(isset($variant->image_urls[0])){
+            return [
+                'url'       => $variant->image_urls[0]->url,
+                'product_id'=> $row->id,
+                'position'  => 1,
+                'type'      => $variant->type,
+            ];
+        }
+        return null;
     }
-
 
     protected function upsertData(Collection $data): void
     {
@@ -176,6 +178,6 @@ class PopulateXDConnectConfigurableProductFlatsCommand extends AbstractPopulateC
         $this->productImportRepository->upsertProductAttributeValues($data->pluck('attribute_values')->flatten(1));
         $this->productImportRepository->upsertProductAttributeValues($data->pluck('variant_attributes')->flatten(1));
         $this->productImportRepository->upsertProductCategories($data->pluck('categories')->flatten(1));
-        $this->productImportRepository->upsertProductURLImages($data->pluck('image_url'));
+        $this->productImportRepository->upsertProductURLImages($data->pluck('image_url')->filter());
     }
 }
