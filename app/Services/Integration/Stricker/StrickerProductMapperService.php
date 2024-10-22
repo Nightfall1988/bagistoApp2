@@ -151,11 +151,15 @@ class StrickerProductMapperService extends BaseService
     protected const OPT_ATR_MAP = [
         ['id' => 23, 'code' => 'ColorDesc1'],           // color
         ['id' => 25, 'code' => 'Brand'],                // brand
+        ['id' => 24, 'code' => 'Size'],                 // Size
         ['id' => 29, 'code' => 'Materials'],            // material
         ['id' => 30, 'code' => 'CombinedSizes'],        // dimensions
         ['id' => 3,  'code' => 'Sku'],                  // url_key
+        ['id' => 1,  'code' => 'Sku'],                  // url_key
         ['id' => 2,  'code' => 'Name'],                 // name
         ['id' => 27, 'code' => 'Sku'],                  // product_number
+        ['id' => 11, 'code' => 'YourPrice'],            // price
+        ['id' => 12, 'code' => 'YourPrice'],            // cost
     ];
 
     public function mapOptionalsAttributeOptions(): void
@@ -279,9 +283,15 @@ class StrickerProductMapperService extends BaseService
                 if (! empty($item[$attribute['code']])) {
                     $text_value = $item[$attribute['code']];
                     $integer_value = null;
+                    $float_value = null;
 
                     if (in_array($attribute['id'], [23, 24, 25]) && isset($attributeOptions[$item[$attribute['code']]])) {
                         $integer_value = $attributeOptions[$item[$attribute['code']]]->id;
+                        $text_value = null;
+                    }
+
+                    if(in_array($attribute['id'], [11, 12])) {
+                        $float_value = (float) $item[$attribute['code']];
                         $text_value = null;
                     }
 
@@ -291,6 +301,7 @@ class StrickerProductMapperService extends BaseService
                         'text_value'    => $text_value,
                         'integer_value' => $integer_value,
                         'boolean_value' => null,
+                        'float_value'   => $float_value,
                         'channel'       => 'default',
                         'locale'        => 'en',
                         'unique_id'     => 'default|en|'.$products[$item[$referenceKey]]->id.'|'.$attribute['id'],
@@ -360,6 +371,7 @@ class StrickerProductMapperService extends BaseService
             'product_id'    => $products[$item[$referenceKey]]->id,
             'text_value'    => null,
             'integer_value' => null,
+            'float_value'   => null,
             'boolean_value' => true,
             'channel'       => 'default',
             'locale'        => 'en',
@@ -374,6 +386,7 @@ class StrickerProductMapperService extends BaseService
             'product_id'    => $products[$item[$referenceKey]]->id,
             'text_value'    => null,
             'integer_value' => null,
+            'float_value'   => null,
             'boolean_value' => true,
             'channel'       => 'default',
             'locale'        => 'en',

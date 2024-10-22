@@ -50,6 +50,23 @@ class XDConnectProductPriceMapperService extends BaseService
         $this->productImportRepository->upsertProductAttributeValuePrices($productAttributeValuePrices);
     }
 
+    private const COSTS_ATR = 12;
+    public function mapProductAttributeValueCosts(): void
+    {
+        $productAttributeValuePrices = collect($this->data)->map(function (array $row) {
+            return [
+                'float_value'   => (float) $row['ItemPriceGross_Qty1'],
+                'product_id'    => $this->products[$row['ItemCode']]->id,
+                'attribute_id'  => self::COSTS_ATR,
+                'channel'       => 'default',
+                'locale'        => 'en',
+                'unique_id'     => 'default|en|'.$this->products[$row['ItemCode']]->id.'|'.self::COSTS_ATR,
+            ];
+        });
+
+        $this->productImportRepository->upsertProductAttributeValuePrices($productAttributeValuePrices);
+    }
+
     public function mapProductFlatPrices(): void
     {
         $productFlatPrices = collect($this->data)->map(function (array $row) {

@@ -135,6 +135,7 @@ class MidOceanProductMapperService extends BaseService
 
             $this->mapURLKeys($productAttributes, $products, $item);
             $this->mapColors($productAttributes, $products, $item, $attributeOptions);
+            $this->mapSizes($productAttributes, $products, $item, $attributeOptions);
             $this->mapProductVisibilities($productAttributes, $products, $item);
             $this->mapProductStatuses($productAttributes, $products, $item);
             $this->mapProductNumbers($productAttributes, $products, $item);
@@ -191,6 +192,27 @@ class MidOceanProductMapperService extends BaseService
             ];
         }
     }
+
+    protected const SIZE_ATTRIBUTE_KEY = 24;
+
+    private function mapSizes(array &$productAttributes, Collection $products, array $item, Collection $attributeOptions): void
+    {
+        foreach ($item['variants'] as $variant) {
+            if(isset($variant['size_textile'])){
+                $productAttributes[] = [
+                    'attribute_id'     => self::SIZE_ATTRIBUTE_KEY,
+                    'product_id'       => $products[$variant['sku']]->id,
+                    'integer_value'    => $attributeOptions[$variant['size_textile']]->id,
+                    'text_value'       => null,
+                    'boolean_value'    => null,
+                    'channel'          => 'default',
+                    'locale'           => 'en',
+                    'unique_id'        => 'default|en|'.$products[$variant['sku']]->id.'|'.self::SIZE_ATTRIBUTE_KEY,
+                ];
+            }
+        }
+    }
+
 
     protected const PRODUCT_VISIBILITY_ATTRIBUTE_KEY = 7;
 
@@ -317,6 +339,7 @@ class MidOceanProductMapperService extends BaseService
         'material'         => 29,
         'color_description'=> 23,
         'color_group'      => 23,
+        'size_textile'     => 24,
     ];
 
     public function mapAttributeOptions(): void
@@ -349,6 +372,13 @@ class MidOceanProductMapperService extends BaseService
                     $attributeOptions[] = [
                         'admin_name'   => $variant['color_group'],
                         'attribute_id' => self::ATR_OPTIONS_MAP['color_group'],
+                    ];
+                }
+
+                if (! empty($variant['size_textile'])) {
+                    $attributeOptions[] = [
+                        'admin_name'   => $variant['size_textile'],
+                        'attribute_id' => self::ATR_OPTIONS_MAP['size_textile'],
                     ];
                 }
             }

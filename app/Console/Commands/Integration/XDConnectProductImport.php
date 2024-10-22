@@ -133,6 +133,7 @@ class XDConnectProductImport extends AbstractProductImportCommand
     {
         $this->productPriceMapperService->loadData($data);
         $this->productPriceMapperService->mapProductAttributeValuePrices();
+        $this->productPriceMapperService->mapProductAttributeValueCosts();
         $this->productPriceMapperService->mapProductFlatPrices();
         $this->productPriceMapperService->mapProductPriceIndices();
     }

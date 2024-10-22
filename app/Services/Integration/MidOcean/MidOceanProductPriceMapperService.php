@@ -54,6 +54,27 @@ class MidOceanProductPriceMapperService extends BaseService
         $this->productImportRepository->upsertProductAttributeValuePrices($productAttributeValuePrices);
     }
 
+    private const COST_ATR = 12;
+    public function mapProductAttributeValueCosts(): void
+    {
+        $productAttributeValuePrices = collect($this->data['price'])->map(function (array $row) {
+            if (isset($this->products[$row['sku']])) {
+                return [
+                    'float_value'   => $this->valueToFloat($row['price']),
+                    'product_id'    => $this->products[$row['sku']]->id,
+                    'attribute_id'  => self::COST_ATR,
+                    'channel'       => 'default',
+                    'locale'        => 'en',
+                    'unique_id'     => 'default|en|'.$this->products[$row['sku']]->id.'|'.self::COST_ATR,
+                ];
+            }
+
+            return null;
+        })->filter();
+
+        $this->productImportRepository->upsertProductAttributeValuePrices($productAttributeValuePrices);
+    }
+
     public function mapProductFlatPrices(): void
     {
         $productFlatPrices = collect($this->data['price'])->map(function (array $row) {
