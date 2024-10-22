@@ -29,7 +29,7 @@ class DownloadAndUpsertProductImages extends Command
 
         $this->output->progressStart($total);
 
-        $data->chunk(10)->each(function (Collection $chunk) {
+        $data->chunk(1)->each(function (Collection $chunk) {
             $this->transformData($chunk);
             $this->output->progressAdvance($chunk->count());
         });
