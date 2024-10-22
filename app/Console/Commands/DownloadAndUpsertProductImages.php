@@ -56,6 +56,7 @@ class DownloadAndUpsertProductImages extends Command
 
     protected function downloadImage(string $url, int $productId): string
     {
+        dd($url);
         $url = trim($url);
         $url = str_replace(' ', '%20', $url);
 
