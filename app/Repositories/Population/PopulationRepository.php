@@ -132,6 +132,8 @@ class PopulationRepository extends BaseImportRepository
             $join->on('product_url_images.product_id', '=', 'product_images.product_id')
                 ->on('product_url_images.position', '=', 'product_images.position');
         })
+            ->whereNotNull('product_url_images.url')
+            ->where('product_url_images.url', '!=', '')
             ->whereNull('product_images.id')
             ->orWhere(function ($query) {
                 $query->whereColumn('product_url_images.url', '!=', 'product_images.downloaded_from_url');

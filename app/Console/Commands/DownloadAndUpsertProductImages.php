@@ -29,7 +29,7 @@ class DownloadAndUpsertProductImages extends Command
 
         $this->output->progressStart($total);
 
-        $data->chunk(1)->each(function (Collection $chunk) {
+        $data->chunk(10)->each(function (Collection $chunk) {
             $this->transformData($chunk);
             $this->output->progressAdvance($chunk->count());
         });
@@ -56,7 +56,6 @@ class DownloadAndUpsertProductImages extends Command
 
     protected function downloadImage(string $url, int $productId): string
     {
-        dd($url);
         $url = trim($url);
         $url = str_replace(' ', '%20', $url);
 
