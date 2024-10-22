@@ -56,7 +56,7 @@ class DownloadAndUpsertProductImages extends Command
 
     protected function downloadImage(string $url, int $productId): string
     {
-        $url = trim($url);
+        $url = str_replace(' ', '', $url);
 
         $encodedUrl = filter_var($url, FILTER_VALIDATE_URL) ? $url : urlencode($url);
 
