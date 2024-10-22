@@ -45,9 +45,9 @@ class Markup extends Model implements MarkupContract
     /**
      * Get the channels that owns the catalog rule.
      */
-    public function products(): hasMany
+    public function products()
     {
-        return $this->hasMany(ProductProxy::modelClass(), 'markup_product', 'markup_id', 'product_id');
+        return $this->belongsToMany(ProductProxy::modelClass(), 'markup_product', 'markup_id', 'product_id');
     }
 
     /**

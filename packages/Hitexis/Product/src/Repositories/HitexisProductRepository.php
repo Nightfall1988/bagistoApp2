@@ -62,7 +62,7 @@ class HitexisProductRepository extends Repository
         if (!$typeClass) {
             throw new \InvalidArgumentException("Product type '{$data['type']}' not found in configuration.");
         }
-
+        
         $typeInstance = app(config('hitexis_product_types.'.$data['type'].'.class'));
         $product = $typeInstance->create($data);
 
@@ -77,13 +77,13 @@ class HitexisProductRepository extends Repository
     public function upserts(array $data)
     {
         $typeClass = config('product_types.' . $data['type'] . '.class');
-
+    
         if (!$typeClass) {
             throw new \InvalidArgumentException("Product type '{$data['type']}' not found in configuration.");
         }
-
+        
         $typeInstance = app(config('hitexis_product_types.' . $data['type'] . '.class'));
-
+    
         $existingProduct = $this->findOneByField('sku', $data['sku']);
 
         if ($existingProduct) {
@@ -93,7 +93,7 @@ class HitexisProductRepository extends Repository
         } else {
             $product = $typeInstance->create($data);
         }
-
+    
         return $product;
     }
 

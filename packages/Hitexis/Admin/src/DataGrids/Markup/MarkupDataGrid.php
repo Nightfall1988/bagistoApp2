@@ -106,17 +106,6 @@ class MarkupDataGrid extends DataGrid
      */
     public function prepareActions()
     {
-        if (bouncer()->hasPermission('admin.markup.edit')) {
-            $this->addAction([
-                'icon'   => 'icon-edit',
-                'title'  => trans('shop::app.wholesale.index.datagrid.edit'),
-                'method' => 'GET',
-                'url'    => function ($row) {
-                    return route('markup.markup.edit', $row->id);
-                },
-            ]);
-        }
-
         if (bouncer()->hasPermission('admin.markup.delete')) {
             $this->addAction([
                 'icon'   => 'icon-delete',
@@ -125,7 +114,13 @@ class MarkupDataGrid extends DataGrid
                 'url'    => function ($row) {
                     return route('markup.markup.delete', $row->id);
                 },
+                'attributes' => [
+                    'data-url' => function ($row) {
+                        return route('markup.markup.delete', $row->id);
+                    }
+                ],
             ]);
+            
         }
     }
 }

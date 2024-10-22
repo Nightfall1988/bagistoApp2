@@ -101,19 +101,7 @@ class MarkupController extends Controller
     {
         try {
 
-            $markup = $this->markupRepository->where('id', $id)->first();
-            $markupId = $markup->id;
-            $products = Product::whereHas('markup', function ($query) use ($markupId) {
-                $query->where('markup_id', $markupId);
-            })->get();
-
-            if ($markup) {
-                foreach ($products as $product) {
-                    $this->markupRepository->subtractMarkupFromPrice($product,$markup);
-                }
-                $this->markupRepository->delete($id);
-            }
-
+            $markup = $this->markupRepository->destroy( $id );
 
             return new JsonResponse([
                 'message' => trans('admin::app.markup.delete-success'),
