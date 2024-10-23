@@ -99,6 +99,7 @@ class MarkupRepository extends Repository implements MarkupContract
             
             $batchUpdateProductAttributeValues = [];
             $batchUpdateProductFlat = [];
+            $batchUpdateProductPriceIndices = []; // For updating product_price_indices
             
             // Collect product-markup relationships for batch insert
             $markupProductRelations = [];
@@ -127,9 +128,9 @@ class MarkupRepository extends Repository implements MarkupContract
                     // Update the price cumulatively
                     $newPrice = $currentPrice + $priceMarkup;
         
-                    // Prepare data for batch updates
+                    // Prepare data for batch updates in product_attribute_values
                     foreach ($locales as $locale) {
-                        // Update product_attribute_values
+                        // Update product_attribute_values for price (attribute_id = 11)
                         $batchUpdateProductAttributeValues[] = [
                             'product_id'   => $product->id,
                             'attribute_id' => 11,  // Price attribute_id
@@ -137,7 +138,7 @@ class MarkupRepository extends Repository implements MarkupContract
                             'channel'      => 'default',
                             'float_value'  => round($newPrice, 2),
                         ];
-        
+    
                         // Update product_flat
                         $batchUpdateProductFlat[] = [
                             'product_id' => $product->id,
@@ -152,10 +153,21 @@ class MarkupRepository extends Repository implements MarkupContract
                         'product_id' => $product->id,
                         'markup_id'  => $markup->id,
                     ];
+    
+                    // Prepare data for batch update in product_price_indices (for storefront display)
+                    $batchUpdateProductPriceIndices[] = [
+                        'product_id'         => $product->id,
+                        'customer_group_id'  => 1, // Assuming default customer group
+                        'channel_id'         => 1, // Assuming default channel
+                        'min_price'          => round($newPrice, 2),
+                        'regular_min_price'  => round($newPrice, 2),
+                        'max_price'          => round($newPrice, 2),
+                        'regular_max_price'  => round($newPrice, 2),
+                    ];
                 }
             }
         
-            // Batch upsert product_attribute_values
+            // Batch upsert product_attribute_values (to update price for attribute_id = 11)
             if (!empty($batchUpdateProductAttributeValues)) {
                 DB::table('product_attribute_values')->upsert(
                     $batchUpdateProductAttributeValues,
@@ -170,6 +182,15 @@ class MarkupRepository extends Repository implements MarkupContract
                     $batchUpdateProductFlat,
                     ['product_id', 'locale', 'channel'],  // Unique keys
                     ['price']  // Fields to update
+                );
+            }
+    
+            // Batch upsert product_price_indices (for storefront price updates)
+            if (!empty($batchUpdateProductPriceIndices)) {
+                DB::table('product_price_indices')->upsert(
+                    $batchUpdateProductPriceIndices,
+                    ['product_id', 'customer_group_id', 'channel_id'],  // Unique keys
+                    ['min_price', 'regular_min_price', 'max_price', 'regular_max_price']  // Fields to update
                 );
             }
     
