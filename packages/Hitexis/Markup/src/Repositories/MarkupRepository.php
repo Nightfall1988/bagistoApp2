@@ -213,21 +213,24 @@ class MarkupRepository extends Repository implements MarkupContract
     public function subtractMarkupFromPrice($markup)
     {
         ini_set('max_execution_time', 300);
-        // Fetch all related product IDs once and store them in an array
-        $products = $markup->products()->select('products.id')->get();  // Specify 'products.id' explicitly
-        
-        // Convert the collection explicitly to Eloquent collection
+    
+        // Fetch related product IDs once
+        $products = $markup->products()->select('products.id')->get();
+    
         $products = new \Illuminate\Database\Eloquent\Collection($products);
     
-        // Chunk the products for performance (reduce chunk size for quicker DB updates)
-        $chunks = $products->chunk(250);
+        // Chunk for better performance
+        $chunks = $products->chunk(700);
     
-        // Collect all necessary costs and prices for products in one query
+        // Pre-fetch all necessary product attribute data
         $productIds = $products->pluck('id')->toArray();
         $costs = ProductAttributeValue::where('attribute_id', 12)
             ->whereIn('product_id', $productIds)
             ->pluck('float_value', 'product_id');
         $prices = ProductAttributeValue::where('attribute_id', 11)
+            ->whereIn('product_id', $productIds)
+            ->pluck('float_value', 'product_id');
+        $indices = ProductAttributeValue::where('attribute_id', 14) // Assuming 14 is the attribute_id for index
             ->whereIn('product_id', $productIds)
             ->pluck('float_value', 'product_id');
     
@@ -236,95 +239,112 @@ class MarkupRepository extends Repository implements MarkupContract
         // Arrays for batch updates
         $batchUpdateProductAttributeValues = [];
         $batchUpdateProductFlat = [];
+        $batchUpdateProductIndex = [];
     
-        // Loop through each chunk to process the products in smaller batches
         foreach ($chunks as $productChunk) {
             foreach ($productChunk as $product) {
                 $currentPrice = $prices[$product->id] ?? null;
                 $cost = $costs[$product->id] ?? null;
+                $currentIndex = $indices[$product->id] ?? null;
     
-                // If no price exists, continue to the next product
                 if ($currentPrice === null) {
                     continue;
                 }
     
-                // Subtract the markup from the price
-                $markupAmount = 0;
-                if ($markup->percentage) {
-                    $markupAmount = $currentPrice * ($markup->percentage / 100);
-                } elseif ($markup->amount) {
-                    $markupAmount = $markup->amount;
-                }
+                // Calculate markup amount
+                $markupAmount = $markup->percentage 
+                    ? ($currentPrice * ($markup->percentage / 100)) 
+                    : ($markup->amount ?? 0);
     
-                // Subtract the markup from the price
+                // Subtract markup and ensure it doesn't go below cost
                 $newPrice = $currentPrice - $markupAmount;
-    
-                // Ensure the new price does not go below the cost (if cost exists)
                 if ($cost && $newPrice <= $cost) {
                     $newPrice = $cost;
                 }
     
-                // Only update if the price actually changes
+                // Adjust index if needed (add the logic to modify the index based on your rules)
+                if ($currentIndex) {
+                    $newIndex = $currentIndex - ($markup->percentage ?? 0); // Example logic
+                }
+    
+                // If price actually changes
                 if (round($newPrice, 2) != round($currentPrice, 2)) {
                     foreach ($locales as $locale) {
-                        // Prepare data for batch update to product_attribute_values
                         $batchUpdateProductAttributeValues[] = [
                             'product_id'   => $product->id,
-                            'attribute_id' => 11,  // Price attribute_id
+                            'attribute_id' => 11,
                             'locale'       => $locale,
                             'channel'      => 'default',
                             'float_value'  => round($newPrice, 2),
                         ];
     
-                        // Prepare data for batch update to product_flat
                         $batchUpdateProductFlat[] = [
                             'product_id' => $product->id,
                             'locale'     => $locale,
                             'channel'    => 'default',
                             'price'      => round($newPrice, 2),
                         ];
+    
+                        // Prepare index update (if necessary)
+                        if (isset($newIndex)) {
+                            $batchUpdateProductIndex[] = [
+                                'product_id'   => $product->id,
+                                'attribute_id' => 14, // Assuming 14 is the index attribute_id
+                                'locale'       => $locale,
+                                'channel'      => 'default',
+                                'float_value'  => round($newIndex, 2),
+                            ];
+                        }
                     }
                 }
-    
-                // Detach the markup from the product
-                $product->markup()->detach($markup->id);
             }
     
-            // Perform batch upserts for product_attribute_values
+            // Perform batch upserts
             if (!empty($batchUpdateProductAttributeValues)) {
                 DB::table('product_attribute_values')->upsert(
                     $batchUpdateProductAttributeValues,
-                    ['product_id', 'attribute_id', 'locale', 'channel'],  // Unique keys
-                    ['float_value']  // Fields to update
+                    ['product_id', 'attribute_id', 'locale', 'channel'],
+                    ['float_value']
                 );
             }
     
-            // Perform batch upserts for product_flat
             if (!empty($batchUpdateProductFlat)) {
                 DB::table('product_flat')->upsert(
                     $batchUpdateProductFlat,
-                    ['product_id', 'locale', 'channel'],  // Unique keys
-                    ['price']  // Fields to update
+                    ['product_id', 'locale', 'channel'],
+                    ['price']
                 );
             }
     
-            // Reset the batch arrays to avoid memory overload
+            if (!empty($batchUpdateProductIndex)) {
+                DB::table('product_attribute_values')->upsert(
+                    $batchUpdateProductIndex,
+                    ['product_id', 'attribute_id', 'locale', 'channel'],
+                    ['float_value']
+                );
+            }
+    
+            // Reset batches
             $batchUpdateProductAttributeValues = [];
             $batchUpdateProductFlat = [];
+            $batchUpdateProductIndex = [];
         }
     
-        // Clear cache to reflect the updated prices
+        // Perform detachment outside the loop to optimize performance
+        DB::table('markup_product')->where('markup_id', $markup->id)->delete();
+    
+        // Clear caches
         \Artisan::call('cache:clear');
         \Artisan::call('view:clear');
+    
         $this->delete($markup->id);
-
+    
         return response()->json([
             'status' => 'success',
-            'message' => 'Markup removed and prices reverted successfully!',
+            'message' => 'Markup removed, prices and indices reverted successfully!',
         ]);
-    }
+    }    
     
-
     protected function bulkUpdateProductPrices($updateData)
     {
         // Use bulk update for product prices
