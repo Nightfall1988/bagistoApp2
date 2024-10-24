@@ -567,9 +567,9 @@ class Product extends BaseProduct implements ProductContract
     /**
      * Get the markup.
      */
-    public function markup(): belongsToMany
+    public function markups()
     {
-        return $this->belongsToMany(MarkupProxy::modelClass(),'markup_product', 'product_id', 'markup_id');
+        return $this->belongsToMany(MarkupProxy::modelClass(), 'markup_product', 'product_id', 'markup_id');
     }
 
     public function productPrintData()

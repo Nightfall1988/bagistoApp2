@@ -1050,7 +1050,7 @@ return [
 
         'markup' => [
             'create-title' => 'Izveidot uzcenojumu',
-            'edit-title' => 'Rediģēt uzcenojumu'
+            'edit-title' => 'Rediģēt uzcenojumu',
         ],
 
         'attributes' => [
@@ -3338,12 +3338,14 @@ return [
         'index' => [
             'title' => 'Uzcenojuma pārvaldība',
             'datagrid' => [
-                'name' => 'Vārds',
+                'name' => 'Nosaukums',
                 'amount' => 'Fiksēta summa',
                 'percentage' => 'Uzcenojums procentos',
                 'markup_unit' => 'Uzcenojuma vienība',
                 'currency' => 'Valūta',
-                'markup_type' => 'Tips'
+                'markup_type' => 'Tips',
+                'adding-markup' => 'Pievieno uzcenojumu produktiem...',
+                'global' => 'Globālais'
             ]
         ]
     ],
