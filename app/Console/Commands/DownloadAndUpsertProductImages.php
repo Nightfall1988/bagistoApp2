@@ -41,6 +41,9 @@ class DownloadAndUpsertProductImages extends Command
     {
         $transformedData = $data->map(function ($item) {
             $localPath = $this->downloadImage($item->url, $item->product_id);
+            if ($localPath == 0) {
+                return null;
+            }
 
             return [
                 'product_id'          => $item->product_id,
@@ -49,12 +52,12 @@ class DownloadAndUpsertProductImages extends Command
                 'path'                => $localPath,
                 'downloaded_from_url' => $item->url,
             ];
-        });
+        })->filter();
 
         $this->repository->upsertProductImages($transformedData->all());
     }
 
-    protected function downloadImage(string $url, int $productId): string
+    protected function downloadImage(string $url, int $productId): string|int
     {
         $url = trim($url);
         $url = str_replace(' ', '%20', $url);
@@ -72,6 +75,7 @@ class DownloadAndUpsertProductImages extends Command
             return $fileName;
         }
 
-        throw new \Exception("Failed to download image: $url");
+        return 0;
+        //throw new \Exception("Failed to download image: $url");
     }
 }
