@@ -393,4 +393,54 @@ class StrickerProductMapperService extends BaseService
             'unique_id'     => 'default|en|'.$products[$item[$referenceKey]]->id.'|'.self::PRODUCT_STATUS_ATTRIBUTE_KEY,
         ];
     }
+
+    public function mapProductImageURLs(): void
+    {
+        $products = $this->productImportRepository->getProducts($this->getSKUCodesFromProductJson());
+        $productImageURLs = collect($this->data['Products'])->flatMap(function ($row) use ($products) {
+            $productImageURLs = [];
+
+            $imageUrls = explode(',', $row['AllImageList']);
+            $imageUrls = array_combine(range(1, count($imageUrls)), $imageUrls);
+
+            $productId = $products[$row['ProdReference']]->id;
+
+            foreach ($imageUrls as $position => $imageUrl) {
+                $productImageURLs[] = [
+                    'url'       => config('integrations.stricker.hidea_images_url').trim($imageUrl),
+                    'product_id'=> $productId,
+                    'position'  => $position,
+                    'type'      => 'image',
+                ];
+            }
+
+            return $productImageURLs;
+        });
+
+        $this->productImportRepository->upsertProductURLImages($productImageURLs);
+    }
+
+    public function mapOptionalsImageURLs(): void
+    {
+        $products = $this->productImportRepository->getProducts($this->getOptionalsSKUCodesFromOptionalsJson());
+        $productImageURLs = collect($this->data['OptionalsComplete'])->flatMap(function ($row) use ($products) {
+            $productImageURLs = [];
+            $imageUrls = explode(',', $row['AllImageList']);
+            $imageUrls = array_combine(range(1, count($imageUrls)), $imageUrls);
+
+            $productId = $products[$row['Sku']]->id;
+
+            foreach ($imageUrls as $position => $imageUrl) {
+                $productImageURLs[] = [
+                    'url'       => config('integrations.stricker.hidea_images_url').trim($imageUrl),
+                    'product_id'=> $productId,
+                    'position'  => $position,
+                    'type'      => 'image',
+                ];
+            }
+
+            return $productImageURLs;
+        });
+        $this->productImportRepository->upsertProductURLImages($productImageURLs);
+    }
 }

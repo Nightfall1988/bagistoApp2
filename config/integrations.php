@@ -22,7 +22,8 @@ return [
             StrickerType::OPTIONALS->value       => env('STRICKER_BASE_API').env('STRICKER_OPTIONALS_ENDPOINT'),
             StrickerType::IMAGES->value          => env('STRICKER_BASE_API').env('STRICKER_IMAGES_ENDPOINT'),
         ],
-        'auth' => [
+        'hidea_images_url' => env('HIDEACONTENT_STRICKER_IMAGES_ENDPOINT', 'https://cdn.hideacontent.com/public/products/1000x1000/'),
+        'auth'             => [
             'token' => env('STRICKER_AUTH_TOKEN'),
             'url'   => env('STRICKER_BASE_API').env('STRICKER_AUTH_URL'),
         ],
