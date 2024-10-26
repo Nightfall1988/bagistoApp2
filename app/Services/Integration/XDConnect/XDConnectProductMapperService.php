@@ -126,8 +126,6 @@ class XDConnectProductMapperService extends BaseService
         ['id' => 21, 'code' => 'ItemHeightCM'],  // Height corresponds to ItemHeightCM
         ['id' => 22, 'code' => 'ItemWeightNetGr'],  // Weight corresponds to ItemWeightNetGr
         ['id' => 23, 'code' => 'Color'],  // Color corresponds to Color
-        ['id' => 23, 'code' => 'PMSColor1'],  // Color corresponds to Color
-        ['id' => 23, 'code' => 'PMSColor2'],  // Color corresponds to Color
         ['id' => 24, 'code' => 'Size'],  // Size corresponds to a potential Size field
         ['id' => 25, 'code' => 'Brand'],  // Brand corresponds to Brand
         ['id' => 29, 'code' => 'Material'],  // Material corresponds to Material
@@ -169,29 +167,12 @@ class XDConnectProductMapperService extends BaseService
                 }
             }
 
-            $this->mapProductVisibilities($productAttributes, $products, $item);
             $this->mapProductStatuses($productAttributes, $products, $item);
 
             return $productAttributes;
         })->filter();
 
         $this->productImportRepository->upsertProductAttributeValues($productAttributes);
-    }
-
-    protected const PRODUCT_VISIBILITY_ATTRIBUTE_KEY = 7;
-
-    private function mapProductVisibilities(array &$productAttributes, Collection $products, array $item): void
-    {
-        $productAttributes[] = [
-            'attribute_id'  => self::PRODUCT_VISIBILITY_ATTRIBUTE_KEY,
-            'product_id'    => $products[$item['ItemCode']]->id,
-            'text_value'    => null,
-            'integer_value' => null,
-            'boolean_value' => true,
-            'channel'       => 'default',
-            'locale'        => 'en',
-            'unique_id'     => 'default|en|'.$products[$item['ItemCode']]->id.'|'.self::PRODUCT_VISIBILITY_ATTRIBUTE_KEY,
-        ];
     }
 
     protected const PRODUCT_STATUS_ATTRIBUTE_KEY = 8;
@@ -217,8 +198,6 @@ class XDConnectProductMapperService extends BaseService
         ['id' => 21, 'code' => 'ItemHeightCM'],  // Height corresponds to ItemHeightCM
         ['id' => 22, 'code' => 'ItemWeightNetGr'],  // Weight corresponds to ItemWeightNetGr
         ['id' => 23, 'code' => 'Color'],  // Color corresponds to Color
-        ['id' => 23, 'code' => 'PMSColor1'],  // Color corresponds to Color
-        ['id' => 23, 'code' => 'PMSColor2'],  // Color corresponds to Color
         ['id' => 24, 'code' => 'Size'],  // Size corresponds to a potential Size field
         ['id' => 25, 'code' => 'Brand'],  // Brand corresponds to Brand
         ['id' => 29, 'code' => 'Material'],  // Material corresponds to Material
