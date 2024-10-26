@@ -10,6 +10,7 @@ use Hitexis\Product\Models\ProductFlat;
 use Hitexis\Product\Models\ProductImage;
 use Hitexis\Product\Models\ProductSuperAttribute;
 use Illuminate\Support\Collection;
+use Webkul\Core\Models\Locale;
 
 class PopulationRepository extends BaseImportRepository
 {
@@ -43,6 +44,16 @@ class PopulationRepository extends BaseImportRepository
             ->whereNull('pav_lv.product_id')
             ->select('pav_en.*')
             ->get();
+    }
+
+    public function getProductsWithVariants(): Collection
+    {
+        return Product::where('type', 'configurable')->with('variants')->get();
+    }
+
+    public function getLocaleCodes(): Collection
+    {
+        return Locale::all()->pluck('code');
     }
 
     public function upsertSuperAttributeValues(Collection $attributeValues): void
@@ -93,7 +104,7 @@ class PopulationRepository extends BaseImportRepository
         });
     }
 
-    public function upsertProductAttributeValueDuplicates(Collection $productAttributeValues): void
+    public function upsertProductAttributeValues(Collection $productAttributeValues): void
     {
         $this->handleUpsert(function () use ($productAttributeValues) {
             $productAttributeValues->chunk($this->upsertBatchSize)->each(function (Collection $chunk) {

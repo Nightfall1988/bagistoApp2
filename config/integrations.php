@@ -20,7 +20,7 @@ return [
             StrickerType::PRODUCTS->value        => env('STRICKER_BASE_API').env('STRICKER_PRODUCT_ENDPOINT'),
             StrickerType::PRINT_DATA->value      => env('STRICKER_BASE_API').env('STRICKER_PRINT_DATA_ENDPOINT'),
             StrickerType::OPTIONALS->value       => env('STRICKER_BASE_API').env('STRICKER_OPTIONALS_ENDPOINT'),
-            StrickerType::IMAGES->value          => env('STRICKER_BASE_API').env('STRICKER_IMAGES_ENDPOINT'),
+            StrickerType::STOCK->value           => env('STRICKER_BASE_API').env('STRICKER_STOCK_ENDPOINT'),
         ],
         'hidea_images_url' => env('HIDEACONTENT_STRICKER_IMAGES_ENDPOINT', 'https://cdn.hideacontent.com/public/products/1000x1000/'),
         'auth'             => [

@@ -183,7 +183,7 @@ class ProductImportRepository extends BaseImportRepository
                 ProductAttributeValue::upsert(
                     $chunk->all(),
                     ['product_id', 'attribute_id'],
-                    ['text_value', 'channel', 'locale']
+                    ['float_value','text_value', 'channel', 'locale']
                 );
             });
         });
