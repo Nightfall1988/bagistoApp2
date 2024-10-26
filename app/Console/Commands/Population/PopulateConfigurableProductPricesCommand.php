@@ -42,6 +42,7 @@ class PopulateConfigurableProductPricesCommand extends AbstractPopulateCommand
     }
 
     private const PRICE_ATR = 11;
+    private const COST_ATR = 12;
 
     protected function transformData(Collection $data): Collection
     {
@@ -71,7 +72,6 @@ class PopulateConfigurableProductPricesCommand extends AbstractPopulateCommand
                         ];
                     });
 
-                    // Return structured data
                     return [
                         'product_flat' => [
                             'sku'        => $productFlat->sku,
@@ -80,13 +80,21 @@ class PopulateConfigurableProductPricesCommand extends AbstractPopulateCommand
                             'locale'     => $productFlat->locale,
                             'channel'    => $productFlat->channel,
                         ],
-                        'product_attribute_value' => [
+                        'product_attribute_price' => [
                             'float_value'   => (float) $cheapestPrice,
                             'product_id'    => $productFlat->product_id,
                             'attribute_id'  => self::PRICE_ATR,
                             'channel'       => 'default',
                             'locale'        => 'en',
                             'unique_id'     => 'default|en|'.$productFlat->product_id.'|'.self::PRICE_ATR,
+                        ],
+                        'product_attribute_cost' => [
+                            'float_value'   => (float) $cheapestPrice,
+                            'product_id'    => $productFlat->product_id,
+                            'attribute_id'  => self::COST_ATR,
+                            'channel'       => 'default',
+                            'locale'        => 'en',
+                            'unique_id'     => 'default|en|'.$productFlat->product_id.'|'.self::COST_ATR,
                         ],
                         'product_price_indices' => $priceIndices->all(),
                     ];
@@ -100,7 +108,8 @@ class PopulateConfigurableProductPricesCommand extends AbstractPopulateCommand
     protected function upsertData(Collection $data): void
     {
         $this->productImportRepository->upsertProductFlatPrices($data->pluck('product_flat'));
-        $this->productImportRepository->upsertProductAttributeValuePrices($data->pluck('product_attribute_value'));
+        $this->productImportRepository->upsertProductAttributeValuePrices($data->pluck('product_attribute_price'));
+        $this->productImportRepository->upsertProductAttributeValuePrices($data->pluck('product_attribute_cost'));
         $this->productImportRepository->upsertProductPriceIndices($data->pluck('product_price_indices')->flatten(1));
     }
 }
