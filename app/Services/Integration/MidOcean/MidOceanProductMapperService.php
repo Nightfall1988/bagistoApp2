@@ -100,7 +100,7 @@ class MidOceanProductMapperService extends BaseService
         ['id'=> 9, 'code'=>'short_description'],
         ['id'=> 10, 'code'=>'long_description'],
         ['id'=> 29, 'code'=>'material'],
-        ['id'=> 2, 'code'=>'product_name'],
+        ['id'=> 2, 'code'=>'short_description'],
     ];
 
     protected const CONFIGURABLE_ATR_MAP = [
@@ -136,7 +136,6 @@ class MidOceanProductMapperService extends BaseService
             $this->mapURLKeys($productAttributes, $products, $item);
             $this->mapColors($productAttributes, $products, $item, $attributeOptions);
             $this->mapSizes($productAttributes, $products, $item, $attributeOptions);
-            $this->mapProductVisibilities($productAttributes, $products, $item);
             $this->mapProductStatuses($productAttributes, $products, $item);
             $this->mapProductNumbers($productAttributes, $products, $item);
 
@@ -210,37 +209,6 @@ class MidOceanProductMapperService extends BaseService
                     'unique_id'        => 'default|en|'.$products[$variant['sku']]->id.'|'.self::SIZE_ATTRIBUTE_KEY,
                 ];
             }
-        }
-    }
-
-
-    protected const PRODUCT_VISIBILITY_ATTRIBUTE_KEY = 7;
-
-    private function mapProductVisibilities(array &$productAttributes, Collection $products, array $item): void
-    {
-        $hasSingleVariant = count($item['variants']) === 1;
-
-        $productAttributes[] = [
-            'attribute_id'  => self::PRODUCT_VISIBILITY_ATTRIBUTE_KEY,
-            'product_id'    => $products[$item['master_code']]->id,
-            'text_value'    => null,
-            'integer_value' => null,
-            'boolean_value' => $hasSingleVariant ? 0 : 1,
-            'channel'       => 'default',
-            'locale'        => 'en',
-            'unique_id'     => 'default|en|'.$products[$item['master_code']]->id.'|'.self::PRODUCT_VISIBILITY_ATTRIBUTE_KEY,
-        ];
-        foreach ($item['variants'] as $variant) {
-            $productAttributes[] = [
-                'attribute_id'  => self::PRODUCT_VISIBILITY_ATTRIBUTE_KEY,
-                'product_id'    => $products[$variant['sku']]->id,
-                'text_value'    => null,
-                'integer_value' => null,
-                'boolean_value' => $hasSingleVariant ? 1 : 0,
-                'channel'       => 'default',
-                'locale'        => 'en',
-                'unique_id'     => 'default|en|'.$products[$variant['sku']]->id.'|'.self::PRODUCT_VISIBILITY_ATTRIBUTE_KEY,
-            ];
         }
     }
 
@@ -454,7 +422,7 @@ class MidOceanProductMapperService extends BaseService
                 'sku'                       => $row['master_code'],
                 'type'                      => 'configurable',
                 'product_number'            => $row['master_id'],
-                'name'                      => $row['product_name'] ?? null,
+                'name'                      => $row['short_description'] ?? null,
                 'short_description'         => '<p>'.($row['short_description'] ?? null).'</p>',
                 'description'               => '<p>'.($row['long_description'] ?? null).'</p>',
                 'weight'                    => $row['net_weight'],
@@ -476,7 +444,7 @@ class MidOceanProductMapperService extends BaseService
                     'sku'                       => $variant['sku'],
                     'type'                      => 'simple',
                     'product_number'            => $row['master_id'].'-'.$variant['sku'],
-                    'name'                      => $row['product_name'] ?? null,
+                    'name'                      => $row['short_description'] ?? null,
                     'short_description'         => '<p>'.($row['short_description'] ?? null).'</p>',
                     'description'               => '<p>'.($row['long_description'] ?? null).'</p>',
                     'url_key'                   => Str::slug((isset($row['product_name']) ? $row['product_name'].'-' : null).$variant['sku']),

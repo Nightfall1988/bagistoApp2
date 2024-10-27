@@ -7,7 +7,7 @@ enum CacheKey: string
     case PRODUCTS = '_striker_products';
     case OPTIONALS = '_striker_optionals';
     case PRINT_DATA = '_striker_print_data';
-    case IMAGES = '_striker_images';
+    case STOCK = '_striker_stock';
 
     /**
      * Get the cache key corresponding to the given data type.
@@ -24,7 +24,7 @@ enum CacheKey: string
             DataType::PRODUCTS => self::PRODUCTS,
             DataType::PRINT_DATA => self::PRINT_DATA,
             DataType::OPTIONALS => self::OPTIONALS,
-            DataType::IMAGES => self::IMAGES,
+            DataType::STOCK => self::STOCK,
         };
     }
 }

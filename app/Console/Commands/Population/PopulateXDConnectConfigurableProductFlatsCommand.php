@@ -52,14 +52,14 @@ class PopulateXDConnectConfigurableProductFlatsCommand extends AbstractPopulateC
     {
         return collect($data)->map(function ($row) {
             $variant = $row->variants->first() ?? null;
-            $productFlat = $variant->product_flats->first();
 
             if ($variant) {
+                $productFlat = $variant->product_flats->first();
+
                 return [
                     'product_flat'      => $this->mapProductFlat($row->sku, $productFlat, $row),
                     'attribute_values'  => $this->mapAttributeValues($row, $variant, $row->sku),
                     'categories'        => $this->mapCategories($row, $variant),
-                    'variant_attributes'=> $this->removeVisibleIndividuallyFromVariants($row),
                     'image_url'         => $this->addImageFromFirstVariant($row, $variant),
                 ];
             }
@@ -132,36 +132,10 @@ class PopulateXDConnectConfigurableProductFlatsCommand extends AbstractPopulateC
 
         return $attributeValues;
     }
-    const VISIBLE_INDIVIDUALLY_ATTRIBUTE_ID = 7;
 
-    private function removeVisibleIndividuallyFromVariants($row): array
+    private function addImageFromFirstVariant($row, $variant): ?array
     {
-        $attributeValues = [];
-
-        foreach ($row->variants as $variant) {
-            $visibleIndividuallyAttributes = $variant->attribute_values->filter(function($attributeValue) {
-                return $attributeValue->attribute_id == self::VISIBLE_INDIVIDUALLY_ATTRIBUTE_ID;
-            });
-
-            foreach ($visibleIndividuallyAttributes as $attributeValue) {
-                $attributeValues[] = [
-                    'attribute_id'  => self::VISIBLE_INDIVIDUALLY_ATTRIBUTE_ID,
-                    'product_id'    => $variant->id,
-                    'text_value'    => null,
-                    'integer_value' => null,
-                    'boolean_value' => 0,
-                    'channel'       => $attributeValue->channel ?? 'default',
-                    'locale'        => $attributeValue->locale ?? 'en',
-                    'unique_id'     => 'default|'.$attributeValue->locale.'|'.$variant->id.'|'.self::VISIBLE_INDIVIDUALLY_ATTRIBUTE_ID,
-                ];
-            }
-        }
-
-        return $attributeValues;
-    }
-    private function addImageFromFirstVariant($row, $variant): array|null
-    {
-        if(isset($variant->image_urls[0])){
+        if (isset($variant->image_urls[0])) {
             return [
                 'url'       => $variant->image_urls[0]->url,
                 'product_id'=> $row->id,
@@ -169,6 +143,7 @@ class PopulateXDConnectConfigurableProductFlatsCommand extends AbstractPopulateC
                 'type'      => $variant->type,
             ];
         }
+
         return null;
     }
 
@@ -176,7 +151,6 @@ class PopulateXDConnectConfigurableProductFlatsCommand extends AbstractPopulateC
     {
         $this->productImportRepository->upsertProductFlats($data->pluck('product_flat')->flatten(1), 100);
         $this->productImportRepository->upsertProductAttributeValues($data->pluck('attribute_values')->flatten(1));
-        $this->productImportRepository->upsertProductAttributeValues($data->pluck('variant_attributes')->flatten(1));
         $this->productImportRepository->upsertProductCategories($data->pluck('categories')->flatten(1));
         $this->productImportRepository->upsertProductURLImages($data->pluck('image_url')->filter());
     }

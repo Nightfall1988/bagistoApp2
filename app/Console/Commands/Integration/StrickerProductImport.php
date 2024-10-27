@@ -6,6 +6,7 @@ use App\Enums\Integrations\Stricker\CacheKey;
 use App\Enums\Integrations\Stricker\DataType;
 use App\Services\Integration\Stricker\StrickerPrintDataMapperService;
 use App\Services\Integration\Stricker\StrickerProductMapperService;
+use App\Services\Integration\Stricker\StrickerStockMapperService;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 
@@ -36,12 +37,18 @@ class StrickerProductImport extends AbstractProductImportCommand
     protected ?string $authToken = null;
 
     protected StrickerProductMapperService $productMapperService;
+
     protected StrickerPrintDataMapperService $printDataMapperService;
+
+    protected StrickerStockMapperService $stockMapperService;
 
     /**
      * Create a new command instance.
      */
-    public function __construct(ExtractStrickerCategories $categoryExtractCommand, StrickerProductMapperService $productMapperService, StrickerPrintDataMapperService $printDataMapperService)
+    public function __construct(ExtractStrickerCategories $categoryExtractCommand,
+        StrickerProductMapperService $productMapperService,
+        StrickerPrintDataMapperService $printDataMapperService,
+        StrickerStockMapperService $stockMapperService)
     {
         parent::__construct($categoryExtractCommand);
 
@@ -56,6 +63,7 @@ class StrickerProductImport extends AbstractProductImportCommand
         $this->authenticate();
         $this->productMapperService = $productMapperService;
         $this->printDataMapperService = $printDataMapperService;
+        $this->stockMapperService = $stockMapperService;
     }
 
     /**
@@ -109,9 +117,9 @@ class StrickerProductImport extends AbstractProductImportCommand
                 $this->info("Record count for {$dataType}: ".count($data['CustomizationOptions']));
                 $this->processPrintData($data);
                 break;
-            case 'images':
-                //$this->info("Record count for {$dataType}: ".count($data['products']));
-                //$this->processImageData($data);
+            case 'stock':
+                $this->info("Record count for {$dataType}: ".count($data['Stocks']));
+                $this->processStockData($data);
                 break;
             default:
                 $this->error("Unknown data type {$dataType}.");
@@ -213,6 +221,7 @@ class StrickerProductImport extends AbstractProductImportCommand
         $this->productMapperService->mapProductCategories();
         $this->productMapperService->mapAttributeOptions();
         $this->productMapperService->mapProductAttributeValues();
+        $this->productMapperService->mapProductImageURLs();
     }
 
     private function processOptionalsData(array $data): void
@@ -221,8 +230,10 @@ class StrickerProductImport extends AbstractProductImportCommand
         $this->productMapperService->mapOptionals();
         $this->productMapperService->mapOptionalsSupplierCodes();
         $this->productMapperService->mapOptionalFlats();
+        $this->productMapperService->mapOptionalsCategories();
         $this->productMapperService->mapOptionalsAttributeOptions();
         $this->productMapperService->mapOptionalsAttributeValues();
+        $this->productMapperService->mapOptionalsImageURLs();
     }
 
     private function processPrintData(array $data): void
@@ -233,5 +244,12 @@ class StrickerProductImport extends AbstractProductImportCommand
         $this->printDataMapperService->mapPrintTechniques();
         $this->printDataMapperService->mapTechniqueVariableCosts();
         $this->printDataMapperService->mapPositionPrintTechniques();
+    }
+
+    private function processStockData(array $data): void
+    {
+        $this->stockMapperService->loadData($data);
+        $this->stockMapperService->mapProductInventories();
+        $this->stockMapperService->mapProductInventoryIndices();
     }
 }

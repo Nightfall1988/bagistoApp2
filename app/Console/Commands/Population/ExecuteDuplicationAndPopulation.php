@@ -33,6 +33,9 @@ class ExecuteDuplicationAndPopulation extends Command
         $this->info("\nRunning XDConnect Configurable Product Population...\n");
         passthru('php artisan populate:xdconnect-configurable-product-flats');
 
+        $this->info("\nRunning Product Visibility Population...\n");
+        passthru('php artisan populate:product-attribute_visibilites');
+
         $this->info("\nRunning Product Super Attribute Population...\n");
         passthru('php artisan populate:product-super-attributes');
 

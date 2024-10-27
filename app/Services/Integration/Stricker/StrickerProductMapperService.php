@@ -109,6 +109,30 @@ class StrickerProductMapperService extends BaseService
         $this->productImportRepository->upsertProductCategories($parentCategories);
     }
 
+    public function mapOptionalsCategories(): void
+    {
+        $optionals = $this->productImportRepository->getProducts($this->getOptionalsSKUCodesFromOptionalsJson());
+        $parentCategories = collect($this->data['OptionalsComplete'])->flatMap(function (array $row) use ($optionals) {
+            $categories = [];
+
+            $categories[] = [
+                'product_id' => $optionals[$row['Sku']]->id,
+                'category_id'=> $this->categoryAssignmentService->StrickerMapTypeToDefaultCategory($row['Type']),
+            ];
+
+            if (isset($row['SubType'])) {
+                $categories[] = [
+                    'product_id' => $optionals[$row['Sku']]->id,
+                    'category_id'=> $this->categoryAssignmentService->StrickerMapSubTypeToDefaultCategory($row['SubType']),
+                ];
+            }
+
+            return $categories;
+        });
+
+        $this->productImportRepository->upsertProductCategories($parentCategories);
+    }
+
     protected const PROD_ATR_MAP = [
         ['id' => 1,  'code' => 'ProdReference'],        // sku
         ['id' => 2,  'code' => 'Name'],                 // name
@@ -274,9 +298,9 @@ class StrickerProductMapperService extends BaseService
         });
     }
 
-    private function mapAttributeValues(array $data, array $attributeMap, Collection $products, Collection $attributeOptions, callable $visibilityMapper, callable $statusMapper, $referenceKey): Collection
+    private function mapAttributeValues(array $data, array $attributeMap, Collection $products, Collection $attributeOptions, callable $statusMapper, $referenceKey): Collection
     {
-        return collect($data)->flatMap(function ($item) use ($products, $attributeOptions, $attributeMap, $visibilityMapper, $statusMapper, $referenceKey) {
+        return collect($data)->flatMap(function ($item) use ($products, $attributeOptions, $attributeMap, $statusMapper, $referenceKey) {
             $productAttributes = [];
 
             foreach ($attributeMap as $attribute) {
@@ -290,7 +314,7 @@ class StrickerProductMapperService extends BaseService
                         $text_value = null;
                     }
 
-                    if(in_array($attribute['id'], [11, 12])) {
+                    if (in_array($attribute['id'], [11, 12])) {
                         $float_value = (float) $item[$attribute['code']];
                         $text_value = null;
                     }
@@ -308,8 +332,6 @@ class StrickerProductMapperService extends BaseService
                     ];
                 }
             }
-
-            $visibilityMapper($productAttributes, $products, $item);
             $statusMapper($productAttributes, $products, $item);
 
             return $productAttributes;
@@ -326,9 +348,6 @@ class StrickerProductMapperService extends BaseService
             self::OPT_ATR_MAP,
             $products,
             $attributeOptions,
-            function (&$productAttributes, $products, $item) {
-                $this->mapVisibilities($productAttributes, $products, $item, 'Sku');
-            },
             function (&$productAttributes, $products, $item) {
                 $this->mapStatuses($productAttributes, $products, $item, 'Sku');
             },
@@ -349,9 +368,6 @@ class StrickerProductMapperService extends BaseService
             $products,
             $attributeOptions,
             function (&$productAttributes, $products, $item) {
-                $this->mapVisibilities($productAttributes, $products, $item, 'ProdReference');
-            },
-            function (&$productAttributes, $products, $item) {
                 $this->mapStatuses($productAttributes, $products, $item, 'ProdReference');
             },
             'ProdReference'
@@ -360,24 +376,7 @@ class StrickerProductMapperService extends BaseService
         $this->productImportRepository->upsertProductAttributeValues($productAttributes);
     }
 
-    protected const PRODUCT_VISIBILITY_ATTRIBUTE_KEY = 7;
-
     protected const PRODUCT_STATUS_ATTRIBUTE_KEY = 8;
-
-    private function mapVisibilities(array &$productAttributes, Collection $products, array $item, string $referenceKey): void
-    {
-        $productAttributes[] = [
-            'attribute_id'  => self::PRODUCT_VISIBILITY_ATTRIBUTE_KEY,
-            'product_id'    => $products[$item[$referenceKey]]->id,
-            'text_value'    => null,
-            'integer_value' => null,
-            'float_value'   => null,
-            'boolean_value' => true,
-            'channel'       => 'default',
-            'locale'        => 'en',
-            'unique_id'     => 'default|en|'.$products[$item[$referenceKey]]->id.'|'.self::PRODUCT_VISIBILITY_ATTRIBUTE_KEY,
-        ];
-    }
 
     private function mapStatuses(array &$productAttributes, Collection $products, array $item, string $referenceKey): void
     {
@@ -392,5 +391,55 @@ class StrickerProductMapperService extends BaseService
             'locale'        => 'en',
             'unique_id'     => 'default|en|'.$products[$item[$referenceKey]]->id.'|'.self::PRODUCT_STATUS_ATTRIBUTE_KEY,
         ];
+    }
+
+    public function mapProductImageURLs(): void
+    {
+        $products = $this->productImportRepository->getProducts($this->getSKUCodesFromProductJson());
+        $productImageURLs = collect($this->data['Products'])->flatMap(function ($row) use ($products) {
+            $productImageURLs = [];
+
+            $imageUrls = explode(',', $row['AllImageList']);
+            $imageUrls = array_combine(range(1, count($imageUrls)), $imageUrls);
+
+            $productId = $products[$row['ProdReference']]->id;
+
+            foreach ($imageUrls as $position => $imageUrl) {
+                $productImageURLs[] = [
+                    'url'       => config('integrations.stricker.hidea_images_url').trim($imageUrl),
+                    'product_id'=> $productId,
+                    'position'  => $position,
+                    'type'      => 'image',
+                ];
+            }
+
+            return $productImageURLs;
+        });
+
+        $this->productImportRepository->upsertProductURLImages($productImageURLs);
+    }
+
+    public function mapOptionalsImageURLs(): void
+    {
+        $products = $this->productImportRepository->getProducts($this->getOptionalsSKUCodesFromOptionalsJson());
+        $productImageURLs = collect($this->data['OptionalsComplete'])->flatMap(function ($row) use ($products) {
+            $productImageURLs = [];
+            $imageUrls = explode(',', $row['AllImageList']);
+            $imageUrls = array_combine(range(1, count($imageUrls)), $imageUrls);
+
+            $productId = $products[$row['Sku']]->id;
+
+            foreach ($imageUrls as $position => $imageUrl) {
+                $productImageURLs[] = [
+                    'url'       => config('integrations.stricker.hidea_images_url').trim($imageUrl),
+                    'product_id'=> $productId,
+                    'position'  => $position,
+                    'type'      => 'image',
+                ];
+            }
+
+            return $productImageURLs;
+        });
+        $this->productImportRepository->upsertProductURLImages($productImageURLs);
     }
 }

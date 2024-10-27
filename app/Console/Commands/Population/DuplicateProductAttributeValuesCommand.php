@@ -59,6 +59,6 @@ class DuplicateProductAttributeValuesCommand extends AbstractPopulateCommand
 
     protected function upsertData(Collection $data): void
     {
-        $this->repository->upsertProductAttributeValueDuplicates($data);
+        $this->repository->upsertProductAttributeValues($data);
     }
 }

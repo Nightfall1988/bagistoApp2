@@ -170,7 +170,7 @@ class ProductImportRepository extends BaseImportRepository
                 ProductAttributeValue::upsert(
                     $chunk->all(),
                     ['product_id', 'attribute_id'],
-                    ['text_value', 'channel', 'locale', 'integer_value', 'boolean_value','float_value'],
+                    ['text_value', 'channel', 'locale', 'integer_value', 'boolean_value', 'float_value'],
                 );
             });
         });
@@ -183,7 +183,7 @@ class ProductImportRepository extends BaseImportRepository
                 ProductAttributeValue::upsert(
                     $chunk->all(),
                     ['product_id', 'attribute_id'],
-                    ['text_value', 'channel', 'locale']
+                    ['float_value','text_value', 'channel', 'locale']
                 );
             });
         });
@@ -313,7 +313,7 @@ class ProductImportRepository extends BaseImportRepository
                 ProductUrlImages::upsert(
                     $chunk->all(),
                     ['product_id', 'position'],
-                    ['position', 'type']
+                    ['type', 'url']
                 );
             });
         });
