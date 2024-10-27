@@ -75,10 +75,11 @@ class MarkupRepository extends Repository implements MarkupContract
     
     public function updateProductPrices($products, $markup)
     {
-        set_time_limit(60);
+        set_time_limit(300);
         // Convert the collection explicitly to Eloquent collection
         $products = new \Illuminate\Database\Eloquent\Collection($products);
         
+        $customerGroups = DB::table('customer_groups')->pluck('id')->toArray();
         // Split the collection into chunks manually
         $chunks = $products->chunk(1000); // Chunk the products manually
         
@@ -155,15 +156,17 @@ class MarkupRepository extends Repository implements MarkupContract
                     ];
     
                     // Prepare data for batch update in product_price_indices (for storefront display)
-                    $batchUpdateProductPriceIndices[] = [
-                        'product_id'         => $product->id,
-                        'customer_group_id'  => 1, // Assuming default customer group
-                        'channel_id'         => 1, // Assuming default channel
-                        'min_price'          => round($newPrice, 2),
-                        'regular_min_price'  => round($newPrice, 2),
-                        'max_price'          => round($newPrice, 2),
-                        'regular_max_price'  => round($newPrice, 2),
-                    ];
+                    foreach ($customerGroups as $groupId) {
+                        $batchUpdateProductPriceIndices[] = [
+                            'product_id'         => $product->id,
+                            'customer_group_id'  => $groupId,
+                            'channel_id'         => 1, // Assuming default channel
+                            'min_price'          => round($newPrice, 2),
+                            'regular_min_price'  => round($newPrice, 2),
+                            'max_price'          => round($newPrice, 2),
+                            'regular_max_price'  => round($newPrice, 2),
+                        ];
+                    }
                 }
             }
         
