@@ -41,7 +41,7 @@
                             <td class="px-6 py-4 border-b border-gray-200 text-center">@{{ parseFloat(manipulationPrice).toFixed(2) }} *</td>
                             <td class="px-6 py-4 border-b border-gray-200 text-center">@{{ technique.quantity }}</td>
                             <td class="px-6 py-4 border-b border-gray-200 text-center">@{{ parseFloat(technique.technique_print_fee).toFixed(2) }} *</td>
-                            <td class="px-6 py-4 border-b border-gray-200 text-center">@{{ printFullPrice }}</td>
+                            <td class="px-6 py-4 border-b border-gray-200 text-center w-24">@{{ printFullPrice }} * </td>
                         </tr>
                         <!-- Hidden inputs to hold technique-related data -->
                         <input name='technique-single-price' type='hidden' v-model="techniqueSinglePrice" />
@@ -51,6 +51,7 @@
                         <input name='setup-price' type='hidden' v-model="setupPrice" />
                         <input name='print-manipulation' type='hidden' v-model="manipulationPrice" />
                         <input name='technique-id' type='hidden' v-model="techniqueId" /> <!-- New hidden input for technique ID -->
+                        <input name='print-manipulation-single-price' type='hidden' v-model="manipulationSinglePrice" /> <!-- New hidden input for technique ID -->
                     </tbody>
                     <p class="mt-4 ml-2 mb-2 text-sm text-zinc-500 max-sm:mt-4 max-xs:text-xs">
                         <i>* @lang('shop::app.products.view.price-no-tax')</i>
@@ -78,6 +79,7 @@
                 positionId: '',
                 setupPrice: '',
                 manipulationPrice: 0,
+                manipulationSinglePrice: 0,
                 techniqueId: '', // New technique ID to be used in hidden input
                 allTechniques: [] // To hold all print techniques
             };
@@ -140,6 +142,7 @@
                     this.positionId = null;
                     this.setupPrice = 0;
                     this.manipulationPrice = 0;
+                    this.manipulationSinglePrice = 0;
                     this.techniqueId = ''; // Reset technique ID
                     this.printFullPrice = ''; // Reset technique ID
                 } else {
@@ -179,6 +182,7 @@
                     const data = response.data;
 
                     console.log(data);
+                    
                     // Update techniquesData with backend-calculated data
                     this.techniquesData = [{
                         product_name: this.product.name,
@@ -191,15 +195,17 @@
                         print_fee: data.print_fee,
                         product_price_qty: data.product_price_qty,
                         total_product_and_print: data.total_product_and_print,
-                        printManipulation: data.print_manipulation
+                        printManipulation: data.print_manipulation,
+                        manipulationSinglePrice: data.print_manipulation_single_price
                     }];
 
                     // Set techniqueSinglePrice to the calculated print fee
                     this.techniqueSinglePrice = parseFloat(data.technique_print_fee).toFixed(2);
                     this.techniquePrice = this.totalTechniquePrice;
-                    this.techniquePrice = this.totalTechniquePrice;
                     this.manipulationPrice = data.print_manipulation;
-                    this.printFullPrice =  data.print_full_price
+                    this.manipulationSinglePrice =  data.print_manipulation_single_price
+                    this.printFullPrice =  data.print_full_price;
+
                 })
                 .catch(error => {
                     console.error('Error calculating price:', error);

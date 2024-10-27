@@ -343,7 +343,7 @@ class MarkupRepository extends Repository implements MarkupContract
             'status' => 'success',
             'message' => 'Markup removed, prices and indices reverted successfully!',
         ]);
-    }    
+    }
     
     protected function bulkUpdateProductPrices($updateData)
     {
