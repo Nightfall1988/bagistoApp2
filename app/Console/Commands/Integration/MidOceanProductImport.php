@@ -177,10 +177,12 @@ class MidOceanProductImport extends AbstractProductImportCommand
     private function processProductPriceData(array $data): void
     {
         $this->productPriceMapperService->loadData($data);
-        $this->productPriceMapperService->mapProductAttributeValuePrices();
         $this->productPriceMapperService->mapProductAttributeValueCosts();
-        $this->productPriceMapperService->mapProductFlatPrices();
-        $this->productPriceMapperService->mapProductPriceIndices();
+        if ($this->importPrices) {
+            $this->productPriceMapperService->mapProductAttributeValuePrices();
+            $this->productPriceMapperService->mapProductFlatPrices();
+            $this->productPriceMapperService->mapProductPriceIndices();
+        }
     }
 
     private function processPrintPriceData(array $data): void

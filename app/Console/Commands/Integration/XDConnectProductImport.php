@@ -41,7 +41,9 @@ class XDConnectProductImport extends AbstractProductImportCommand
     private XDConnectProductPriceMapperService $productPriceMapperService;
 
     private XDConnectPrintPriceMapperService $printPriceMapperService;
+
     private XDConnectPrintDataMapperService $printDataMapperService;
+
     private XDConnectStockMapperService $stockMapperService;
 
     public function __construct(ExtractXDConnectCategories $categoryExtractCommand,
@@ -122,6 +124,7 @@ class XDConnectProductImport extends AbstractProductImportCommand
         $this->productMapperService->loadData($data);
         $this->productMapperService->mapProducts();
         $this->productMapperService->mapSupplierCodes();
+        $this->productMapperService->mapVariantSupplierCodes();
         $this->productMapperService->mapProductFlats();
         $this->productMapperService->mapAttributeOptions();
         $this->productMapperService->mapProductCategories();
@@ -132,10 +135,12 @@ class XDConnectProductImport extends AbstractProductImportCommand
     private function processProductPriceData(array $data): void
     {
         $this->productPriceMapperService->loadData($data);
-        $this->productPriceMapperService->mapProductAttributeValuePrices();
         $this->productPriceMapperService->mapProductAttributeValueCosts();
-        $this->productPriceMapperService->mapProductFlatPrices();
-        $this->productPriceMapperService->mapProductPriceIndices();
+        if ($this->importPrices) {
+            $this->productPriceMapperService->mapProductAttributeValuePrices();
+            $this->productPriceMapperService->mapProductFlatPrices();
+            $this->productPriceMapperService->mapProductPriceIndices();
+        }
     }
 
     private function processPrintPriceData(array $data): void

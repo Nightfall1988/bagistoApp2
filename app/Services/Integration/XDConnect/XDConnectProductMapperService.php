@@ -65,6 +65,21 @@ class XDConnectProductMapperService extends BaseService
 
     public function mapSupplierCodes(): void
     {
+        $products = $this->productImportRepository->getProducts($this->getParentSKUCodesFromJson());
+        $xdConnectIdentifier = env('XDCONNECT_IDENTIFIER', 'xdconnect');
+
+        $supplierCodes = collect($products)->map(function (Product $row) use ($xdConnectIdentifier) {
+            return [
+                'product_id'    => $row->id,
+                'supplier_code' => $xdConnectIdentifier,
+            ];
+        });
+
+        $this->productImportRepository->upsertSupplierCodes($supplierCodes);
+    }
+
+    public function mapVariantSupplierCodes(): void
+    {
         $products = $this->productImportRepository->getProducts($this->getSKUCodesFromJson());
         $xdConnectIdentifier = env('XDCONNECT_IDENTIFIER', 'xdconnect');
 
@@ -282,5 +297,14 @@ class XDConnectProductMapperService extends BaseService
                 'sku' => $item['ItemCode'],
             ];
         });
+    }
+    private function getParentSKUCodesFromJson(): Collection
+    {
+        return collect($this->data)->map(function ($item) {
+            return [
+                'sku' => $item['ModelCode'],
+            ];
+        })->unique('sku')
+        ->values();
     }
 }

@@ -15,10 +15,13 @@ class StrickerProductMapperService extends BaseService
 
     protected CategoryAssignmentService $categoryAssignmentService;
 
+    private bool $importPrices;
+
     public function __construct(ProductImportRepository $productImportRepository, CategoryAssignmentService $categoryAssignmentService)
     {
         $this->productImportRepository = $productImportRepository;
         $this->categoryAssignmentService = $categoryAssignmentService;
+        $this->importPrices = env('IMPORT_PRICES', false);
     }
 
     public function mapProducts(): void
@@ -246,12 +249,11 @@ class StrickerProductMapperService extends BaseService
         $defaultAttributeFamilyId = $this->productImportRepository->getDefaultAttributeFamily()->id;
 
         $optionalFlats = collect($this->data['OptionalsComplete'])->map(function (array $row) use ($products, $defaultChannelCode, $defaultAttributeFamilyId) {
-            return [
+            $optionalArray = [
                 'sku'                        => $row['Sku'],
                 'product_number'             => $row['Sku'],
                 'type'                       => 'simple',
                 'name'                       => $row['Name'],
-                'price'                      => $row['YourPrice'],
                 'short_description'          => '<p>'.($row['ShortDescription'] ?? null).'</p>',
                 'description'                => '<p>'.($row['Description'] ?? null).'</p>',
                 'weight'                     => $row['BoxWeightKG'],
@@ -266,6 +268,12 @@ class StrickerProductMapperService extends BaseService
                 'attribute_family_id'        => $defaultAttributeFamilyId,
                 'visible_individually'       => 0,
             ];
+
+            if ($this->importPrices) {
+                $optionalArray['price'] = $row['YourPrice'];
+            }
+
+            return $optionalArray;
         });
 
         $this->productImportRepository->upsertProductFlats($optionalFlats);
@@ -318,24 +326,26 @@ class StrickerProductMapperService extends BaseService
                         $float_value = (float) $item[$attribute['code']];
                         $text_value = null;
                     }
-
-                    $productAttributes[] = [
-                        'attribute_id'  => $attribute['id'],
-                        'product_id'    => $products[$item[$referenceKey]]->id,
-                        'text_value'    => $text_value,
-                        'integer_value' => $integer_value,
-                        'boolean_value' => null,
-                        'float_value'   => $float_value,
-                        'channel'       => 'default',
-                        'locale'        => 'en',
-                        'unique_id'     => 'default|en|'.$products[$item[$referenceKey]]->id.'|'.$attribute['id'],
-                    ];
+                    //Only add price if the import prices is enabled
+                    if ($attribute['id'] !== 11 || $this->importPrices) {
+                        $productAttributes[] = [
+                            'attribute_id'  => $attribute['id'],
+                            'product_id'    => $products[$item[$referenceKey]]->id,
+                            'text_value'    => $text_value,
+                            'integer_value' => $integer_value,
+                            'boolean_value' => null,
+                            'float_value'   => $float_value,
+                            'channel'       => 'default',
+                            'locale'        => 'en',
+                            'unique_id'     => 'default|en|'.$products[$item[$referenceKey]]->id.'|'.$attribute['id'],
+                        ];
+                    }
                 }
             }
             $statusMapper($productAttributes, $products, $item);
 
             return $productAttributes;
-        });
+        })->filter();
     }
 
     public function mapOptionalsAttributeValues(): void

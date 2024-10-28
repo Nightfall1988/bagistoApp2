@@ -16,6 +16,8 @@ abstract class AbstractProductImportCommand extends Command
      * @const int
      */
     protected AbstractCategoryExtractCommand $categoryExtractCommand;
+
+    protected bool $importPrices = false;
     /**
      * Execute the console command.
      *
@@ -25,6 +27,7 @@ abstract class AbstractProductImportCommand extends Command
     public function __construct(AbstractCategoryExtractCommand $categoryExtractCommand)
     {
         parent::__construct();
+        $this->importPrices = env('IMPORT_PRICES', false);
         $this->categoryExtractCommand = $categoryExtractCommand;
     }
 

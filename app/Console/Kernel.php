@@ -29,7 +29,7 @@ class Kernel extends ConsoleKernel
 
         $schedule->command('product:price-rule:index')->dailyAt('00:01');
 
-        $schedule->command('products:import-all')->everyFifteenMinutes()->withoutOverlapping();
+        $schedule->command('products:import-all')->dailyAt('3:00')->withoutOverlapping();
     }
 
     /**
