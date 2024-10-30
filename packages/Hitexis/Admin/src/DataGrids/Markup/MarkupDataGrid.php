@@ -114,13 +114,8 @@ class MarkupDataGrid extends DataGrid
                 'url'    => function ($row) {
                     return route('markup.markup.delete', $row->id);
                 },
-                'attributes' => [
-                    'data-url' => function ($row) {
-                        return route('markup.markup.delete', $row->id);
-                    }
-                ],
+                // 'class' and 'attributes' removed since we handle it in JS
             ]);
-            
         }
-    }
+    }    
 }

@@ -31,18 +31,27 @@ class Base
      */
     protected function prepareMail($entity, $notification)
     {
+        \Log::info('prepareMail called for entity: ' . $entity->id);
+    
         $customerLocale = $this->getLocale($entity);
-
         $previousLocale = core()->getCurrentLocale()->code;
-
         app()->setLocale($customerLocale);
-
+    
         try {
-            Mail::queue($notification);
-        } catch (\Exception $e) {
-            \Log::error('Error in Sending Email'.$e->getMessage());
-        }
+            if ($notification instanceof \Webkul\Shop\Mail\Order\InvoicedNotification) {
 
+                $attachments = collect($notification->build()->attachments);
+                if ($attachments->isNotEmpty()) {
+                    Mail::queue($notification);
+                }
+            } else {
+                Mail::queue($notification);
+            }
+        } catch (\Exception $e) {
+            \Log::error('Error in Sending Email: ' . $e->getMessage());
+        }
+    
         app()->setLocale($previousLocale);
     }
+    
 }

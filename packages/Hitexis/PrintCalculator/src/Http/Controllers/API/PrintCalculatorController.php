@@ -150,7 +150,7 @@ class PrintCalculatorController extends Controller
             'product_price_qty' => $productPriceQty,
             'total_product_and_print' => $totalProductAndPrint,
             'print_manipulation' => round($manipulationPrice, 2),
-            'print_manipulation_single_price' => round(floatval($product->productPrintData[0]->printManipulation->price), 2),
+            'print_manipulation_single_price' => isset($product->productPrintData[0]->printManipulation->price)  ? round(floatval($product->productPrintData[0]->printManipulation->price), 2) : 0,            
             'print_full_price' => core()->formatPrice((round($manipulationPrice, 2) + $printFee + $setupCost))
         ]);
     }
