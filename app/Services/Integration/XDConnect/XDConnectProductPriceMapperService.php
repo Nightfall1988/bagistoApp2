@@ -94,8 +94,8 @@ class XDConnectProductPriceMapperService extends BaseService
                     'product_id'        => $this->products[$item['ItemCode']]->id,
                     'customer_group_id' => $customerGroup->id,
                     'channel_id'        => 1,
-                    'min_price'         => (float) $item['ItemPriceGross_Qty6'],
-                    'regular_min_price' => (float) $item['ItemPriceGross_Qty6'],
+                    'min_price'         => (float) $item['ItemPriceGross_Qty1'],
+                    'regular_min_price' => (float) $item['ItemPriceGross_Qty1'],
                     'max_price'         => (float) $item['ItemPriceGross_Qty1'],
                     'regular_max_price' => (float) $item['ItemPriceGross_Qty1'],
                 ];

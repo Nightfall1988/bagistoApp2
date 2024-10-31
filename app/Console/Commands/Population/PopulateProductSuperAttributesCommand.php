@@ -8,6 +8,7 @@ use Illuminate\Support\Collection;
 class PopulateProductSuperAttributesCommand extends AbstractPopulateCommand
 {
     private PopulationRepository $repository;
+
     public function __construct(PopulationRepository $repository)
     {
         parent::__construct();
@@ -51,20 +52,22 @@ class PopulateProductSuperAttributesCommand extends AbstractPopulateCommand
             $commonAttributes = $childAttributes->reduce(function ($carry, $item) {
                 return $carry ? $carry->intersect($item) : $item;
             });
+            if ($commonAttributes != null) {
+                $filteredAttributes = $commonAttributes->filter(function ($attributeId) {
+                    return in_array($attributeId, self::ALLOWED_SUPER_ATTRIBUTES);
+                });
 
-            $filteredAttributes = $commonAttributes->filter(function ($attributeId) {
-                return in_array($attributeId, self::ALLOWED_SUPER_ATTRIBUTES);
-            });
+                return $filteredAttributes->map(function ($attributeId) use ($product) {
+                    return [
+                        'product_id'   => $product->id,
+                        'attribute_id' => $attributeId,
+                    ];
+                });
+            }
 
-            return $filteredAttributes->map(function ($attributeId) use ($product) {
-                return [
-                    'product_id'   => $product->id,
-                    'attribute_id' => $attributeId,
-                ];
-            });
+            return null;
         })->filter();
     }
-
 
     protected function upsertData(Collection $data): void
     {
