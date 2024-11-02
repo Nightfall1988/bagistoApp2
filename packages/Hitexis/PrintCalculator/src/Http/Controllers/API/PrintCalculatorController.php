@@ -62,7 +62,7 @@ class PrintCalculatorController extends Controller
 
         $product = $this->productRepository->findOrFail($productId);
 
-        // Check if supplier code is 'midocean'
+        // 'midocean'
         if ($product->supplier->supplier_code == '3CDCB852-2E30-43B6-A078-FA95A51DCA3C') {
             if ($product->type == 'configurable') {
                 $product = $this->productRepository->with([
@@ -101,29 +101,28 @@ class PrintCalculatorController extends Controller
             }
         }
 
-
         // xdconnects
         if ($product->supplier->supplier_code == 'ae59fecb-9cc2-4e32-b4c8-c05ff3e19a41') {
             if ($product->type == 'configurable') {
+
                 $product = $this->productRepository->with([
                     'variants.productPrintData.printingPositions.printTechnique.variableCosts',
                     'variants.productPrintData'
                 ])->findOrFail($product->id);
 
-                if ($variantId != '') {
-                    foreach ($product->variants as $variant) {
-                        if ($variant->id == $variantId) {
-                            $printData = $variant->productPrintData;
-
-                            // dd($printData );
-
+                $allPrintData = $product->variants[0]->productPrintData;
+                foreach ($allPrintData as $printData) {
+                    foreach ($printData->printingPositions as $position) {
+                        foreach ($position->printTechnique as $technique) {
+        
+                            if ($position->id == $positionId && $technique->technique_id == $techniqueId) {
+                                $selectedTechnique = $technique;
+                                break;
+                            }
                         }
                     }
-                } else {
-                    $printData = $product->productPrintData;
-                }
 
-                // $printData = $product->variants[0]->productPrintData;
+                }
             } elseif ($product->type == 'simple') {
                 $product = $this->productRepository->with([
                     'productPrintData.printingPositions.printTechnique.variableCosts',
@@ -131,8 +130,25 @@ class PrintCalculatorController extends Controller
                 ])->findOrFail($product->id);
 
                 $printData = $product->productPrintData;
+
+                foreach ($allPrintData as $printData) {
+
+                    foreach ($printData->printingPositions as $position) {
+                        // var_dump($position->id,$positionId, $position);
+                        // echo "\n";
+                        foreach ($position->printTechnique as $technique) {
+        
+                            if ($position->id == $positionId && $technique->technique_id == $techniqueId) {
+                                $selectedTechnique = $technique;
+                                break;
+                            }
+                        }
+                    }
+                    if ($printingPosition) {
+                        break;
+                    }
+                }
             }
-            $allPrintData = $printData;
         }
 
         // stricker
@@ -144,13 +160,11 @@ class PrintCalculatorController extends Controller
                 ])->findOrFail($productId);
     
                 $allPrintData = $product->productPrintData;
-    
-                
+
                 // Filter the printData for the specific positionId and techniqueId
                 $filteredPrintData = $allPrintData->filter(function ($printData) use ($positionId, $techniqueId) {
                     return $printData->printingPositions->contains(function ($position) use ($positionId, $techniqueId) {
                         return $position->id == $positionId && $position->printTechnique->contains('technique_id', $techniqueId);
-
                     });
                 });
 
@@ -168,6 +182,7 @@ class PrintCalculatorController extends Controller
 
         // Find the correct printing position
         $printingPosition = [];
+
         foreach ($allPrintData as $printData) {
 
             foreach ($printData->printingPositions as $position) {
@@ -181,12 +196,9 @@ class PrintCalculatorController extends Controller
                     }
                 }
             }
-            if ($printingPosition) {
-                break;
-            }
         }
     
-        if (!$selectedTechnique) {
+        if (!isset($selectedTechnique)) {
             return response()->json(['message' => 'Print technique not found'], 404);
         }
     
