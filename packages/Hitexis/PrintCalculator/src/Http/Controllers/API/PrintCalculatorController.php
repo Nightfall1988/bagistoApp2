@@ -57,22 +57,128 @@ class PrintCalculatorController extends Controller
         $techniqueId = $request->input('technique_id');
         $quantity = $request->input('quantity');
         $positionId = $request->input('position_id');
-        $setup = $request->input('setup-price');
+        $setup = $request->input('setup');
+        $variantId = $request->input('variantId');
+
+        $product = $this->productRepository->findOrFail($productId);
+
+        // Check if supplier code is 'midocean'
+        if ($product->supplier->supplier_code == '3CDCB852-2E30-43B6-A078-FA95A51DCA3C') {
+            if ($product->type == 'configurable') {
+                $product = $this->productRepository->with([
+                    'productPrintData.printingPositions.printTechnique.variableCosts',
+                    'productPrintData.printManipulation'
+                ])->findOrFail($productId);
+
+                $allPrintData = $product->productPrintData;
+
+                $filteredPrintData = $allPrintData->filter(function ($printData) use ($positionId, $techniqueId) {
+                    return $printData->printingPositions->contains(function ($position) use ($positionId, $techniqueId) {
+                        return $position->id == $positionId && $position->printTechnique->contains('technique_id', $techniqueId);
+                    });
+                });
+
+                $allPrintData = $filteredPrintData;
+
+            } elseif ($product->type == 'simple') {
+                $product = $this->productRepository->with([
+                    'parent.productPrintData.printingPositions.printTechnique.variableCosts',
+                    'parent.productPrintData.printManipulation'
+                ])->findOrFail($productId);
+
+                if ($product->parent) {
+                    $allPrintData = $product->parent->productPrintData;
+
+                    // Filter the printData for the specific positionId and techniqueId
+                    $filteredPrintData = $allPrintData->filter(function ($printData) use ($positionId, $techniqueId) {
+                        return $printData->printingPositions->contains(function ($position) use ($positionId, $techniqueId) {
+                            return $position->id == $positionId && $position->printTechnique->contains('technique_id', $techniqueId);
+                        });
+                    });
+                    $allPrintData = $filteredPrintData;
+
+                }
+            }
+        }
+
+
+        // xdconnects
+        if ($product->supplier->supplier_code == 'ae59fecb-9cc2-4e32-b4c8-c05ff3e19a41') {
+            if ($product->type == 'configurable') {
+                $product = $this->productRepository->with([
+                    'variants.productPrintData.printingPositions.printTechnique.variableCosts',
+                    'variants.productPrintData'
+                ])->findOrFail($product->id);
+
+                if ($variantId != '') {
+                    foreach ($product->variants as $variant) {
+                        if ($variant->id == $variantId) {
+                            $printData = $variant->productPrintData;
+
+                            // dd($printData );
+
+                        }
+                    }
+                } else {
+                    $printData = $product->productPrintData;
+                }
+
+                // $printData = $product->variants[0]->productPrintData;
+            } elseif ($product->type == 'simple') {
+                $product = $this->productRepository->with([
+                    'productPrintData.printingPositions.printTechnique.variableCosts',
+                    'productPrintData'
+                ])->findOrFail($product->id);
+
+                $printData = $product->productPrintData;
+            }
+            $allPrintData = $printData;
+        }
+
+        // stricker
+        if ($product->supplier->supplier_code == 'D99EA47D-397E-4C7B-BB0F-F5CBCAC4ED92') {
+            if ($product->type == 'configurable') {
+                $product = $this->productRepository->with([
+                    'productPrintData.printingPositions.printTechnique.variableCosts',
+                    'productPrintData.printManipulation'
+                ])->findOrFail($productId);
     
-        // Fetch the product along with its print data relationships
-        $product = $this->productRepository->with([
-            'productPrintData.printingPositions.printTechnique.variableCosts',
-            'productPrintData.printManipulation' // Move printManipulation to productPrintData
-        ])->findOrFail($productId);
+                $allPrintData = $product->productPrintData;
     
-        
+                
+                // Filter the printData for the specific positionId and techniqueId
+                $filteredPrintData = $allPrintData->filter(function ($printData) use ($positionId, $techniqueId) {
+                    return $printData->printingPositions->contains(function ($position) use ($positionId, $techniqueId) {
+                        return $position->id == $positionId && $position->printTechnique->contains('technique_id', $techniqueId);
+
+                    });
+                });
+
+            } elseif ($product->type == 'simple') {
+                $product = $this->productRepository->with([
+                    'parent.productPrintData.printingPositions.printTechnique.variableCosts',
+                    'parent.productPrintData.printManipulation'
+                ])->findOrFail($productId);
+    
+                if ($product->parent) {
+                    $allPrintData = $product->parent->productPrintData;
+                }
+            }
+        }
+
         // Find the correct printing position
-        $printingPosition = null;
-        foreach ($product->productPrintData as $printData) {
+        $printingPosition = [];
+        foreach ($allPrintData as $printData) {
+
             foreach ($printData->printingPositions as $position) {
-                if ($position->id == $positionId) {
-                    $printingPosition = $position;
-                    break;
+                // var_dump($position->id,$positionId, $position);
+                // echo "\n";
+                foreach ($position->printTechnique as $technique) {
+
+                    if ($position->id == $positionId && $technique->technique_id == $techniqueId) {
+                        $selectedTechnique = $technique;
+                        break;
+                    }
                 }
             }
             if ($printingPosition) {
@@ -80,30 +186,19 @@ class PrintCalculatorController extends Controller
             }
         }
     
-        // Ensure we found the correct printing position
-        if (!$printingPosition) {
-            return response()->json(['message' => 'Printing position not found'], 404);
-        }
-    
-        // Find the selected print technique from the position's techniques
-        $selectedTechnique = $printingPosition->printTechnique->firstWhere('technique_id', $techniqueId);
-    
         if (!$selectedTechnique) {
             return response()->json(['message' => 'Print technique not found'], 404);
         }
     
-        // Setup costs
         $setupCost = floatval(str_replace(',', '.', $selectedTechnique->setup));
         $repeatSetupCost = floatval(str_replace(',', '.', $selectedTechnique->setup_repeat));
     
-        // Fetch the pricing data from the variable costs
         $variableCosts = $selectedTechnique->variableCosts;
         $pricingData = [];
         foreach ($variableCosts as $cost) {
             $pricingData = array_merge($pricingData, json_decode($cost->pricing_data, true));
         }
     
-        // Default applicable price
         $applicablePrice = null;
     
         // Find the applicable price for the quantity
@@ -150,11 +245,10 @@ class PrintCalculatorController extends Controller
             'product_price_qty' => $productPriceQty,
             'total_product_and_print' => $totalProductAndPrint,
             'print_manipulation' => round($manipulationPrice, 2),
-            'print_manipulation_single_price' => isset($product->productPrintData[0]->printManipulation->price)  ? round(floatval($product->productPrintData[0]->printManipulation->price), 2) : 0,            
+            'print_manipulation_single_price' => isset($product->productPrintData[0]->printManipulation)  ? round(floatval($product->productPrintData[0]->printManipulation->price), 2) : 0,            
             'print_full_price' => core()->formatPrice((round($manipulationPrice, 2) + $printFee + $setupCost))
         ]);
     }
-    
 
     public function calculatePricingCart() {
         $techniqueName = request()->input('techniqueName');

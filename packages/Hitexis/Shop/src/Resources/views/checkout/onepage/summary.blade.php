@@ -260,11 +260,5 @@
         </p>
     </div>
 
-    <div>
-        &nbsp;
-        <p class="text-sm text-zinc-500 max-sm:mt-4 max-xs:text-xs">
-            <i>* @lang('shop::app.products.view.price-no-tax')</i>
-        </p>
-    </div>
     {!! view_render_event('bagisto.shop.checkout.onepage.summary.grand_total.after') !!}
 </div>

@@ -10,6 +10,7 @@ use Hitexis\Product\Models\ProductProxy;
 use Hitexis\Product\Repositories\ProductInventoryRepository;
 use Webkul\Theme\Repositories\ThemeCustomizationRepository;
 use Webkul\Shop\Http\Controllers\ProductsCategoriesProxyController as ProductsCategoriesBaseController;
+use Illuminate\Database\Eloquent\Collection;
 
 class HitexisProductsCategoriesProxyController extends Controller
 {
@@ -86,12 +87,134 @@ class HitexisProductsCategoriesProxyController extends Controller
                 abort(404);
             }
 
-            $product = ProductProxy::with([
-                'productPrintData.printManipulation',                  // Get print manipulations through product print data
-                'productPrintData.printingPositions.printTechnique', // Get printing positions and their techniques
-                'productPrintData.printingPositions.printTechnique.variableCosts' // Get variable costs for print techniques
-            ])->find($product->id);
-            
+            $printData = null;
+
+            switch ($product->supplier->supplier_code) {
+                // midocean
+                case '3CDCB852-2E30-43B6-A078-FA95A51DCA3C':
+                    if ($product->type == 'configurable') {
+                        $product = ProductProxy::with([
+                            'productPrintData.printManipulation',                  // Get print manipulations through product print data
+                            'productPrintData.printingPositions.printTechnique', // Get printing positions and their techniques
+                            'productPrintData.printingPositions.printTechnique.variableCosts' // Get variable costs for print techniques
+                        ])->find($product->id);
+
+                        $printData = $product->productPrintData;
+
+                    } else {
+                        // If the product is simple, load the relationships of the parent (configurable) product
+                        $product = ProductProxy::with([
+                            'parent.productPrintData.printManipulation',
+                            'parent.productPrintData.printingPositions.printTechnique',
+                            'parent.productPrintData.printingPositions.printTechnique.variableCosts'
+                        ])->find($product->id);
+        
+                        // Use the parent's print techniques if the product has a parent
+                        if ($product->parent) {
+                            $parent = $product->parent;
+                            $printData = $parent->productPrintData;
+                        }
+                    }
+
+                break;
+                // xdconnects
+                case 'ae59fecb-9cc2-4e32-b4c8-c05ff3e19a41':
+                    if ($product->type == 'configurable') {
+                        $product = $this->productRepository->with([
+                            'variants.productPrintData.printingPositions.printTechnique.variableCosts',
+                            'variants.productPrintData.printManipulation'
+                        ])->findOrFail($product->id);
+    
+
+                        $printData = $product->variants[0]->productPrintData;
+                    } elseif ($product->type == 'simple') {
+                        $product = $this->productRepository->with([
+                            'productPrintData.printingPositions.printTechnique.variableCosts',
+                            'productPrintData.printManipulation'
+                        ])->findOrFail($product->id);
+    
+                        $printData = $product->productPrintData;
+                    }
+
+                break;
+
+                // stricker
+                case 'D99EA47D-397E-4C7B-BB0F-F5CBCAC4ED92':
+                    if ($product->type == 'configurable') {
+                        $product = ProductProxy::with([
+                            'productPrintData.printManipulation',                  // Get print manipulations through product print data
+                            'productPrintData.printingPositions.printTechnique', // Get printing positions and their techniques
+                            'productPrintData.printingPositions.printTechnique.variableCosts' // Get variable costs for print techniques
+                        ])->find($product->id);
+
+                        $printData = $product->productPrintData;
+
+                        // Initialize an empty array to store the final results.
+                        $filteredPrintData = [];
+
+                        // dd($printData[0]->printingPositions );
+                        foreach ($printData as $productPrintData) {
+                            foreach ($productPrintData->printingPositions as $position) {
+                                // Use an associative array to track the lowest price technique by description.
+                                $lowestPriceByDescription = [];
+                        
+                                foreach ($position->printTechnique as $technique) {
+                                    $description = $technique->description;
+                                    $lowestPrice = null;
+                                    $lowestPriceVariableCost = null;
+                        
+                                    // Iterate over each variable cost entry for this technique
+                                    foreach ($technique->variableCosts as $variableCost) {
+                                        $pricingData = json_decode($variableCost->pricing_data, true);
+                        
+                                        // Find the entry where 'MinQt' is 1
+                                        $minPriceEntry = collect($pricingData)->firstWhere('MinQt', '1');
+                        
+                                        if ($minPriceEntry) {
+                                            $price = (float) $minPriceEntry['Price'];
+                        
+                                            // Check if we should update the lowest price for this description
+                                            if (
+                                                !isset($lowestPriceByDescription[$description]) ||
+                                                $price < $lowestPriceByDescription[$description]['price']
+                                            ) {
+                                                // Store the lowest price and the technique
+                                                $lowestPriceByDescription[$description] = [
+                                                    'price' => $price,
+                                                    'technique' => $technique,
+                                                ];
+                                            }
+                                        }
+                                    }
+                                }
+                        
+                                // Reassign the filtered techniques explicitly
+                                $filteredTechniques = collect($lowestPriceByDescription)
+                                    ->map(fn($entry) => $entry['technique'])
+                                    ->values();
+                        
+                                // Ensure the filtered list is assigned back to the position
+                                $position->setRelation('printTechnique', $filteredTechniques);
+                            }
+                        }                                             
+
+                    } else {
+                        // If the product is simple, load the relationships of the parent (configurable) product
+                        $product = ProductProxy::with([
+                            'parent.productPrintData.printManipulation',
+                            'parent.productPrintData.printingPositions.printTechnique',
+                            'parent.productPrintData.printingPositions.printTechnique.variableCosts'
+                        ])->find($product->id);
+        
+                        // Use the parent's print techniques if the product has a parent
+                        if ($product->parent) {
+                            $parent = $product->parent;
+                            $printData = $parent->productPrintData;
+                        }
+                    }
+                    break;
+            }
+
             visitor()->visit($product);
 
             if ($product->type == 'simple') {
@@ -102,11 +225,10 @@ class HitexisProductsCategoriesProxyController extends Controller
                 }
             }
 
-            if (empty($product->print_techniques)) {
+            if (empty($printData)) {
                 return view('hitexis-shop::products.view', compact('product', 'quantities'));
             } else {
-                $techniques = $product->print_techniques;
-                return view('hitexis-shop::products.view', compact('product', 'techniques', 'quantities'));
+                return view('hitexis-shop::products.view', compact('product', 'printData', 'quantities'));
             }
         }
 

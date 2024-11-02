@@ -1,5 +1,6 @@
 @inject ('reviewHelper', 'Webkul\Product\Helpers\Review')
 @inject ('productViewHelper', 'Webkul\Product\Helpers\View')
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
 
 @php
     $avgRatings = $reviewHelper->getAverageRating($product);
@@ -19,7 +20,11 @@
     $customAttributeValues = $properData;
 
 @endphp
-
+<script>
+    // Define the EventBus globally
+    const EventBus = new Vue();
+    window.EventBus = EventBus;
+</script>
 <!-- SEO Meta Content -->
 @push('meta')
     <meta name="description" content="{{ trim($product->meta_description) != "" ? $product->meta_description : \Illuminate\Support\Str::limit(strip_tags($product->description), 120, '') }}"/>
@@ -119,7 +124,10 @@
                                 <p class="mt-5 flex items-center gap-2.5 text-2xl !font-medium max-sm:mt-4 max-sm:text-lg">
                                     {!! $product->getTypeInstance()->getPriceHtml() !!}
                                 </p>
-
+                                &nbsp;
+                                <p class="text-sm text-zinc-500 max-sm:mt-4 max-xs:text-xs">
+                                    <i>@lang('shop::app.products.view.price-no-tax')</i>
+                                </p>
                                 @if (\Webkul\Tax\Facades\Tax::isInclusiveTaxProductPrices())
                                     <span class="text-sm font-normal text-zinc-500">@lang('shop::app.products.view.tax-inclusive')</span>
                                 @endif
@@ -260,6 +268,10 @@
                     });
                 },
                 methods: {
+                    updateVariantColor(color) {
+                        this.$refs.printCalculator.updateVariantColor(color);
+                    },
+
                     updateQuantity() {                        
                         const quantityDisplay = document.getElementById('quantity-display');
                         this.quantity = quantities[this.sku] || 0; 

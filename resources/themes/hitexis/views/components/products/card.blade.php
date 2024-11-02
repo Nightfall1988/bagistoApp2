@@ -82,7 +82,9 @@
                     v-html="product.price_html"
                 >
                 </div>
-
+                <p class="text-sm text-zinc-500 max-sm:mt-4 max-xs:text-xs">
+                    <i>@lang('shop::app.products.view.price-no-tax')</i>
+                </p>
                 {!! view_render_event('bagisto.shop.components.products.card.price.before') !!}
 
                 <!-- Product Actions Section -->

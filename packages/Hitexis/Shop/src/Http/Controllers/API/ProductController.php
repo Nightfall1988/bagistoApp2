@@ -7,6 +7,7 @@ use Webkul\Category\Repositories\CategoryRepository;
 use Hitexis\Marketing\Jobs\UpdateCreateSearchTerm as UpdateCreateSearchTermJob;
 use Hitexis\Product\Repositories\HitexisProductRepository as ProductRepository;
 use Hitexis\Shop\Http\Resources\ProductResource;
+use Illuminate\Http\Request;
 
 class ProductController extends APIController
 {
@@ -79,19 +80,44 @@ class ProductController extends APIController
         return ProductResource::collection($upSellProducts);
     }
 
-    public function getVariantSku($parentProdId, $attributeCode, $attributeName) {
+    public function getVariantSku($parentProdId, Request $request) {
         $sku = '';
-        $product = $this->productRepository->findOrFail($parentProdId);
+        $query = $request->query();
 
-        $variants = $this->productRepository->findWhere([
-            'parent_id' => $parentProdId,
-        ]);
+        $product = $this->productRepository->findOrFail($parentProdId);
+        $variants = $this->productRepository->findWhere(['parent_id' => $parentProdId]);
+    
+        $matches = []; // Array to store matching variants
 
         foreach ($variants as $variant) {
-            if ($variant->$attributeCode == $attributeName) {
-                $sku = $variant->sku;
+            $isMatch = true; // Assume the variant is a match initially
+        
+            // Iterate over each attribute in the query and check if the variant matches all of them
+            foreach ($query as $attributeCode => $attributeValue) {
+                // If the variant does not have the attribute or the value does not match, set isMatch to false
+                if (!property_exists($variant, $attributeCode) || $variant->$attributeCode != $attributeValue) {
+                    $isMatch = false;
+                    break; // Stop checking further if any attribute doesn't match
+                }
+            }
+        
+            // If all provided attributes matched, add the variant to the matches array
+            // dd($variant->color, $variant->size);
+            if ($isMatch) {
+                $matches[] = $variant;
             }
         }
-        return json_encode(['sku' => $sku]);
+
+        // Return the first match if both attributes are given, or all matches if only one attribute is provided
+        if (count($query) > 1) {
+            // Return the first match that has both attributes
+            $result = !empty($matches) ? $matches[0] : null;
+        } else {
+
+            $result = $matches;
+        }
+        
+        // Return the SKU if found, or an empty string if not found
+        return response()->json(['sku' => $sku]);
     }
 }

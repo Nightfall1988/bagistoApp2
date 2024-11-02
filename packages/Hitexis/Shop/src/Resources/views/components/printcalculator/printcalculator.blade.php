@@ -1,4 +1,4 @@
-<v-print-calculator :product="{{ json_encode($product) }}"></v-print-calculator>
+<v-print-calculator ref="printCalculator" :product="{{ json_encode($product) }}" :printData="{{ json_encode($printData) }}"></v-print-calculator>
 
 @push('scripts')
 <div class="mt-8">
@@ -10,8 +10,8 @@
                 </label>
                 <div>
                     <select v-model="selectedTechnique" @change="updateCurrentTechnique" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                        <option value="no-technique">@lang('shop::app.products.view.calculator.no-technique')</option> <!-- No technique option -->
-                        <option v-for="technique in allTechniques" :key="technique.technique_id" :value="technique.technique_id">
+                        <option value="no-technique">@lang('shop::app.products.view.calculator.no-technique')</option>
+                        <option v-for="technique in allTechniques" :key="technique.technique_id" :value="`${technique.technique_id}:${technique.position_id}`">
                             @{{ technique.description }}
                         </option>
                     </select>
@@ -34,14 +34,14 @@
                     </thead>
                     <tbody class="text-gray-700">
                         <tr v-for="technique in techniquesData" :key="technique.description" class="hover:bg-gray-100 transition-colors duration-150">
-                            <td class="px-6 py-4 border-b border-gray-200 text-center">@{{ technique.product_name }}</td>
-                            <td class="px-6 py-4 border-b border-gray-200 text-center">@{{ technique.print_technique }} </td>
+                            <td class="px-6 py-4 border-b border-gray-200 text-center">@{{ product.name }}</td>
+                            <td class="px-6 py-4 border-b border-gray-200 text-center">@{{ technique.description }} </td>
                             <td class="px-6 py-4 border-b border-gray-200 text-center">@{{ Number(technique.setup_cost).toFixed(2) }} *</td>
                             <td class="px-6 py-4 border-b border-gray-200 text-center">@{{ parseFloat(product.price).toFixed(2) }} *</td>
                             <td class="px-6 py-4 border-b border-gray-200 text-center">@{{ parseFloat(manipulationPrice).toFixed(2) }} *</td>
                             <td class="px-6 py-4 border-b border-gray-200 text-center">@{{ technique.quantity }}</td>
                             <td class="px-6 py-4 border-b border-gray-200 text-center">@{{ parseFloat(technique.technique_print_fee).toFixed(2) }} *</td>
-                            <td class="px-6 py-4 border-b border-gray-200 text-center w-24">@{{ printFullPrice }} * </td>
+                            <td class="px-6 py-4 border-b border-gray-200 text-center w-32">@{{ totalRowPrice }} * </td>
                         </tr>
                         <!-- Hidden inputs to hold technique-related data -->
                         <input name='technique-single-price' type='hidden' v-model="techniqueSinglePrice" />
@@ -52,6 +52,8 @@
                         <input name='print-manipulation' type='hidden' v-model="manipulationPrice" />
                         <input name='technique-id' type='hidden' v-model="techniqueId" /> <!-- New hidden input for technique ID -->
                         <input name='print-manipulation-single-price' type='hidden' v-model="manipulationSinglePrice" /> <!-- New hidden input for technique ID -->
+                        <input name='variant-color' type='hidden' v-model="variantColor" />
+                        <input name='variant-id' type='hidden' v-model="selectedOptionVariant" />
                     </tbody>
                     <p class="mt-4 ml-2 mb-2 text-sm text-zinc-500 max-sm:mt-4 max-xs:text-xs">
                         <i>* @lang('shop::app.products.view.price-no-tax')</i>
@@ -66,22 +68,24 @@
     app.component('v-print-calculator', {
         template: '#v-print-calculator-template',
 
-        props: ['product'],
+        props: ['product', 'printData'],
 
         data() {
             return {
                 selectedTechnique: '',
                 currentTechnique: null,
                 techniquesData: [],
-                techniquePrice: '', // This will store the total price
+                techniquePrice: '',
                 techniqueInfo: '',
                 techniqueSinglePrice: '',
                 positionId: '',
                 setupPrice: '',
                 manipulationPrice: 0,
                 manipulationSinglePrice: 0,
-                techniqueId: '', // New technique ID to be used in hidden input
-                allTechniques: [] // To hold all print techniques
+                selectedOptionVariant: '',
+                techniqueId: '',
+                variantColor: '', // New property for variant color
+                allTechniques: []
             };
         },
 
@@ -92,7 +96,16 @@
                     return ((Number(technique.price) * technique.quantity) + Number(technique.setup_cost) + Number(technique.printManipulation)).toFixed(2);
                 }
                 return "0.00";
-            }
+            },
+
+            
+            totalRowPrice() {
+                const productPrice = parseFloat(this.product.price) || 0;
+                const quantity = this.techniquesData.length > 0 ? this.techniquesData[0].quantity : 0;
+                const print_fee = parseFloat(this.print_fee) || 0;
+
+                return ((productPrice * quantity) + print_fee).toFixed(2);
+            },
         },
 
         watch: {
@@ -102,15 +115,21 @@
         },
 
         methods: {
+            updateVariantColor(color) {
+                this.variantColor = color;
+            },
             initializeTechniques() {
+
                 // Traverse through productPrintData, printingPositions, and printTechnique to get all techniques
-                if (Array.isArray(this.product.product_print_data)) {
-                    this.product.product_print_data.forEach(printData => {
+                if (Array.isArray(this.printData)) {
+                    this.printData.forEach(printData => {
                         if (Array.isArray(printData.printing_positions)) {
                             printData.printing_positions.forEach(position => {
-                                console.log(position);  // To check position data
-                                if (Array.isArray(position.print_technique)) {
-                                    position.print_technique.forEach(technique => {
+                                
+                                if (Array.isArray(position.print_technique)) {                         
+                                    position.print_technique.forEach(technique => {   
+                                        technique.position_id = position.id                                        
+                                        technique.description = position.position_id + ' - ' + technique.description;
                                         this.allTechniques.push(technique);
                                     });
                                 }
@@ -122,7 +141,7 @@
 
             updateCurrentTechnique() {
                 if (this.selectedTechnique === 'no-technique') {
-                    // Set all technique properties to 0 when no technique is selected
+                    // Reset all technique-related properties when no technique is selected
                     this.techniquesData = [{
                         product_name: this.product.name,
                         techniqueInfo: "@lang('shop::app.products.view.calculator.no-technique')",
@@ -139,32 +158,34 @@
                     this.techniqueSinglePrice = 0;
                     this.techniqueInfo = "@lang('shop::app.products.view.calculator.no-technique')";
                     this.techniquePrice = 0;
-                    this.positionId = null;
+                    this.positionId = ''; // Reset positionId
                     this.setupPrice = 0;
                     this.manipulationPrice = 0;
                     this.manipulationSinglePrice = 0;
                     this.techniqueId = ''; // Reset technique ID
-                    this.printFullPrice = ''; // Reset technique ID
+                    this.printFullPrice = ''; // Reset print fee
                 } else {
-                    // Find the selected technique from the allTechniques array
+                    // Split the `selectedTechnique` to get `technique_id` and `position_id`
+                    const [technique_id, position_id] = this.selectedTechnique.split(':');
                     this.currentTechnique = this.allTechniques.find(
-                        technique => technique.technique_id === this.selectedTechnique
+                        technique => technique.technique_id == technique_id && technique.position_id == position_id
                     );
 
                     if (this.currentTechnique) {
-                        // Assign technique-related values
+                        // Assign the technique-related values, including positionId
                         this.techniqueId = this.currentTechnique.technique_id;
                         this.techniqueInfo = this.currentTechnique.description;
                         this.setupPrice = this.currentTechnique.setup;
-                        this.positionId = this.currentTechnique.pivot.printing_position_id; // Accessing the pivot data for the position
-
-                        // Optionally assign manipulation or price-related values based on the technique or backend response
+                        this.positionId = this.currentTechnique.position_id; // Update the positionId
                         this.calculatePrices();
+                    } else {
+                        console.warn('No technique found for the selectedTechnique:', this.selectedTechnique);
                     }
                 }
             },
 
             calculatePrices() {
+                
                 const quantity = this.getQuantityFromFieldQty();
                 if (!quantity || !this.currentTechnique) return;
 
@@ -175,13 +196,12 @@
                         quantity: quantity,
                         product_id: this.product.id,
                         position_id: this.positionId,
-                        setup: this.setupPrice
+                        setup: this.setupPrice,
+                        variantId: this.selectedOptionVariant
                     }
                 })
                 .then(response => {
                     const data = response.data;
-
-                    console.log(data);
                     
                     // Update techniquesData with backend-calculated data
                     this.techniquesData = [{
@@ -198,14 +218,16 @@
                         printManipulation: data.print_manipulation,
                         manipulationSinglePrice: data.print_manipulation_single_price
                     }];
-
+                    
                     // Set techniqueSinglePrice to the calculated print fee
                     this.techniqueSinglePrice = parseFloat(data.technique_print_fee).toFixed(2);
                     this.techniquePrice = this.totalTechniquePrice;
+                    this.positionId = this.positionId;
                     this.manipulationPrice = data.print_manipulation;
-                    this.manipulationSinglePrice =  data.print_manipulation_single_price
+                    this.manipulationSinglePrice =  data.print_manipulation_single_price;
+                    this.print_fee = data.print_fee;
                     this.printFullPrice =  data.print_full_price;
-
+                    
                 })
                 .catch(error => {
                     console.error('Error calculating price:', error);
@@ -230,18 +252,22 @@
                     attributeFilter: ['value']
                 });
             },
-},
+        },
 
-mounted() {
-    this.initializeTechniques();
-    this.observeQuantityChange();
+        mounted() {
+            EventBus.$on('variant-id-updated', (variantId) => {
+                this.selectedOptionVariant = variantId;
+            });
+            this.initializeTechniques();
+            this.observeQuantityChange();
 
-    if (this.allTechniques.length > 0) {
-        this.selectedTechnique = this.allTechniques[0].technique_id;
-        this.updateCurrentTechnique();
-    }
-},
-
+            // Check if `allTechniques` has any items and set the first one as selected
+            if (this.allTechniques.length > 0) {
+                const firstTechnique = this.allTechniques[0];
+                this.selectedTechnique = `${firstTechnique.technique_id}:${firstTechnique.position_id}`; // Set the combined value
+                this.updateCurrentTechnique();
+            }
+        },
     });
 </script>
 @endpush

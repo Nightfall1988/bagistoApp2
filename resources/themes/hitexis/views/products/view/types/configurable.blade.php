@@ -1,7 +1,7 @@
 @if (Hitexis\Product\Helpers\ProductType::hasVariants($product->type))
     {!! view_render_event('bagisto.shop.products.view.configurable-options.before', ['product' => $product]) !!}
 
-    <v-product-configurable-options :errors="errors"></v-product-configurable-options>
+    <v-product-configurable-options :errors="errors" @color-change="updateVariantColor"></v-product-configurable-options>
 
     {!! view_render_event('bagisto.shop.products.view.configurable-options.after', ['product' => $product]) !!}
 
@@ -102,7 +102,7 @@
                                         :class="{'border-navyBlue' : option.id == attribute.selectedValue }"
                                         :title="option.label"
                                         v-if="attribute.swatch_type == 'image'"
-                                    >
+                                    >    
                                         <v-field
                                             type="radio"
                                             :name="'super_attribute[' + attribute.id + ']'"
@@ -188,6 +188,7 @@
                     </v-error-message>
                 </div>
             </div>
+            <input name='variant-id' type='hidden' v-model="selectedOptionVariant" />
         </script>
 
         <script type="module">
@@ -201,25 +202,19 @@
                 data() {
                     return {
                         config: @json(app('Hitexis\Product\Helpers\ConfigurableOption')->getConfigurationConfig($product)),
-
                         childAttributes: [],
-
                         possibleOptionVariant: null,
-
                         selectedOptionVariant: '',
-
                         galleryImages: [],
-                    }
+                    };
                 },
 
                 mounted() {
                     let attributes = JSON.parse(JSON.stringify(this.config)).attributes.slice();
-
                     let index = attributes.length;
 
                     while (index--) {
                         let attribute = attributes[index];
-
                         attribute.options = [];
 
                         if (index) {
@@ -240,61 +235,111 @@
 
                 methods: {
                     configure(attribute, optionId) {
-                        this.possibleOptionVariant = this.getPossibleOptionVariant(attribute, optionId);
+                        attribute.selectedValue = optionId;
 
-                        if (optionId) {
-                            attribute.selectedValue = optionId;
-                            
-                            if (attribute.nextAttribute) {
-                                attribute.nextAttribute.disabled = false;
-
-                                this.clearAttributeSelection(attribute.nextAttribute);
-
-                                this.fillAttributeOptions(attribute.nextAttribute);
-
-                                this.resetChildAttributes(attribute.nextAttribute);
-                            } else {
-                                this.selectedOptionVariant = this.possibleOptionVariant;
+                        let selectedAttributes = {};
+                        this.childAttributes.forEach(attr => {
+                            if (attr.selectedValue) {
+                                selectedAttributes[attr.code] = attr.selectedValue;
                             }
-                        } else {
-                            this.clearAttributeSelection(attribute);
+                        });
 
+                        // Emit the color change event if the attribute is color
+                        if (attribute.label.toLowerCase().includes('color')) {
+                            this.$emit('color-change', attribute.selectedValue);
+                        }
+
+                        this.possibleOptionVariant = this.getPossibleOptionVariant(selectedAttributes);
+
+                        if (attribute.nextAttribute) {
+                            attribute.nextAttribute.disabled = false;
                             this.clearAttributeSelection(attribute.nextAttribute);
+                            this.fillAttributeOptions(attribute.nextAttribute);
+                            this.resetChildAttributes(attribute.nextAttribute);
+                        } else {
+                            this.selectedOptionVariant = this.possibleOptionVariant;
+                            EventBus.$emit('variant-id-updated', this.selectedOptionVariant);
 
-                            this.resetChildAttributes(attribute);
                         }
 
                         this.getSku(@json($product->id), attribute);
-
                         this.reloadPrice();
-                        
                         this.reloadImages();
                     },
-
-                    getPossibleOptionVariant(attribute, optionId) {
-                        let matchedOptions = attribute.options.filter(option => option.id == optionId);
-
-                        if (matchedOptions[0]?.allowedProducts) {
-                            return matchedOptions[0].allowedProducts[0];
+                    getPossibleOptionVariant(selectedAttributes) {
+                        // Ensure variants data is present
+                        if (!this.config.index) {
+                            console.warn("Variants data is not available:", this.config.index);
+                            return null;
                         }
 
-                        return undefined;
+                        // Preserve the original indexes
+                        const variants = Object.entries(this.config.index);
+
+                        // Hardcoded attribute IDs
+                        const colorAttributeId = 23;
+                        const sizeAttributeId = 24;
+                        
+                        // Loop through all variants and check if all selected attributes match
+                        for (let [index, variant] of variants) {
+                            let isMatch = false;
+                            const variantArray = Object.entries(variant);
+                            
+                            if (selectedAttributes.color && selectedAttributes.size &&
+                                variantArray[0][1] == selectedAttributes.color &&
+                                variantArray[1][1] == selectedAttributes.size
+                            ) {
+                                isMatch = true;
+                            }
+
+                            // Check if color matches
+                            if (
+                                selectedAttributes.color && selectedAttributes.size == undefined &&
+                                variantArray[0][1] == selectedAttributes.color
+                            ) {
+                                isMatch = true;
+                            }
+
+                            // Check if size matches
+                            if (
+                                selectedAttributes.size && selectedAttributes.color == undefined &&
+                                variantArray[0][1] == selectedAttributes.size
+                            ) {
+                                isMatch = true;
+                            }
+
+
+                            if (isMatch) {
+                                this.selectedOptionVariant = index
+                                return index; // Return the index of the matching variant as a string
+                            }
+                        }
+
+                        
+                        return null; // Return null if no matching variant is found
                     },
 
+
                     fillAttributeOptions(attribute) {
-                        let options = this.config.attributes.find(tempAttribute => tempAttribute.id === attribute.id)?.options;
+                        let options = this.config.attributes.find(
+                            tempAttribute => tempAttribute.id === attribute.id
+                        )?.options;
 
-                        attribute.options = [{
-                            'id': '',
-                            'label': "@lang('shop::app.products.view.type.configurable.select-options')",
-                            'products': []
-                        }];
+                        attribute.options = [
+                            {
+                                id: '',
+                                label: "@lang('shop::app.products.view.type.configurable.select-options')",
+                                products: [],
+                            },
+                        ];
 
-                        if (! options) {
+                        if (!options) {
                             return;
                         }
 
-                        let prevAttributeSelectedOption = attribute.prevAttribute?.options.find(option => option.id == attribute.prevAttribute.selectedValue);
+                        let prevAttributeSelectedOption = attribute.prevAttribute?.options.find(
+                            option => option.id == attribute.prevAttribute.selectedValue
+                        );
 
                         let index = 1;
 
@@ -303,7 +348,12 @@
 
                             if (prevAttributeSelectedOption) {
                                 for (let j = 0; j < options[i].products.length; j++) {
-                                    if (prevAttributeSelectedOption.allowedProducts && prevAttributeSelectedOption.allowedProducts.includes(options[i].products[j])) {
+                                    if (
+                                        prevAttributeSelectedOption.allowedProducts &&
+                                        prevAttributeSelectedOption.allowedProducts.includes(
+                                            options[i].products[j]
+                                        )
+                                    ) {
                                         allowedProducts.push(options[i].products[j]);
                                     }
                                 }
@@ -313,90 +363,102 @@
 
                             if (allowedProducts.length > 0) {
                                 options[i].allowedProducts = allowedProducts;
-
                                 attribute.options[index++] = options[i];
                             }
                         }
                     },
 
                     resetChildAttributes(attribute) {
-                        if (! attribute.childAttributes) {
+                        if (!attribute.childAttributes) {
                             return;
                         }
 
                         attribute.childAttributes.forEach(function (set) {
                             set.selectedValue = null;
-
                             set.disabled = true;
                         });
                     },
 
-                    clearAttributeSelection (attribute) {
-                        if (! attribute) {
+                    clearAttributeSelection(attribute) {
+                        if (!attribute) {
                             return;
                         }
 
                         attribute.selectedValue = null;
-
                         this.selectedOptionVariant = null;
                     },
 
-                    reloadPrice () {
-                        let selectedOptionCount = this.childAttributes.filter(attribute => attribute.selectedValue).length;
+                    reloadPrice() {
+                        let selectedOptionCount = this.childAttributes.filter(
+                            attribute => attribute.selectedValue
+                        ).length;
 
-                        if (this.childAttributes.length == selectedOptionCount) {
+                        if (this.childAttributes.length === selectedOptionCount) {
                             document.querySelector('.price-label').style.display = 'none';
 
-                            document.querySelector('.final-price').innerHTML = this.config.variant_prices[this.possibleOptionVariant].final.formatted_price;
+                            document.querySelector('.final-price').innerHTML =
+                                this.config.variant_prices[this.possibleOptionVariant].final.formatted_price;
 
-                            this.$emitter.emit('configurable-variant-selected-event',this.possibleOptionVariant);
+                            this.$emitter.emit(
+                                'configurable-variant-selected-event',
+                                this.possibleOptionVariant
+                            );
                         } else {
                             document.querySelector('.price-label').style.display = 'inline-block';
 
-                            document.querySelector('.final-price').innerHTML = this.config.regular.formatted_price;
+                            document.querySelector('.final-price').innerHTML =
+                                this.config.regular.formatted_price;
 
                             this.$emitter.emit('configurable-variant-selected-event', 0);
                         }
                     },
 
-                    reloadImages () {
-                        galleryImages.splice(0, galleryImages.length)
+                    reloadImages() {
+                        galleryImages.splice(0, galleryImages.length);
 
                         if (this.possibleOptionVariant) {
-                            this.config.variant_images[this.possibleOptionVariant].forEach(function(image) {
+                            this.config.variant_images[this.possibleOptionVariant].forEach(function (image) {
                                 galleryImages.push(image);
                             });
 
-                            this.config.variant_videos[this.possibleOptionVariant].forEach(function(video) {
+                            this.config.variant_videos[this.possibleOptionVariant].forEach(function (video) {
                                 galleryImages.push(video);
                             });
                         }
 
-                        this.galleryImages.forEach(function(image) {
+                        this.galleryImages.forEach(function (image) {
                             galleryImages.push(image);
                         });
 
                         if (galleryImages.length) {
-                            this.$parent.$parent.$refs.gallery.media.images =  [...galleryImages];
+                            this.$parent.$parent.$refs.gallery.media.images = [...galleryImages];
                         }
 
-                        this.$emitter.emit('configurable-variant-update-images-event', galleryImages);
+                        this.$emitter.emit(
+                            'configurable-variant-update-images-event',
+                            galleryImages
+                        );
                     },
 
-
-                    getSku (id, attribute) {
-
-                        this.$axios.get("{{ route('shop.api.products.get-sku', [':prodId', ':attrCode', ':attrName']) }}".replace(':prodId',id).replace(':attrCode', attribute.code).replace(':attrName', attribute.selectedValue))
-                        .then(response => {
-                            console.log(response.data)
-                            this.$emitter.emit('configurable-variant-update-sku-event', response.data);
-                        })
-                        .catch(error => {});
+                    getSku(id, attribute) {
+                        this.$axios
+                            .get(
+                                "{{ route('shop.api.products.get-sku', [':prodId', ':attrCode', ':attrName']) }}"
+                                    .replace(':prodId', id)
+                                    .replace(':attrCode', attribute.code)
+                                    .replace(':attrName', attribute.selectedValue)
+                            )
+                            .then(response => {
+                                console.log(response.data);
+                                this.$emitter.emit(
+                                    'configurable-variant-update-sku-event',
+                                    response.data
+                                );
+                            })
+                            .catch(error => {});
                     },
-                }
+                },
             });
-
         </script>
     @endpush
-
 @endif
