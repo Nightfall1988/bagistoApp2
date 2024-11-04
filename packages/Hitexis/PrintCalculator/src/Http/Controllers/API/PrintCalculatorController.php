@@ -129,7 +129,7 @@ class PrintCalculatorController extends Controller
                     'productPrintData'
                 ])->findOrFail($product->id);
 
-                $printData = $product->productPrintData;
+                $allPrintData = $product->productPrintData;
 
                 foreach ($allPrintData as $printData) {
 
@@ -143,9 +143,6 @@ class PrintCalculatorController extends Controller
                                 break;
                             }
                         }
-                    }
-                    if ($printingPosition) {
-                        break;
                     }
                 }
             }
@@ -232,22 +229,21 @@ class PrintCalculatorController extends Controller
         }
     
         // Calculate print total
-        $printTotal = $applicablePrice * $quantity;
     
         // Calculate product price for the given quantity
         $productPriceQty = $product->price * $quantity;
-
-        $totalProductAndPrint = $productPriceQty + $printTotal;
     
         // Manipulation price calculation (retrieved from productPrintData)
         $manipulationPrice = 0;
         if (isset($product->productPrintData[0]->printManipulation)) {
             $manipulationPrice = floatval($product->productPrintData[0]->printManipulation->price) * $quantity;
         }
-    
+
+        $printTotal = ($applicablePrice * $quantity) + $manipulationPrice + $setupCost;
+        $totalProductAndPrint = $productPriceQty + $printTotal;
+
         $printFee = $applicablePrice * intval($quantity);
         // Return the calculated data as JSON response
-
         return response()->json([
             'price' => $applicablePrice,
             'setup_cost' => $setupCost,
@@ -255,10 +251,10 @@ class PrintCalculatorController extends Controller
             'technique_print_fee' => $applicablePrice,
             'print_fee' => $printFee, // Assuming this needs custom calculation or backend logic
             'product_price_qty' => $productPriceQty,
-            'total_product_and_print' => $totalProductAndPrint,
+            'total_product_and_print' => core()->formatPrice((round($totalProductAndPrint, 2))),
             'print_manipulation' => round($manipulationPrice, 2),
             'print_manipulation_single_price' => isset($product->productPrintData[0]->printManipulation)  ? round(floatval($product->productPrintData[0]->printManipulation->price), 2) : 0,            
-            'print_full_price' => core()->formatPrice((round($manipulationPrice, 2) + $printFee + $setupCost))
+            'print_full_price' => core()->formatPrice((round($printTotal, 2)))
         ]);
     }
 

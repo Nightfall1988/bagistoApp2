@@ -85,7 +85,8 @@
                 selectedOptionVariant: '',
                 techniqueId: '',
                 variantColor: '', // New property for variant color
-                allTechniques: []
+                allTechniques: [],
+                totalRowPrice: ''
             };
         },
 
@@ -93,6 +94,8 @@
             totalTechniquePrice() {
                 if (this.techniquesData.length > 0) {
                     const technique = this.techniquesData[0];
+                    console.log(technique);
+                    
                     return ((Number(technique.price) * technique.quantity) + Number(technique.setup_cost) + Number(technique.printManipulation)).toFixed(2);
                 }
                 return "0.00";
@@ -102,9 +105,9 @@
             totalRowPrice() {
                 const productPrice = parseFloat(this.product.price) || 0;
                 const quantity = this.techniquesData.length > 0 ? this.techniquesData[0].quantity : 0;
-                const print_fee = parseFloat(this.print_fee) || 0;
+                const print_fee = parseFloat(this.technique_print_fee) || 0;
 
-                return ((productPrice * quantity) + print_fee).toFixed(2);
+                this.totalRowPrice = (((Number(this.print_fee) + productPrice) * quantity) + Number(this.setupPrice) + Number(this.manipulationPrice)).toFixed(2)
             },
         },
 
@@ -217,7 +220,7 @@
                         total_product_and_print: data.total_product_and_print,
                         printManipulation: data.print_manipulation,
                         manipulationSinglePrice: data.print_manipulation_single_price
-                    }];
+                    }];                    
                     
                     // Set techniqueSinglePrice to the calculated print fee
                     this.techniqueSinglePrice = parseFloat(data.technique_print_fee).toFixed(2);
@@ -227,6 +230,7 @@
                     this.manipulationSinglePrice =  data.print_manipulation_single_price;
                     this.print_fee = data.print_fee;
                     this.printFullPrice =  data.print_full_price;
+                    this.totalRowPrice = data.total_product_and_print
                     
                 })
                 .catch(error => {
