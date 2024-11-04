@@ -181,6 +181,7 @@ class StrickerProductMapperService extends BaseService
         ['id' => 24, 'code' => 'Size'],                 // Size
         ['id' => 29, 'code' => 'Materials'],            // material
         ['id' => 30, 'code' => 'CombinedSizes'],        // dimensions
+        ['id' => 22, 'code' => 'BoxWeightKG'],          // weight (net_weight)
         ['id' => 3,  'code' => 'Sku'],                  // url_key
         ['id' => 1,  'code' => 'Sku'],                  // url_key
         ['id' => 2,  'code' => 'Name'],                 // name
