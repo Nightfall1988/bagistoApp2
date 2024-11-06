@@ -94,20 +94,36 @@ class StrickerProductMapperService extends BaseService
         $parentCategories = collect($this->data['Products'])->flatMap(function (array $row) use ($products) {
             $categories = [];
 
-            $categories[] = [
-                'product_id' => $products[$row['ProdReference']]->id,
-                'category_id'=> $this->categoryAssignmentService->StrickerMapTypeToDefaultCategory($row['Type']),
-            ];
+            $typeCategoryId = $this->categoryAssignmentService->StrickerMapTypeToDefaultCategory($row['Type']);
+            $subTypeCategoryId = isset($row['SubType'])
+                ? $this->categoryAssignmentService->StrickerMapSubTypeToDefaultCategory($row['SubType'])
+                : null;
 
-            if (isset($row['SubType'])) {
+            $isTypeUncategorized = $typeCategoryId == $this->categoryAssignmentService->getUncategorizedCategoryId();
+            $isSubTypeUncategorized = $subTypeCategoryId === null || $subTypeCategoryId == $this->categoryAssignmentService->getUncategorizedCategoryId();
+
+            if ($isTypeUncategorized && $isSubTypeUncategorized) {
                 $categories[] = [
                     'product_id' => $products[$row['ProdReference']]->id,
-                    'category_id'=> $this->categoryAssignmentService->StrickerMapSubTypeToDefaultCategory($row['SubType']),
+                    'category_id'=> $typeCategoryId,
                 ];
+            } else {
+                if (! $isTypeUncategorized) {
+                    $categories[] = [
+                        'product_id' => $products[$row['ProdReference']]->id,
+                        'category_id'=> $typeCategoryId,
+                    ];
+                }
+                if ($subTypeCategoryId !== null && ! $isSubTypeUncategorized) {
+                    $categories[] = [
+                        'product_id' => $products[$row['ProdReference']]->id,
+                        'category_id'=> $subTypeCategoryId,
+                    ];
+                }
             }
 
             return $categories;
-        });
+        })->filter();
 
         $this->productImportRepository->upsertProductCategories($parentCategories);
     }
@@ -118,20 +134,37 @@ class StrickerProductMapperService extends BaseService
         $parentCategories = collect($this->data['OptionalsComplete'])->flatMap(function (array $row) use ($optionals) {
             $categories = [];
 
-            $categories[] = [
-                'product_id' => $optionals[$row['Sku']]->id,
-                'category_id'=> $this->categoryAssignmentService->StrickerMapTypeToDefaultCategory($row['Type']),
-            ];
+            $typeCategoryId = $this->categoryAssignmentService->StrickerMapTypeToDefaultCategory($row['Type']);
+            $subTypeCategoryId = isset($row['SubType'])
+                ? $this->categoryAssignmentService->StrickerMapSubTypeToDefaultCategory($row['SubType'])
+                : null;
 
-            if (isset($row['SubType'])) {
+            $isTypeUncategorized = $typeCategoryId == $this->categoryAssignmentService->getUncategorizedCategoryId();
+            $isSubTypeUncategorized = $subTypeCategoryId === null || $subTypeCategoryId == $this->categoryAssignmentService->getUncategorizedCategoryId();
+
+            if ($isTypeUncategorized && $isSubTypeUncategorized) {
                 $categories[] = [
                     'product_id' => $optionals[$row['Sku']]->id,
-                    'category_id'=> $this->categoryAssignmentService->StrickerMapSubTypeToDefaultCategory($row['SubType']),
+                    'category_id'=> $typeCategoryId,
                 ];
+            } else {
+                if (! $isTypeUncategorized) {
+                    $categories[] = [
+                        'product_id' => $optionals[$row['Sku']]->id,
+                        'category_id'=> $typeCategoryId,
+                    ];
+                }
+
+                if ($subTypeCategoryId !== null && ! $isSubTypeUncategorized) {
+                    $categories[] = [
+                        'product_id' => $optionals[$row['Sku']]->id,
+                        'category_id'=> $subTypeCategoryId,
+                    ];
+                }
             }
 
             return $categories;
-        });
+        })->filter();
 
         $this->productImportRepository->upsertProductCategories($parentCategories);
     }
@@ -307,9 +340,9 @@ class StrickerProductMapperService extends BaseService
         });
     }
 
-    private function mapAttributeValues(array $data, array $attributeMap, Collection $products, Collection $attributeOptions, callable $statusMapper, $referenceKey): Collection
+    private function mapAttributeValues(array $data, array $attributeMap, Collection $products, Collection $attributeOptions, callable $statusMapper, callable $guestCheckoutMapper, $referenceKey): Collection
     {
-        return collect($data)->flatMap(function ($item) use ($products, $attributeOptions, $attributeMap, $statusMapper, $referenceKey) {
+        return collect($data)->flatMap(function ($item) use ($products, $attributeOptions, $attributeMap, $statusMapper, $guestCheckoutMapper, $referenceKey) {
             $productAttributes = [];
 
             foreach ($attributeMap as $attribute) {
@@ -344,6 +377,7 @@ class StrickerProductMapperService extends BaseService
                 }
             }
             $statusMapper($productAttributes, $products, $item);
+            $guestCheckoutMapper($productAttributes, $products, $item);
 
             return $productAttributes;
         })->filter();
@@ -361,6 +395,9 @@ class StrickerProductMapperService extends BaseService
             $attributeOptions,
             function (&$productAttributes, $products, $item) {
                 $this->mapStatuses($productAttributes, $products, $item, 'Sku');
+            },
+            function (&$productAttributes, $products, $item) {
+                $this->mapGuestCheckout($productAttributes, $products, $item, 'Sku');
             },
             'Sku'
         );
@@ -380,6 +417,9 @@ class StrickerProductMapperService extends BaseService
             $attributeOptions,
             function (&$productAttributes, $products, $item) {
                 $this->mapStatuses($productAttributes, $products, $item, 'ProdReference');
+            },
+            function (&$productAttributes, $products, $item) {
+                $this->mapGuestCheckout($productAttributes, $products, $item, 'ProdReference');
             },
             'ProdReference'
         );
@@ -401,6 +441,23 @@ class StrickerProductMapperService extends BaseService
             'channel'       => 'default',
             'locale'        => 'en',
             'unique_id'     => 'default|en|'.$products[$item[$referenceKey]]->id.'|'.self::PRODUCT_STATUS_ATTRIBUTE_KEY,
+        ];
+    }
+
+    protected const GUEST_CHECKOUT_ATTRIBUTE_KEY = 26;
+
+    private function mapGuestCheckout(array &$productAttributes, Collection $products, array $item, string $referenceKey): void
+    {
+        $productAttributes[] = [
+            'attribute_id'  => self::GUEST_CHECKOUT_ATTRIBUTE_KEY,
+            'product_id'    => $products[$item[$referenceKey]]->id,
+            'text_value'    => null,
+            'integer_value' => null,
+            'float_value'   => null,
+            'boolean_value' => true,
+            'channel'       => 'default',
+            'locale'        => 'en',
+            'unique_id'     => 'default|en|'.$products[$item[$referenceKey]]->id.'|'.self::GUEST_CHECKOUT_ATTRIBUTE_KEY,
         ];
     }
 

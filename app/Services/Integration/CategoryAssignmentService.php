@@ -315,4 +315,9 @@ class CategoryAssignmentService
         return $categories['Uncategorized']->id;
     }
 
+    public function getUncategorizedCategoryId(): int
+    {
+        $categories = $this->getCategories();
+        return $categories['Uncategorized']->id;
+    }
 }

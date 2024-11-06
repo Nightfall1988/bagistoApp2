@@ -183,6 +183,7 @@ class XDConnectProductMapperService extends BaseService
             }
 
             $this->mapProductStatuses($productAttributes, $products, $item);
+            $this->mapGuestCheckout($productAttributes, $products, $item);
 
             return $productAttributes;
         })->filter();
@@ -203,6 +204,21 @@ class XDConnectProductMapperService extends BaseService
             'channel'       => 'default',
             'locale'        => 'en',
             'unique_id'     => 'default|en|'.$products[$item['ItemCode']]->id.'|'.self::PRODUCT_STATUS_ATTRIBUTE_KEY,
+        ];
+    }
+
+    protected const GUEST_CHECKOUT_ATTRIBUTE_KEY = 26;
+    private function mapGuestCheckout(array &$productAttributes, Collection $products, array $item): void
+    {
+        $productAttributes[] = [
+            'attribute_id'  => self::GUEST_CHECKOUT_ATTRIBUTE_KEY,
+            'product_id'    => $products[$item['ItemCode']]->id,
+            'text_value'    => null,
+            'integer_value' => null,
+            'boolean_value' => true,
+            'channel'       => 'default',
+            'locale'        => 'en',
+            'unique_id'     => 'default|en|'.$products[$item['ItemCode']]->id.'|'.self::GUEST_CHECKOUT_ATTRIBUTE_KEY,
         ];
     }
 
@@ -246,16 +262,32 @@ class XDConnectProductMapperService extends BaseService
         $parentCategories = collect($this->data)->flatMap(function (array $row) use ($products) {
             $categories = [];
 
-            $categories[] = [
-                'product_id' => $products[$row['ItemCode']]->id,
-                'category_id'=> $this->categoryAssignmentService->XDConnectMapTypeToDefaultCategory($row['MainCategory']),
-            ];
+            $mainCategoryId = $this->categoryAssignmentService->XDConnectMapTypeToDefaultCategory($row['MainCategory']);
+            $subCategoryId = ! empty($row['SubCategory'])
+                ? $this->categoryAssignmentService->XDConnectMapSubTypeToDefaultCategory($row['SubCategory'])
+                : null;
 
-            if (! empty($row['SubCategory'])) {
+            $isMainCategoryUncategorized = $mainCategoryId == $this->categoryAssignmentService->getUncategorizedCategoryId();
+            $isSubCategoryUncategorized = $subCategoryId === null || $subCategoryId == $this->categoryAssignmentService->getUncategorizedCategoryId();
+
+            if ($isMainCategoryUncategorized && $isSubCategoryUncategorized) {
                 $categories[] = [
                     'product_id' => $products[$row['ItemCode']]->id,
-                    'category_id'=> $this->categoryAssignmentService->XDConnectMapSubTypeToDefaultCategory($row['SubCategory']),
+                    'category_id'=> $mainCategoryId,
                 ];
+            } else {
+                if (! $isMainCategoryUncategorized) {
+                    $categories[] = [
+                        'product_id' => $products[$row['ItemCode']]->id,
+                        'category_id'=> $mainCategoryId,
+                    ];
+                }
+                if ($subCategoryId !== null && ! $isSubCategoryUncategorized) {
+                    $categories[] = [
+                        'product_id' => $products[$row['ItemCode']]->id,
+                        'category_id'=> $subCategoryId,
+                    ];
+                }
             }
 
             return $categories;
@@ -298,6 +330,7 @@ class XDConnectProductMapperService extends BaseService
             ];
         });
     }
+
     private function getParentSKUCodesFromJson(): Collection
     {
         return collect($this->data)->map(function ($item) {
@@ -305,6 +338,6 @@ class XDConnectProductMapperService extends BaseService
                 'sku' => $item['ModelCode'],
             ];
         })->unique('sku')
-        ->values();
+            ->values();
     }
 }

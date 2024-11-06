@@ -138,6 +138,7 @@ class MidOceanProductMapperService extends BaseService
             $this->mapSizes($productAttributes, $products, $item, $attributeOptions);
             $this->mapProductStatuses($productAttributes, $products, $item);
             $this->mapProductNumbers($productAttributes, $products, $item);
+            $this->mapGuestCheckout($productAttributes, $products, $item);
 
             return $productAttributes;
         })->filter();
@@ -236,6 +237,34 @@ class MidOceanProductMapperService extends BaseService
                 'channel'       => 'default',
                 'locale'        => 'en',
                 'unique_id'     => 'default|en|'.$products[$variant['sku']]->id.'|'.self::PRODUCT_STATUS_ATTRIBUTE_KEY,
+            ];
+        }
+    }
+
+    protected const GUEST_CHECKOUT_ATTRIBUTE_KEY = 26;
+
+    private function mapGuestCheckout(array &$productAttributes, Collection $products, array $item): void
+    {
+        $productAttributes[] = [
+            'attribute_id'  => self::GUEST_CHECKOUT_ATTRIBUTE_KEY,
+            'product_id'    => $products[$item['master_code']]->id,
+            'text_value'    => null,
+            'integer_value' => null,
+            'boolean_value' => 1,
+            'channel'       => 'default',
+            'locale'        => 'en',
+            'unique_id'     => 'default|en|'.$products[$item['master_code']]->id.'|'.self::GUEST_CHECKOUT_ATTRIBUTE_KEY,
+        ];
+        foreach ($item['variants'] as $variant) {
+            $productAttributes[] = [
+                'attribute_id'  => self::GUEST_CHECKOUT_ATTRIBUTE_KEY,
+                'product_id'    => $products[$variant['sku']]->id,
+                'text_value'    => null,
+                'integer_value' => null,
+                'boolean_value' => 1,
+                'channel'       => 'default',
+                'locale'        => 'en',
+                'unique_id'     => 'default|en|'.$products[$variant['sku']]->id.'|'.self::GUEST_CHECKOUT_ATTRIBUTE_KEY,
             ];
         }
     }
