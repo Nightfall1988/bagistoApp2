@@ -198,7 +198,7 @@ class MidOceanProductMapperService extends BaseService
     private function mapSizes(array &$productAttributes, Collection $products, array $item, Collection $attributeOptions): void
     {
         foreach ($item['variants'] as $variant) {
-            if(isset($variant['size_textile'])){
+            if (isset($variant['size_textile'])) {
                 $productAttributes[] = [
                     'attribute_id'     => self::SIZE_ATTRIBUTE_KEY,
                     'product_id'       => $products[$variant['sku']]->id,
@@ -394,7 +394,6 @@ class MidOceanProductMapperService extends BaseService
         $productCategories = collect($this->data)->flatMap(function ($row) use ($products, $categories) {
             $productCategories = [];
 
-            //The parent category gets its categories from the first variants first two categories
             if (isset($row['variants'][0]['category_level1'])) {
                 $productCategories[] = [
                     'product_id' => $products[$row['master_code']]->id,
@@ -402,6 +401,12 @@ class MidOceanProductMapperService extends BaseService
                 ];
             }
             if (isset($row['variants'][0]['category_level2'])) {
+                $productCategories[] = [
+                    'product_id' => $products[$row['master_code']]->id,
+                    'category_id'=> $categories[trim($row['variants'][0]['category_level2'])]->category_id,
+                ];
+            }
+            if (isset($row['variants'][0]['category_level3'])) {
                 $productCategories[] = [
                     'product_id' => $products[$row['master_code']]->id,
                     'category_id'=> $categories[trim($row['variants'][0]['category_level2'])]->category_id,
