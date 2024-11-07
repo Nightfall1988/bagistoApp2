@@ -409,7 +409,7 @@ class MidOceanProductMapperService extends BaseService
             if (isset($row['variants'][0]['category_level3'])) {
                 $productCategories[] = [
                     'product_id' => $products[$row['master_code']]->id,
-                    'category_id'=> $categories[trim($row['variants'][0]['category_level2'])]->category_id,
+                    'category_id'=> $categories[trim($row['variants'][0]['category_level3'])]->category_id,
                 ];
             }
 
