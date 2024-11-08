@@ -9,7 +9,7 @@
 
     $attributeData = collect($customAttributeValues)->filter(fn ($item) => ! empty($item['value']));
     
-    $properCustomAttributes = ['sku', 'short_description', 'description', 'product_number', 'material', 'dimensions', 'height', 'width', 'weight'];
+    $properCustomAttributes = ['sku', 'product_number', 'material', 'dimensions', 'height', 'width', 'weight'];
     $properData = [];
 
     foreach ($customAttributeValues as $attribute) {
@@ -211,14 +211,22 @@
                                 </div>
                             </div>
                         </div>
-
-
-                        <!-- Print Techniques and LogoTron -->
-                        @if (isset($product->productPrintData))
-                            <div class="mt-8">
-                                @include('hitexis-shop::components.printcalculator.printcalculator', ['product' => $product])
-                            </div>
-                        @endif
+                        @php
+                        $productPrintDataCount = sizeof($product->productPrintData) > 0
+                            ? sizeof($product->productPrintData)
+                            : (isset($product->variants) && isset($product->variants[0]) && sizeof($product->variants[0]->productPrintData) > 0
+                                ? sizeof($product->variants[0]->productPrintData)
+                                : (isset($product->parent) && sizeof($product->parent->productPrintData) > 0
+                                    ? sizeof($product->parent->productPrintData)
+                                    : 0));
+                    @endphp
+                    
+                    <!-- Print Techniques and LogoTron -->
+                    @if ($productPrintDataCount > 0)
+                        <div class="mt-8">
+                            @include('hitexis-shop::components.printcalculator.printcalculator', ['product' => $product])
+                        </div>
+                    @endif
 
                         <div class="flex flex-column">
                             <div class="flex flex-row max-w-[700px] gap-4" style="margin-top: 2rem;">
@@ -238,6 +246,186 @@
                     </div>
                 </form>
             </x-shop::form>
+             <!-- Information Section -->
+                <div class="1180:mt-20">
+                    <x-shop::tabs
+                        position="center"
+                        ref="productTabs"
+                    >
+                        <!-- Description Tab -->
+                        {!! view_render_event('bagisto.shop.products.view.description.before', ['product' => $product]) !!}
+
+                        <x-shop::tabs.item
+                            id="descritpion-tab"
+                            class="container mt-[60px] !p-0 max-1180:hidden"
+                            :title="trans('shop::app.products.view.description')"
+                            :is-selected="true"
+                        >
+                            <div class="container mt-[60px] max-1180:px-5">
+                                <p class="text-lg text-zinc-500 max-1180:text-sm">
+                                    {!! $product->description !!}
+                                </p>
+                            </div>
+                        </x-shop::tabs.item>
+
+                        {!! view_render_event('bagisto.shop.products.view.description.after', ['product' => $product]) !!}
+
+                        <!-- Additional Information Tab -->
+                        @if(count($attributeData))
+                            <x-shop::tabs.item
+                                id="information-tab"
+                                class="container mt-[60px] !p-0 max-1180:hidden"
+                                :title="trans('shop::app.products.view.additional-information')"
+                                :is-selected="false"
+                            >
+                                <div class="container mt-[60px] max-1180:px-5">
+                                    <div class="mt-8 grid max-w-max grid-cols-[auto_1fr] gap-4">
+                                        @foreach ($customAttributeValues as $customAttributeValue)
+                                            @if (! empty($customAttributeValue['value']))
+                                                <div class="grid">
+                                                    <p class="text-base text-black">
+                                                        {!! $customAttributeValue['label'] !!}
+                                                    </p>
+                                                </div>
+
+                                                @if ($customAttributeValue['type'] == 'file')
+                                                    <a 
+                                                        href="{{ Storage::url($product[$customAttributeValue['code']]) }}" 
+                                                        download="{{ $customAttributeValue['label'] }}"
+                                                    >
+                                                        <span class="icon-download text-2xl"></span>
+                                                    </a>
+                                                @elseif ($customAttributeValue['type'] == 'image')
+                                                    <a 
+                                                        href="{{ Storage::url($product[$customAttributeValue['code']]) }}" 
+                                                        download="{{ $customAttributeValue['label'] }}"
+                                                    >
+                                                        <img 
+                                                            class="h-5 min-h-5 w-5 min-w-5" 
+                                                            src="{{ Storage::url($customAttributeValue['value']) }}" 
+                                                        />
+                                                    </a>
+                                                @else
+                                                    <div class="grid">
+                                                        <p class="text-base text-zinc-500">
+                                                            {!! $customAttributeValue['value'] !!}
+                                                        </p>
+                                                    </div>
+                                                @endif
+                                            @endif
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </x-shop::tabs.item>
+                        @endif
+
+                        <!-- Reviews Tab -->
+                        <x-shop::tabs.item
+                            id="review-tab"
+                            class="container mt-[60px] !p-0 max-1180:hidden"
+                            :title="trans('shop::app.products.view.review')"
+                            :is-selected="false"
+                        >
+                            @include('hitexis-shop::products.view.reviews')
+                        </x-shop::tabs.item>
+                    </x-shop::tabs>
+                </div>
+
+                <!-- Information Section -->
+                <div class="container mt-10 !p-0 max-1180:px-5 1180:hidden">
+                    <!-- Description Accordion -->
+                    <x-shop::accordion :is-active="true">
+                        <x-slot:header class="bg-gray-100">
+                            <p class="text-base font-medium 1180:hidden">
+                                @lang('shop::app.products.view.description')
+                            </p>
+                        </x-slot>
+
+                        <x-slot:content>
+                            <div class="mb-5 text-lg text-zinc-500 max-1180:text-sm">
+                                {!! $product->description !!}
+                            </div>
+                        </x-slot>
+                    </x-shop::accordion>
+
+                    <!-- Additional Information Accordion -->
+                    @if (count($attributeData))
+                        <x-shop::accordion class="bg-gray-100" :is-active="false">
+                            <x-slot:header>
+                                <p class="text-base font-medium 1180:hidden">
+                                    @lang('shop::app.products.view.additional-information')
+                                </p>
+                            </x-slot>
+
+                            <x-slot:content>
+                                <div class="container mb-4 max-1180:px-5">
+                                    <div class="grid max-w-max grid-cols-[auto_1fr] gap-4 text-lg text-zinc-500 max-1180:text-sm">
+                                        @foreach ($customAttributeValues as $customAttributeValue)
+                                            @if (! empty($customAttributeValue['value']))
+                                                <div class="grid">
+                                                    <p class="text-base text-black">
+                                                        {{ $customAttributeValue['label'] }}
+                                                    </p>
+                                                </div>
+
+                                                @if ($customAttributeValue['type'] == 'file')
+                                                    <a
+                                                        href="{{ Storage::url($product[$customAttributeValue['code']]) }}"
+                                                        download="{{ $customAttributeValue['label'] }}"
+                                                    >
+                                                        <span class="icon-download text-2xl"></span>
+                                                    </a>
+                                                @elseif ($customAttributeValue['type'] == 'image')
+                                                    <a
+                                                        href="{{ Storage::url($product[$customAttributeValue['code']]) }}"
+                                                        download="{{ $customAttributeValue['label'] }}"
+                                                    >
+                                                        <img 
+                                                            class="h-5 min-h-5 w-5 min-w-5" 
+                                                            src="{{ Storage::url($customAttributeValue['value']) }}"
+                                                            alt="Product Image"
+                                                        />
+                                                    </a>
+                                                @else
+                                                    <div class="grid">
+                                                        <p class="text-base text-zinc-500">
+                                                            {{ $customAttributeValue['value'] ?? '-' }}
+                                                        </p>
+                                                    </div>
+                                                @endif
+                                            @endif
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </x-slot>
+                        </x-shop::accordion>
+                    @endif
+
+                    <!-- Reviews Accordion -->
+                    <x-shop::accordion class="bg-gray-100" :is-active="false">
+                        <x-slot:header id="review-accordian-button">
+                            <p class="text-base font-medium 1180:hidden">
+                                @lang('shop::app.products.view.review')
+                            </p>
+                        </x-slot>
+
+                        <x-slot:content>
+                            @include('hitexis-shop::products.view.reviews')
+                        </x-slot>
+                    </x-shop::accordion>
+                </div>
+
+                <!-- Featured Products -->
+                <x-shop::products.carousel
+                    :title="trans('shop::app.products.view.related-product-title')"
+                    :src="route('shop.api.products.related.index', ['id' => $product->id])"
+                />
+
+                <!-- Upsell Products -->
+                <x-shop::products.carousel
+                    :title="trans('shop::app.products.view.up-sell-title')"
+                    :src="route('shop.api.products.up-sell.index', ['id' => $product->id])"
+                />
         </script>
 
         <script type="module">

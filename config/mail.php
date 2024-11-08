@@ -93,6 +93,12 @@ return [
         'name'    => env('MAIL_FROM_NAME', 'LogoPrint'),
     ],
 
+    'contact' => [
+        'name' => 'LogoPrint',
+        'address' => env('CONTACT_EMAIL'),
+    ],
+
+
     /*
     |--------------------------------------------------------------------------
     | Global "Admin" Address

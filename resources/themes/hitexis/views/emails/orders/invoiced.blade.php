@@ -32,6 +32,9 @@
 
                 <div style="font-size: 16px;font-weight: 400;color: #384860;margin-bottom: 40px;">
                     {{ $invoice->order->shipping_address->company_name ?? '' }}<br/>
+                    @if ($invoice->order->billing_address->registration_number)
+                        @lang('shop::app.emails.orders.registration-nr') {{ $invoice->order->billing_address->registration_number }}<br/>
+                    @endif
                     {{ $invoice->order->shipping_address->name }}<br/>
                     {{ $invoice->order->shipping_address->address }}<br/>
                     {{ $invoice->order->shipping_address->postcode . " " . $invoice->order->shipping_address->city }}<br/>

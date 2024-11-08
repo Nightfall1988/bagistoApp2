@@ -24,14 +24,14 @@ class InventorySourceTableSeeder extends Seeder
             'code'           => 'default',
             'name'           => trans('installer::app.seeders.inventory.inventory-sources.name', [], $defaultLocale),
             'contact_name'   => trans('installer::app.seeders.inventory.inventory-sources.name', [], $defaultLocale),
-            'contact_email'  => 'warehouse@example.com',
-            'contact_number' => 1234567899,
+            'contact_email'  => 'info@logoprint.lv',
+            'contact_number' => +37126383899,
             'status'         => 1,
-            'country'        => 'US',
-            'state'          => 'MI',
-            'street'         => '12th Street',
-            'city'           => 'Detroit',
-            'postcode'       => '48127',
+            'country'        => 'LV',
+            'state'          => 'Rīga',
+            'street'         => 'Dzirnavu iela 57a-4',
+            'city'           => 'Rīga',
+            'postcode'       => '1010',
         ]);
     }
 }

@@ -70,6 +70,7 @@ return [
         ],
 
         'account' => [
+            'thanks-for-contact'   => 'Paldies, ka sazinājāties ar mums!',
             'home'                 => 'Sākums',
 
             'addresses' => [

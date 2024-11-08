@@ -30,23 +30,60 @@ class Base
      * @return void
      */
     protected function prepareMail($entity, $notification)
-    {
-        \Log::info('prepareMail called for entity: ' . $entity->id);
-    
+    {    
         $customerLocale = $this->getLocale($entity);
         $previousLocale = core()->getCurrentLocale()->code;
         app()->setLocale($customerLocale);
-    
+    $counter = [];
         try {
             if ($notification instanceof \Webkul\Shop\Mail\Order\InvoicedNotification) {
-
-                $attachments = collect($notification->build()->attachments);
-                if ($attachments->isNotEmpty()) {
-                    Mail::queue($notification);
+                
+                if ($notification->hasAttachments()) {
+                    Mail::send($notification);
                 }
-            } else {
-                Mail::queue($notification);
             }
+
+            if ($notification instanceof \Webkul\Shop\Mail\Order\CommentedNotification) {
+                try {
+                    Mail::queue($notification);
+                } catch (\Exception $e) {
+                    \Log::error('Error in Sending Email'.$e->getMessage());
+                }
+            }
+
+            if ($notification instanceof \Webkul\Shop\Mail\Order\CreatedNotification) {
+                try {
+                    Mail::queue($notification);
+                } catch (\Exception $e) {
+                    \Log::error('Error in Sending Email'.$e->getMessage());
+                }
+            }
+
+            if ($notification instanceof \Webkul\Shop\Mail\Order\CanceledNotification) {
+                try {
+                    Mail::queue($notification);
+                } catch (\Exception $e) {
+                    \Log::error('Error in Sending Email'.$e->getMessage());
+                }
+            }
+            
+            if ($notification instanceof \Webkul\Shop\Mail\Order\RefundedNotification) {
+                try {
+                    Mail::queue($notification);
+                } catch (\Exception $e) {
+                    \Log::error('Error in Sending Email'.$e->getMessage());
+                }
+            }
+
+            if ($notification instanceof \Webkul\Shop\Mail\Order\ShippedNotification) {
+                try {
+                    Mail::queue($notification);
+                } catch (\Exception $e) {
+                    \Log::error('Error in Sending Email'.$e->getMessage());
+                }
+            }
+
+
         } catch (\Exception $e) {
             \Log::error('Error in Sending Email: ' . $e->getMessage());
         }

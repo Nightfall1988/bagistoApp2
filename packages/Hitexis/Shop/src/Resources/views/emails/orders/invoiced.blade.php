@@ -11,7 +11,7 @@
         </p>
 
         <p style="font-size: 16px;color: #5E5E5E;line-height: 24px;">
-            {!! __('shop::app.emails.orders.invoiced.greeting', [
+            {!! __('shop::app.emails.orders.invoiced.title', [
                 'order_id' => '<a href="' . route('shop.customers.account.orders.view', $invoice->order->id) . '" style="color: #2969FF;">#' . $invoice->order->increment_id . '</a>',
                 'created_at' => core()->formatDate($invoice->order->created_at, 'Y-m-d H:i:s')
                 ])
@@ -32,11 +32,21 @@
 
                 <div style="font-size: 16px;font-weight: 400;color: #384860;margin-bottom: 40px;">
                     {{ $invoice->order->shipping_address->company_name ?? '' }}<br/>
+
+                    @if ($invoice->order->shipping_address->registration_number)
+                        @lang('shop::app.emails.orders.registration-nr') {{ $invoice->order->shipping_address->registration_number }}<br/>
+                    @endif
+
                     {{ $invoice->order->shipping_address->name }}<br/>
+                    
                     {{ $invoice->order->shipping_address->address }}<br/>
+                    
                     {{ $invoice->order->shipping_address->postcode . " " . $invoice->order->shipping_address->city }}<br/>
+                    
                     {{ $invoice->order->shipping_address->state }}<br/>
+
                     ---<br/>
+
                     @lang('shop::app.emails.orders.contact') : {{ $invoice->order->billing_address->phone }}
                 </div>
 
@@ -45,7 +55,7 @@
                 </div>
 
                 <div style="font-size: 16px;font-weight: 400;color: #384860;">
-                    {{ explode(' - ', $invoice->order->shipping_title)[0] }}
+                    {{ $invoice->order->shipping_title }}
                 </div>
             </div>
         @endif
@@ -113,13 +123,7 @@
                         <td style="text-align: left;padding: 15px">{{ $item->qty_ordered }}</td>
                         <td style="text-align: left;padding: 15px">{{ core()->formatPrice(floatval(str_replace(',', '.', $item->base_total)), $invoice->order->order_currency_code) }}</td>
                     </tr>
-                        <tr style="text-align: left;padding: 15px">
-                            @if (isset($item->additional['attributes']))
-                                @foreach ($item->additional['attributes'] as $attribute)
-                                    <td style="text-align: left;padding: 15px"><b>{{ $attribute['attribute_name'] }}: </b>{{ $attribute['option_label'] }}</td></br>
-                                @endforeach
-                            @endif
-                        </tr>
+
                     {{-- Print details row --}}
                     <tr>
                         <td colspan="5" style="padding: 0; border: none;">
@@ -182,15 +186,6 @@
                 </td>
             </tr>
             @endif
-
-            <tr>
-                <td style="text-align: left;">
-                    @lang('shop::app.emails.orders.subtotal')
-                </td>
-                <td style="text-align: right;">
-                    {{ core()->formatPrice($invoice->order->sub_total + $invoice->order->shipping_amount, $invoice->order->order_currency_code) }}
-                </td>
-            </tr>
 
             @foreach (Webkul\Tax\Helpers\Tax::getTaxRatesWithAmount($invoice->order, false) as $taxRate => $taxAmount)
             <tr>

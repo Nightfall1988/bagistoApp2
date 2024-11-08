@@ -1,0 +1,50 @@
+<?php
+
+namespace App\Observers;
+
+use Hitexis\Product\Models\Product;
+use Hitexis\Markup\Models\Markup;
+
+class WholesaleObserver
+{
+    public function created(Markup $markup)
+    {
+        $products = Product::all();
+
+        foreach ($products as $product) {
+            $product->markup()->attach($markup->id);
+        }
+    }
+
+    /**
+     * Handle the Wholesale "updated" event.
+     */
+    public function updated(Wholesale $wholesale): void
+    {
+        //
+    }
+
+    /**
+     * Handle the Wholesale "deleted" event.
+     */
+    public function deleted(Wholesale $wholesale): void
+    {
+        //
+    }
+
+    /**
+     * Handle the Wholesale "restored" event.
+     */
+    public function restored(Wholesale $wholesale): void
+    {
+        //
+    }
+
+    /**
+     * Handle the Wholesale "force deleted" event.
+     */
+    public function forceDeleted(Wholesale $wholesale): void
+    {
+        //
+    }
+}

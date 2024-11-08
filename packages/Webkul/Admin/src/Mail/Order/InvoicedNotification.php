@@ -7,8 +7,9 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Webkul\Admin\Mail\Mailable;
 use Webkul\Sales\Contracts\Invoice;
+use Illuminate\Contracts\Queue\ShouldBeUnique;
 
-class InvoicedNotification extends Mailable
+class InvoicedNotification extends Mailable implements ShouldBeUnique
 {
     /**
      * Create a new message instance.
@@ -45,5 +46,11 @@ class InvoicedNotification extends Mailable
         return new Content(
             view: 'hitexis-shop::emails.orders.invoiced',
         );
+    }
+
+    public function build()
+    {
+        return $this->view('hitexis-shop::emails.orders.invoiced') // Replace with your email view
+                    ->subject(trans('admin::app.emails.orders.invoiced.subject')); // Customize the subject as needed
     }
 }

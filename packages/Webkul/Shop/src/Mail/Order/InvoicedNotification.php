@@ -7,41 +7,31 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Webkul\Sales\Contracts\Invoice;
 use Webkul\Shop\Mail\Mailable;
+use Illuminate\Contracts\Queue\ShouldBeUnique;
 
-class InvoicedNotification extends Mailable
+class InvoicedNotification extends Mailable implements ShouldBeUnique
 {
-    /**
-     * Create a new message instance.
-     *
-     * @return void
-     */
-    public function __construct(public Invoice $invoice)
-    {
-    }
+    // public function __construct(public Invoice $invoice)
+    // {
+    // }
 
-    /**
-     * Get the message envelope.
-     */
-    public function envelope(): Envelope
-    {
-        return new Envelope(
-            to: [
-                new Address(
-                    $this->invoice->order->customer_email,
-                    $this->invoice->order->customer_full_name
-                ),
-            ],
-            subject: trans('shop::app.emails.orders.invoiced.subject'),
-        );
-    }
+    // public function envelope(): Envelope
+    // {
+    //     return new Envelope(
+    //         to: [
+    //             new Address(
+    //                 $this->invoice->order->customer_email,
+    //                 $this->invoice->order->customer_full_name
+    //             ),
+    //         ],
+    //         subject: trans('shop::app.emails.orders.invoiced.subject'),
+    //     );
+    // }
 
-    /**
-     * Get the message content definition.
-     */
-    public function content(): Content
-    {
-        return new Content(
-            view: 'hitexis-shop::emails.orders.invoiced',
-        );
-    }
+    // public function content(): Content
+    // {
+    //     return new Content(
+    //         view: 'hitexis-shop::emails.orders.invoiced',
+    //     );
+    // }
 }

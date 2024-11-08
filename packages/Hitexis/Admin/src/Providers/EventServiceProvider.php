@@ -28,10 +28,6 @@ class EventServiceProvider extends ServiceProvider
             'Hitexis\Admin\Listeners\Order@afterCanceled',
         ],
 
-        'sales.invoice.save.after' => [
-            'Hitexis\Admin\Listeners\Invoice@afterCreated',
-        ],
-
         'sales.shipment.save.after' => [
             'Hitexis\Admin\Listeners\Shipment@afterCreated',
         ],

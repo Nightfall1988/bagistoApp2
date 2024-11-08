@@ -45,6 +45,7 @@ class LocaleController extends Controller
             'logo_path.*' => 'image|extensions:jpeg,jpg,png,svg,webp',
         ]);
 
+	
         $this->localeRepository->create(request()->only([
             'code',
             'name',
@@ -62,6 +63,7 @@ class LocaleController extends Controller
      */
     public function edit(int $id): JsonResponse
     {
+
         $locale = $this->localeRepository->findOrFail($id);
 
         return new JsonResponse([

@@ -22,17 +22,13 @@ class StrickerStockMapperService extends BaseService
         $channelID = $this->productImportRepository->getDefaultChannel()->id;
 
         $productInventories = collect($this->data['Stocks'])->map(function (array $row) use ($products, $channelID) {
-            if (isset($products[$row['Sku']])) {
-                return [
-                    'qty'                => $row['Quantity'],
-                    'product_id'         => $products[$row['Sku']]->id,
-                    'vendor_id'          => 0,
-                    'inventory_source_id'=> $channelID,
-                ];
-            }
-
-            return null;
-        })->filter();
+            return [
+                'qty'                => $row['Quantity'],
+                'product_id'         => $products[$row['Sku']]->id,
+                'vendor_id'          => 0,
+                'inventory_source_id'=> $channelID,
+            ];
+        });
 
         $this->productImportRepository->upsertProductInventories($productInventories);
     }
@@ -44,16 +40,12 @@ class StrickerStockMapperService extends BaseService
         $channelID = $this->productImportRepository->getDefaultChannel()->id;
 
         $productInventoryIndices = collect($this->data['Stocks'])->map(function (array $row) use ($products, $channelID) {
-            if (isset($products[$row['Sku']])) {
-                return [
-                    'qty'        => $row['Quantity'],
-                    'product_id' => $products[$row['Sku']]->id,
-                    'channel_id' => $channelID,
-                ];
-            }
-
-            return null;
-        })->filter();
+            return [
+                'qty'                => $row['Quantity'],
+                'product_id'         => $products[$row['Sku']]->id,
+                'channel_id'         => $channelID,
+            ];
+        });
 
         $this->productImportRepository->upsertProductInventoryIndices($productInventoryIndices);
     }

@@ -608,6 +608,8 @@ return [
                 'info'                 => 'Enable Mini Cart settings to display the mini cart and show Mini Cart Offer Information for quick access to cart details and promotions.',
                 'mini-cart-offer-info' => 'Mini Cart Offer Information',
                 'title'                => 'Mini Cart',
+                'back-to-shop'         => 'Continue shopping',
+                'order-product'        => 'Place order',
             ],
         ],
 
@@ -639,6 +641,8 @@ return [
                 'see-details'          => 'See Details',
                 'shopping-cart'        => 'Shopping Cart',
                 'subtotal'             => 'Subtotal',
+                'back-to-shop'         => 'Continue shopping',
+                'order-product'        => 'Place order',
                 'view-cart'            => 'View Cart',
             ],
 
@@ -664,6 +668,7 @@ return [
                 'total'                    => 'Total',
                 'update-cart'              => 'Update Cart',
                 'view-cart'                => 'View Cart',
+                'back-to-shop'             => 'Continue shopping',
 
                 'cross-sell' => [
                     'title' => 'More choices',
@@ -983,12 +988,15 @@ return [
             ],
 
             'billing-address'   => 'Billing Address',
+            'base_total'        => 'Total',
             'carrier'           => 'Carrier',
             'contact'           => 'Contact',
             'registration-nr'   => 'Company Registration Number',
-            'moneytransfer'      => 'Naudas pārskaitījums',
+            'moneytransfer'      => 'Money Transfer',
             'print-setup'        => 'Print setup',
             'print-single-price' => 'Print single price',
+            'print-name-position'=> 'Print type and position',
+            'print-price'        => 'Total print price',
             'print-manipulation' => 'Print manipulation',
             'discount'          => 'Discount',
             'grand-total'       => 'Grand Total',

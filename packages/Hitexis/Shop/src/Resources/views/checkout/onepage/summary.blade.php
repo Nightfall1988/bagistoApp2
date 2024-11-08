@@ -190,7 +190,7 @@
     <!-- Taxes -->
     {!! view_render_event('bagisto.shop.checkout.onepage.summary.tax.before') !!}
 
-    <div
+        <div
         class="flex justify-between text-right"
         v-if="! cart.tax_total"
     >
@@ -217,7 +217,7 @@
 
             <p class="flex items-center gap-1 text-base font-medium max-sm:text-sm max-sm:font-medium">
                 @{{ cart.formatted_tax_total }}
-                
+
                 <span
                     class="text-xl"
                     :class="{'icon-arrow-up': cart.show_taxes, 'icon-arrow-down': ! cart.show_taxes}"
@@ -238,7 +238,7 @@
                 </p>
 
                 <p class="text-sm font-medium max-sm:text-sm max-sm:font-medium">
-                    @{{ amount }}
+                    @{{ cart.formatted_tax_total }}
                 </p>
             </div>
         </div>
@@ -259,6 +259,5 @@
             @{{ cart.formatted_grand_total }}
         </p>
     </div>
-
     {!! view_render_event('bagisto.shop.checkout.onepage.summary.grand_total.after') !!}
 </div>

@@ -20,40 +20,6 @@
         </div>
     </div>
 
-    <!-- Add loading overlay (hidden by default) -->
-    <div id="loading-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background-color:rgba(0, 0, 0, 0.5); z-index:9999;">
-        <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:white;">
-            Loading...
-        </div>
-    </div>
+    <x-admin::datagrid src="{{ route('markup.markup.index') }}" />
 
-    <x-hitexis-admin::datagrid src="{{ route('markup.markup.index') }}" @actionSuccess="handleActionSuccess" />
-
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            function showLoadingScreen() {
-                document.getElementById('loading-overlay').style.display = 'block';
-            }
-
-            function hideLoadingScreen() {
-                document.getElementById('loading-overlay').style.display = 'none';
-            }
-
-            window.handleActionSuccess = function(responseData) {
-                if (responseData && responseData.message && responseData.message.includes("deleted")) {
-                    hideLoadingScreen();
-                }
-            }
-
-            // Extend datagrid action to show loading screen specifically for delete actions
-            const datagridTable = document.querySelector('v-datagrid-table');
-            if (datagridTable) {
-                datagridTable.addEventListener('click', function(event) {
-                    if (event.target.closest('.icon-delete')) {
-                        showLoadingScreen();
-                    }
-                });
-            }
-        });
-    </script>
 </x-admin::layouts>

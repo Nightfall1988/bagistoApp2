@@ -238,7 +238,7 @@
                 </p>
 
                 <p class="text-sm font-medium max-sm:text-sm max-sm:font-medium">
-                    @{{ amount }}
+                    @{{ cart.formatted_tax_total }}
                 </p>
             </div>
         </div>

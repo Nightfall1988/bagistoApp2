@@ -377,6 +377,7 @@ return [
                 'price-incl-tax'                 => 'Cena (ar PVN) - :price',
                 'price-excl-tax'                 => 'Cena (bez PVN) - :price',
                 'print-price'                    => 'Drukas cena',
+                'print-name'                     => 'Drukas veids - ',
                 'price'                          => 'Cena - :price',
                 'processing'                     => 'Apstrādē',
                 'quantity'                       => 'Daudzums',

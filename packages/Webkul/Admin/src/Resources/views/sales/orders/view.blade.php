@@ -172,17 +172,6 @@
                                                 @lang('admin::app.sales.orders.view.sku', ['sku' => $item->sku])
                                             </p>
 
-                                            <p class="text-gray-600 dark:text-gray-300">
-                                                {{ $item->qty_ordered ? trans('admin::app.sales.orders.view.item-ordered', ['qty_ordered' => $item->qty_ordered]) : '' }}
-
-                                                {{ $item->qty_invoiced ? trans('admin::app.sales.orders.view.item-invoice', ['qty_invoiced' => $item->qty_invoiced]) : '' }}
-
-                                                {{ $item->qty_shipped ? trans('admin::app.sales.orders.view.item-shipped', ['qty_shipped' => $item->qty_shipped]) : '' }}
-
-                                                {{ $item->qty_refunded ? trans('admin::app.sales.orders.view.item-refunded', ['qty_refunded' => $item->qty_refunded]) : '' }}
-
-                                                {{ $item->qty_canceled ? trans('admin::app.sales.orders.view.item-canceled', ['qty_canceled' => $item->qty_canceled]) : '' }}
-                                            </p>
                                         </div>
                                     </div>
                                 </div>
@@ -213,12 +202,20 @@
                                             </p>
                                         @endif
 
-<!-- PRINT --!>
-                                        {{-- @if ($item->print_price != null)
-                                        <p class="text-gray-600 dark:text-gray-300">
-                                            @lang('admin::app.sales.orders.view.print-price', ['price' => core()->formatBasePrice(floatval($item->print_price))])
-                                        </p>
-                                        @endif--}}
+                                        @if ($item->print_name !== null)
+                                            <p class="text-gray-600 dark:text-gray-300">
+                                                @lang('admin::app.sales.orders.view.print-name')
+                                                {{  $item->print_name }}
+                                            </p>
+                                        @endif
+                                        
+                                        @if ($item->print_price !== null)
+                                            <p class="text-gray-600 dark:text-gray-300">
+                                                @lang('admin::app.sales.orders.view.print-price') -
+                                                {{  core()->formatPrice((float) $item->print_price) }}
+                                            </p>
+                                        @endif
+
                                         @if ($order->base_discount_amount > 0)
                                             <p class="text-gray-600 dark:text-gray-300">
                                                 @lang('admin::app.sales.orders.view.discount', ['discount' => core()->formatBasePrice($item->base_discount_amount)])
@@ -265,6 +262,10 @@
                                     @lang('admin::app.sales.orders.view.summary-sub-total')
                                 </p>
                             @endif
+                            
+                            <p class="!leading-5 text-gray-600 dark:text-gray-300">
+                                @lang('admin::app.sales.orders.view.print-price')
+                            </p>
 
                             @if ($haveStockableItems = $order->haveStockableItems())
                                 @if (core()->getConfigData('sales.taxes.sales.display_shipping_amount') == 'both')
@@ -287,27 +288,11 @@
                             </p>
 
                             <p class="!leading-5 text-gray-600 dark:text-gray-300">
-                                @lang('admin::app.sales.orders.view.print-price')
-                            </p>
-
-                            <p class="!leading-5 text-gray-600 dark:text-gray-300">
                                 @lang('admin::app.sales.orders.view.summary-discount')
                             </p>
 
                             <p class="text-base font-semibold !leading-5 text-gray-800 dark:text-white">
                                 @lang('admin::app.sales.orders.view.summary-grand-total')
-                            </p>
-
-                            <p class="!leading-5 text-gray-600 dark:text-gray-300">
-                                @lang('admin::app.sales.orders.view.total-paid')
-                            </p>
-
-                            <p class="!leading-5 text-gray-600 dark:text-gray-300">
-                                @lang('admin::app.sales.orders.view.total-refund')
-                            </p>
-
-                            <p class="!leading-5 text-gray-600 dark:text-gray-300">
-                                @lang('admin::app.sales.orders.view.total-due')
                             </p>
                         </div>
 
@@ -330,6 +315,10 @@
                                 </p>
                             @endif
 
+                            <p class="!leading-5 text-gray-600 dark:text-gray-300">
+                                {{ core()->formatBasePrice($totalPrintPrice) }}
+                            </p>
+
                             @if ($haveStockableItems)
                                 @if (core()->getConfigData('sales.taxes.sales.display_shipping_amount') == 'including_tax')
                                     <p class="!leading-5 text-gray-600 dark:text-gray-300">
@@ -351,12 +340,7 @@
                             @endif
 
                             <p class="!leading-5 text-gray-600 dark:text-gray-300">
-                                {{ core()->formatBasePrice($order->base_tax_amount) }}
-                            </p>
-
-
-                            <p class="!leading-5 text-gray-600 dark:text-gray-300">
-                                {{ core()->formatBasePrice($totalPrintPrice) }}
+                                {{ core()->formatBasePrice($order->tax_amount) }}
                             </p>
 
                             <p class="!leading-5 text-gray-600 dark:text-gray-300">
@@ -364,26 +348,8 @@
                             </p>
 
                             <p class="text-base font-semibold !leading-5 text-gray-800 dark:text-white">
-                                {{ core()->formatBasePrice($order->base_grand_total) }}
+                                {{ core()->formatBasePrice($order->grand_total) }}
                             </p>
-
-                            <p class="!leading-5 text-gray-600 dark:text-gray-300">
-                                {{ core()->formatBasePrice($order->base_grand_total_invoiced) }}
-                            </p>
-
-                            <p class="!leading-5 text-gray-600 dark:text-gray-300">
-                                {{ core()->formatBasePrice($order->base_grand_total_refunded) }}
-                            </p>
-
-                            @if($order->status !== 'canceled')
-                                <p class="!leading-5 text-gray-600 dark:text-gray-300">
-                                    {{ core()->formatBasePrice($order->base_total_due) }}
-                                </p>
-                            @else
-                                <p class="!leading-5 text-gray-600 dark:text-gray-300">
-                                    {{ core()->formatBasePrice(0.00) }}
-                                </p>
-                            @endif
                         </div>
                     </div>
                 </div>

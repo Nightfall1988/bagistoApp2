@@ -24,4 +24,14 @@ class Mailable extends BaseMailable implements ShouldQueue
 
         return $this;
     }
+
+    /**
+     * Check if the email has attachments.
+     *
+     * @return bool
+     */
+    public function hasAttachments(): bool
+    {
+        return !empty($this->attachments);
+    }
 }
