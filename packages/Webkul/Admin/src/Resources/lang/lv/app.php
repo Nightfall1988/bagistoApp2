@@ -2157,7 +2157,7 @@ return [
                     'name'                     => 'Vārds',
                     'no'                       => 'Nē',
                     'percentage-product-price' => 'Procentuālā daļa no preces cenas',
- B                   'priority'                 => 'Prioritāte',
+                    'priority'                 => 'Prioritāte',
                     'product-attribute'        => 'Preces atribūts',
                     'save-btn'                 => 'Saglabāt kataloga noteikumu',
                     'settings'                 => 'Iestatījumi',
