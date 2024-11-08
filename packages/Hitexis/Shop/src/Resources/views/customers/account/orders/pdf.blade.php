@@ -1,5 +1,4 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-
 <html>
     <head>
         <!-- meta tags -->
@@ -35,6 +34,15 @@
                 color: #000;
             }
 
+           .footer {
+               position: fixed;
+               bottom: 0;
+               width: 100%;
+               text-align: center;
+               padding: 10px;
+               background-color: #f1f1f1;
+            }
+
             .container {
                 padding: 20px;
                 display: block;
@@ -67,15 +75,6 @@
 
             .table thead th:last-child {
                 border-right: solid 1px #d3d3d3;
-            }
-            
-            .footer {
-               position: fixed;
-               bottom: 0;
-               width: 100%;
-               text-align: center;
-               padding: 10px;
-               background-color: #f1f1f1;
             }
 
             .table tbody td {
@@ -110,8 +109,8 @@
             }
 
             .logo {
-                height: 70px;
-                width: 70px;
+                height: 40px;
+                width: 160px;
             }
 
             .merchant-details {
@@ -211,7 +210,7 @@
                                 </div>
 
                                 <div style="padding-top: 20px">
-                                    <span class="merchant-details-title">{{ core()->getConfigData('sales.shipping.origin.store_name') ? core()->getConfigData('sales.shipping.origin.store_name') : '' }}</span>
+                                    <span class="merchant-details-title">{{ core()->getConfigData('sales.shipping.origin.store_name') ? core()->getConfigData('sales.shipping.origin.store_name'): '' }}</span>
                                 </div>
 
                                 <div>{{ core()->getConfigData('sales.shipping.origin.address') ?? '' }}</div>
@@ -328,7 +327,7 @@
                                         <p>{{ $invoice->order->shipping_address->city }}</p>
                                         <p>{{ $invoice->order->shipping_address->state }}</p>
                                         <p>{{ core()->country_name($invoice->order->shipping_address->country) }} {{ $invoice->order->shipping_address->postcode }}</p>
-                                        @lang('shop::app.customers.account.orders.invoice-pdf.contact') : {{ $invoice->order->shipping_address->phone }}
+                                        @lang('shop::app.customers.account.orders.invoice-pdf.contact'): {{ $invoice->order->shipping_address->phone }}
                                     </td>
                                 @endif
                             </tr>
@@ -426,7 +425,8 @@
                 </div>
 
                 <table class="sale-summary">
-                                        <tr>
+
+                    <tr>
                         <td>
                             @lang('shop::app.customers.account.orders.invoice-pdf.shipping-handling')
                         </td>
@@ -435,17 +435,6 @@
 
                         <td>
                             {{ core()->formatPrice($invoice->shipping_amount, $invoice->order->order_currency_code) }}
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            @lang('shop::app.customers.account.orders.invoice-pdf.subtotal')
-                        </td>
-
-                        <td>-</td>
-
-                        <td>
-                            {{ core()->formatPrice($invoice->sub_total, $invoice->order->order_currency_code) }}
                         </td>
                     </tr>
 
@@ -462,6 +451,17 @@
                             </td>
                         </tr>
                     @endif
+                    <tr>
+                        <td>
+                            @lang('shop::app.customers.account.orders.invoice-pdf.subtotal')
+                        </td>
+
+                        <td>-</td>
+
+                        <td>
+                            {{ core()->formatPrice((($invoice->sub_total + $invoice->shipping_amount) - $invoice->discount_amount), $invoice->order->order_currency_code) }}
+                        </td>
+                    </tr>
 
                     <tr>
                         <td>
@@ -494,9 +494,9 @@
                     </tr>
                 </table>
             </div>
-            <div class="footer">
-                <p>@lang('shop::app.emails.orders.electronic')</p>
-            </div>
+        </div>
+        <div class="footer">
+            <p>@lang('shop::app.emails.orders.electronic')</p>
         </div>
     </body>
 </html>

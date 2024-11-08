@@ -17,6 +17,7 @@
             <div class="relative max-h-[300px] max-w-[291px] overflow-hidden">
                 {!! view_render_event('bagisto.shop.components.products.card.image.before') !!}
 
+                
                 <!-- Product Image -->
                 <a
                     :href="`{{ route('shop.product_or_category.index', '') }}/${product.url_key}`"
@@ -47,7 +48,7 @@
                 
                 <!-- Product Sale Badge -->
                 <p
-                    class="absolute top-5 inline-block rounded-[44px] bg-priceRed px-2.5 text-sm text-white ltr:left-5 rtl:right-5"
+                    class="absolute top-5 inline-block rounded-[44px] bg-[#E51A1A] px-2.5 text-sm text-white ltr:left-5 rtl:right-5"
                     v-if="product.on_sale"
                 >
                     @lang('shop::app.components.products.card.sale')
@@ -81,7 +82,9 @@
                     v-html="product.price_html"
                 >
                 </div>
-
+                <p class="text-sm text-zinc-500 max-sm:mt-4 max-xs:text-xs">
+                    <i>@lang('shop::app.products.view.price-no-tax')</i>
+                </p>
                 {!! view_render_event('bagisto.shop.components.products.card.price.before') !!}
 
                 <!-- Product Actions Section -->
@@ -142,7 +145,7 @@
                 {!! view_render_event('bagisto.shop.components.products.card.image.before') !!}
 
                 <a :href="`{{ route('shop.product_or_category.index', '') }}/${product.url_key}`">
-                    <x-hitexis-shop::media.images.lazy
+                    <x-shop::media.images.lazy
                         class="after:content-[' '] relative min-w-[250px] bg-zinc-100 transition-all duration-300 after:block after:pb-[calc(100%+9px)] group-hover:scale-105"
                         ::src="product.base_image.medium_image_url"
                         ::key="product.id"
@@ -157,14 +160,14 @@
 
                 <div class="action-items bg-black">
                     <p
-                        class="absolute top-5 inline-block rounded-[44px] bg-priceRed px-2.5 text-sm text-white ltr:left-5 rtl:right-5"
+                        class="absolute top-5 inline-block rounded-[44px] bg-[#E51A1A] px-2.5 text-sm text-white ltr:left-5 rtl:right-5"
                         v-if="product.on_sale"
                     >
                         @lang('shop::app.components.products.card.sale')
                     </p>
 
                     <p
-                        class="absolute top-5 inline-block rounded-[44px] bg-priceRed px-2.5 text-sm text-white ltr:left-5 rtl:right-5"
+                        class="absolute top-5 inline-block rounded-[44px] bg-navyBlue px-2.5 text-sm text-white ltr:left-5 rtl:right-5"
                         v-else-if="product.is_new"
                     >
                         @lang('shop::app.components.products.card.new')

@@ -3,8 +3,6 @@
     'value' => 1,
 ])
 
-
-
 <v-quantity-changer
     {{ $attributes->merge(['class' => 'flex items-center border border-navyBlue']) }}
     name="{{ $name }}"
@@ -67,15 +65,13 @@
 
             methods: {
                 increase() {
-                    let q = document.getElementById('quantity-field').value;
-                    console.log(q)
-                    this.$emit('quantity-field', ++this.quantity);
                     this.$emit('change', ++this.quantity);
                 },
 
                 decrease() {
                     if (this.quantity > 1) {
                         this.quantity -= 1;
+
                         this.$emit('change', this.quantity);
                     }
                 },

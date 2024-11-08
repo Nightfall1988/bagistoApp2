@@ -8,7 +8,7 @@
     @for ($i = 0;  $i < $count; $i++)
         <!-- Single card -->
         <div class="flex gap-5 rounded-xl border p-6 max-sm:flex-wrap">
-            <x-hitexis-shop::media.images.lazy
+            <x-shop::media.images.lazy
                 class="h-[146px] max-h-[146px] w-[128px] min-w-[128px] max-w-[128px] rounded-xl" 
                 alt="Review Image"                   
             />

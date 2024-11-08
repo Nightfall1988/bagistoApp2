@@ -32,6 +32,9 @@
 
                 <div style="font-size: 16px;font-weight: 400;color: #384860;margin-bottom: 40px;">
                     {{ $order->shipping_address->company_name ?? '' }}<br/>
+                    @if ($order->shipping_address->registration_number)
+                        @lang('shop::app.emails.orders.registration-nr') {{ $order->shipping_address->registration_number }}<br/>
+                    @endif
                     {{ $order->shipping_address->name }}<br/>
                     {{ $order->shipping_address->address }}<br/>
                     {{ $order->shipping_address->postcode . " " . $order->shipping_address->city }}<br/>
@@ -114,6 +117,13 @@
                         <td style="text-align: left;padding: 15px">{{ core()->formatPrice(floatval(str_replace(',', '.', $item->base_total)), $order->order_currency_code) }}</td>
                     </tr>
 
+                        <tr style="text-align: left;padding: 15px">
+                            @if (isset($item->additional['attributes']))
+                                @foreach ($item->additional['attributes'] as $attribute)
+                                    <td style="text-align: left;padding: 15px"><b>{{ $attribute['attribute_name'] }}: </b>{{ $attribute['option_label'] }}</td></br>
+                                @endforeach
+                            @endif
+                        </tr>
                     {{-- Print details row --}}
                     <tr>
                         <td colspan="5" style="padding: 0; border: none;">
@@ -165,7 +175,6 @@
                 </td>
             </tr>
             @endif
-
             @if ($order->shipping_address)
             <tr>
                 <td style="text-align: left;">
@@ -176,12 +185,23 @@
                 </td>
             </tr>
             @endif
+
+            @if ($order->discount_amount > 0)
+            <tr>
+                <td style="text-align: left;">
+                    @lang('shop::app.emails.orders.discount')
+                </td>
+                <td style="text-align: right;">
+                    {{ core()->formatPrice($order->discount_amount, $order->order_currency_code) }}
+                </td>
+            </tr>
+            @endif
             <tr>
                 <td style="text-align: left;">
                     @lang('shop::app.emails.orders.subtotal')
                 </td>
                 <td style="text-align: right;">
-                    {{ core()->formatPrice($order->sub_total + $invoice->shipping_amount, $order->order_currency_code) }}
+                    {{ core()->formatPrice((($order->sub_total + $order->shipping_amount) - $order->discount_amount), $order->order_currency_code) }}
                 </td>
             </tr>
             @foreach (Webkul\Tax\Helpers\Tax::getTaxRatesWithAmount($order, false) as $taxRate => $taxAmount)
@@ -195,17 +215,6 @@
             </tr>
             @endforeach
 
-            @if ($order->discount_amount > 0)
-            <tr>
-                <td style="text-align: left;">
-                    @lang('shop::app.emails.orders.discount')
-                </td>
-                <td style="text-align: right;">
-                    {{ core()->formatPrice($order->discount_amount, $order->order_currency_code) }}
-                </td>
-            </tr>
-            @endif
-
             <tr style="font-weight: bold;">
                 <td style="text-align: left;">
                     @lang('shop::app.emails.orders.grand-total')
@@ -216,4 +225,5 @@
             </tr>
         </table>
     </div>
+
 @endcomponent

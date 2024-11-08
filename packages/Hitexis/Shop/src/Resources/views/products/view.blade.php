@@ -9,7 +9,7 @@
 
     $attributeData = collect($customAttributeValues)->filter(fn ($item) => ! empty($item['value']));
     
-    $properCustomAttributes = ['sku', 'short_description', 'description', 'product_number', 'material', 'dimensions', 'height', 'width', 'weight'];
+    $properCustomAttributes = ['sku', 'product_number', 'material', 'dimensions', 'height', 'width', 'weight'];
     $properData = [];
 
     foreach ($customAttributeValues as $attribute) {
@@ -211,14 +211,22 @@
                                 </div>
                             </div>
                         </div>
-
-
-                        <!-- Print Techniques and LogoTron -->
-                        @if (isset($product->productPrintData))
-                            <div class="mt-8">
-                                @include('hitexis-shop::components.printcalculator.printcalculator', ['product' => $product])
-                            </div>
-                        @endif
+                        @php
+                        $productPrintDataCount = sizeof($product->productPrintData) > 0
+                            ? sizeof($product->productPrintData)
+                            : (isset($product->variants) && isset($product->variants[0]) && sizeof($product->variants[0]->productPrintData) > 0
+                                ? sizeof($product->variants[0]->productPrintData)
+                                : (isset($product->parent) && sizeof($product->parent->productPrintData) > 0
+                                    ? sizeof($product->parent->productPrintData)
+                                    : 0));
+                    @endphp
+                    
+                    <!-- Print Techniques and LogoTron -->
+                    @if ($productPrintDataCount > 0)
+                        <div class="mt-8">
+                            @include('hitexis-shop::components.printcalculator.printcalculator', ['product' => $product])
+                        </div>
+                    @endif
 
                         <div class="flex flex-column">
                             <div class="flex flex-row max-w-[700px] gap-4" style="margin-top: 2rem;">
@@ -273,8 +281,6 @@
                                 <div class="container mt-[60px] max-1180:px-5">
                                     <div class="mt-8 grid max-w-max grid-cols-[auto_1fr] gap-4">
                                         @foreach ($customAttributeValues as $customAttributeValue)
-
-                                        @if ($customAttributeValue['code'] != 'short_description' || $customAttributeValue['code'] != 'description' )
                                             @if (! empty($customAttributeValue['value']))
                                                 <div class="grid">
                                                     <p class="text-base text-black">
@@ -307,7 +313,6 @@
                                                     </div>
                                                 @endif
                                             @endif
-                                        @endif
                                         @endforeach
                                     </div>
                                 </div>

@@ -39,7 +39,7 @@
                 <!-- Email Footer -->
                 <p style="font-size: 16px;color: #202B3C;line-height: 24px;">
                     @lang('shop::app.emails.thanks', [
-                        'phone' => '+37126383899',
+                        'phone' => ' +37126383899',
                         'style' => 'color: #2969FF;'
                     ])
                 </p>

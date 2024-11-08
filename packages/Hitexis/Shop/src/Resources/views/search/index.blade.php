@@ -71,12 +71,13 @@
                                         v-for="product in products"
                                     />
                                 </template>
+
                                 <!-- Empty Products Container -->
                                 <template v-else>
                                     <div class="grid items-center justify-items-center place-content-center w-full m-auto h-[476px] text-center">
                                         <img src="{{ bagisto_asset('images/thank-you.png') }}"/>
                                   
-                                        <p class="text-xl">                                            111111111111111111111111
+                                        <p class="text-xl">
                                             @lang('shop::app.categories.view.empty')
                                         </p>
                                     </div>
@@ -108,7 +109,6 @@
                                 <template v-else>
                                     <div class="grid items-center justify-items-center place-content-center w-full m-auto h-[476px] text-center">
                                         <img src="{{ bagisto_asset('images/thank-you.png') }}"/>
-                                        
                                         <p class="text-xl">
                                             @lang('shop::app.categories.view.empty')
                                         </p>
@@ -200,6 +200,7 @@
                             params: this.queryParams 
                         })
                             .then(response => {
+
                                 this.isLoading = false;
 
                                 this.products = response.data.data;

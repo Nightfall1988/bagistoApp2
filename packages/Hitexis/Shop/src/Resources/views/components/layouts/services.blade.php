@@ -24,7 +24,7 @@
             @foreach ($clients as $client)
                 <div class="flex flex-col items-center bg-white p-6 rounded-lg shadow-md">
                     <div class="flex items-center justify-center w-[150px] h-[150px] bg-white p-2.5" role="presentation">
-                        <img src="{{ bagisto_asset('images/' . $client->logo_path) }}" alt="{{ $client->name }}" class="object-contain">
+                        <img src="{{ bagisto_asset('images/client_logos/' . $client->logo_path) }}" alt="{{ $client->name }}" class="object-contain">
                     </div>
                     <div class="flex justify-center mt-4">
                         <!-- Client Name -->

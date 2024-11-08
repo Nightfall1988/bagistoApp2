@@ -3,7 +3,7 @@
 @component('hitexis-shop::emails.layout')
     <div style="margin-bottom: 34px;">
         <span style="font-size: 22px;font-weight: 600;color: #121A26">
-            @lang('shop::app.emails.orders.invoiced.title')
+            @lang('shop::app.emails.orders.created.title')
         </span> <br>
 
         <p style="font-size: 16px;color: #5E5E5E;line-height: 24px;">
@@ -32,21 +32,14 @@
 
                 <div style="font-size: 16px;font-weight: 400;color: #384860;margin-bottom: 40px;">
                     {{ $invoice->order->shipping_address->company_name ?? '' }}<br/>
-
-                    @if ($invoice->order->shipping_address->registration_number)
-                        @lang('shop::app.emails.orders.registration-nr') {{ $invoice->order->shipping_address->registration_number }}<br/>
+                    @if ($invoice->order->billing_address->registration_number)
+                        @lang('shop::app.emails.orders.registration-nr') {{ $invoice->order->billing_address->registration_number }}<br/>
                     @endif
-
                     {{ $invoice->order->shipping_address->name }}<br/>
-                    
                     {{ $invoice->order->shipping_address->address }}<br/>
-                    
                     {{ $invoice->order->shipping_address->postcode . " " . $invoice->order->shipping_address->city }}<br/>
-                    
                     {{ $invoice->order->shipping_address->state }}<br/>
-
                     ---<br/>
-
                     @lang('shop::app.emails.orders.contact') : {{ $invoice->order->billing_address->phone }}
                 </div>
 
@@ -55,7 +48,7 @@
                 </div>
 
                 <div style="font-size: 16px;font-weight: 400;color: #384860;">
-                    {{ $invoice->order->shipping_title }}
+                    {{ explode(' - ', $invoice->order->shipping_title)[0] }}
                 </div>
             </div>
         @endif
@@ -115,6 +108,7 @@
 
             <tbody style="font-size: 16px;font-weight: 400;color: #384860;">
                 @foreach ($invoice->order->items as $item)
+
                     {{-- Main product row --}}
                     <tr>
                         <td style="text-align: left;padding: 15px">{{ $item->sku }}</td>
@@ -123,7 +117,13 @@
                         <td style="text-align: left;padding: 15px">{{ $item->qty_ordered }}</td>
                         <td style="text-align: left;padding: 15px">{{ core()->formatPrice(floatval(str_replace(',', '.', $item->base_total)), $invoice->order->order_currency_code) }}</td>
                     </tr>
-
+                        <tr style="text-align: left;padding: 15px">
+                            @if (isset($item->additional['attributes']))
+                                @foreach ($item->additional['attributes'] as $attribute)
+                                    <td style="text-align: left;padding: 15px"><b>{{ $attribute['attribute_name'] }}: </b>{{ $attribute['option_label'] }}</td></br>
+                                @endforeach
+                            @endif
+                        </tr>
                     {{-- Print details row --}}
                     <tr>
                         <td colspan="5" style="padding: 0; border: none;">
@@ -187,6 +187,15 @@
             </tr>
             @endif
 
+            <tr>
+                <td style="text-align: left;">
+                    @lang('shop::app.emails.orders.subtotal')
+                </td>
+                <td style="text-align: right;">
+                    {{ core()->formatPrice($invoice->order->sub_total, $invoice->order->order_currency_code) }}
+                </td>
+            </tr>
+
             @foreach (Webkul\Tax\Helpers\Tax::getTaxRatesWithAmount($invoice->order, false) as $taxRate => $taxAmount)
             <tr>
                 <td style="text-align: left;">
@@ -219,5 +228,3 @@
             </tr>
         </table>
     </div>
-
-@endcomponent

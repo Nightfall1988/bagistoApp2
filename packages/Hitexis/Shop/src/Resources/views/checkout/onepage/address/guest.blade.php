@@ -9,7 +9,7 @@
 
 {!! view_render_event('bagisto.shop.checkout.onepage.address.guest.after') !!}
 
-@include('hitexis-shop::checkout.onepage.address.form')
+@include('shop::checkout.onepage.address.form')
 
 @pushOnce('scripts')
     <script
