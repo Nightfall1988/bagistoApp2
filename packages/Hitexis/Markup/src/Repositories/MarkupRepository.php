@@ -233,12 +233,11 @@ class MarkupRepository extends Repository implements MarkupContract
                     $price = $product->variants[0]->cost;
                 } else {
                     $currentPrice = $prices[$product->id];
-                    $cost = $costs[$product->id];
-                    if (!gettype($costs[$product->id]) == 'array') {
-                        $price = $costs[$product->id] * ($markup->percentage / 100);
-                        $price = $currentPrice -  $priceMarkup;
-                    } else {
+                    // $cost = $costs[$product->id];
+                    if (!isset($costs[$product->id])) {
                         $price = $prices[$product->id] / (1 + ($markup->percentage / 100));
+                    } else {
+                        $price = $costs[$product->id];
                     }
                 }
 
