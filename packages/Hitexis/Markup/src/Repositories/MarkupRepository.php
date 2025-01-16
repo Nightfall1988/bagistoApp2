@@ -118,7 +118,7 @@ class MarkupRepository extends Repository implements MarkupContract
                     $priceMarkup = $currentPrice * ($markup->percentage / 100);
                     $price = $currentPrice + $priceMarkup;
                 } elseif (!isset($costs[$product->id]) && $product->type == 'simple') {
-                    $price = $prices[$product->id];
+                    $price = $prices[$product->id] ?? $prices[$product->parent->id];
                 }
 
                 // Prepare data for batch updates in product_attribute_values
