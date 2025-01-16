@@ -89,15 +89,10 @@ class MarkupRepository extends Repository implements MarkupContract
 
             $productIds = $productChunk->pluck('id')->toArray();
             
-            // Fetch all necessary cost and price data for products in one query
             $costs = ProductAttributeValue::where('attribute_id', 12)
                 ->whereIn('product_id', $productIds)
                 ->pluck('float_value', 'product_id');
-                
-            // $prices = ProductAttributeValue::where('attribute_id', 11)
-            //     ->whereIn('product_id', $productIds)
-            //     ->pluck('float_value', 'product_id');
-            
+
             $locales = ['en', 'lv']; // Define locales to update
             
             $batchUpdateProductAttributeValues = [];
@@ -118,6 +113,8 @@ class MarkupRepository extends Repository implements MarkupContract
                     $currentPrice = $cost; // Start with cost if it exists
                     $priceMarkup = $currentPrice * ($markup->percentage / 100);
                     $price = $currentPrice + $priceMarkup;
+                } elseif (!isset($costs[$product->id]) && $product->type == 'simple') {
+                    $price = $prices[$product->id];
                 }
 
                 // Prepare data for batch updates in product_attribute_values
@@ -233,9 +230,8 @@ class MarkupRepository extends Repository implements MarkupContract
                     $price = $product->variants[0]->cost;
                 } else {
                     $currentPrice = $prices[$product->id];
-                    // $cost = $costs[$product->id];
                     if (!isset($costs[$product->id])) {
-                        $price = $prices[$product->id] / (1 + ($markup->percentage / 100));
+                        $price = bcdiv($prices[$product->id], (1 + ($markup->percentage / 100)), 2);
                     } else {
                         $price = $costs[$product->id];
                     }
