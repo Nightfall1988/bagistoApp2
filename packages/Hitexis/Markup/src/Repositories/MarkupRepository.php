@@ -93,6 +93,10 @@ class MarkupRepository extends Repository implements MarkupContract
                 ->whereIn('product_id', $productIds)
                 ->pluck('float_value', 'product_id');
 
+            $prices = ProductAttributeValue::where('attribute_id', 11)
+                ->whereIn('product_id', $productIds)
+                ->pluck('float_value', 'product_id');
+
             $locales = ['en', 'lv']; // Define locales to update
             
             $batchUpdateProductAttributeValues = [];
