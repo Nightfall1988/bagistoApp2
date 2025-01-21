@@ -111,53 +111,52 @@ class MarkupRepository extends Repository implements MarkupContract
                     $cost = $costs[$product->id];
                     $currentPrice = $cost; // Start with cost if it exists
                     $priceMarkup = $currentPrice * ($markup->percentage / 100);
-                    $price = $currentPrice +  $priceMarkup;
+                    $price = $currentPrice + $priceMarkup;
                 } elseif (!isset($costs[$product->id]) && $product->type == 'configurable') {
                     $cost = $product->variants[0]->cost;
-                    $currentPrice = $cost; // Start with cost if it exists
+                    $currentPrice = $cost;
                     $priceMarkup = $currentPrice * ($markup->percentage / 100);
                     $price = $currentPrice + $priceMarkup;
                 } elseif (!isset($costs[$product->id]) && $product->type == 'simple') {
-                    $price = $prices[$product->id] ?? $prices[$product->parent->id];
+                    $price = '';
                 }
 
-                // Prepare data for batch updates in product_attribute_values
-                foreach ($locales as $locale) {
-                    // Update product_attribute_values for price (attribute_id = 11)
-                    $batchUpdateProductAttributeValues[] = [
-                        'product_id'   => $product->id,
-                        'attribute_id' => 11,  // Price attribute_id
-                        'locale'       => $locale,
-                        'channel'      => 'default',
-                        'float_value'  => round($price, 2),
-                    ];
+                if ($price != '') {
+                    foreach ($locales as $locale) {
+                        $batchUpdateProductAttributeValues[] = [
+                            'product_id'   => $product->id,
+                            'attribute_id' => 11,
+                            'locale'       => $locale,
+                            'channel'      => 'default',
+                            'float_value'  => round($price, 2),
+                        ];
 
-                    // Update product_flat
-                    $batchUpdateProductFlat[] = [
+                        // Update product_flat
+                        $batchUpdateProductFlat[] = [
+                            'product_id' => $product->id,
+                            'locale'     => $locale,
+                            'channel'    => 'default',
+                            'price'      => round($price, 2),
+                        ];
+                    }
+                    
+                    // Prepare product-markup association
+                    $markupProductRelations[] = [
                         'product_id' => $product->id,
-                        'locale'     => $locale,
-                        'channel'    => 'default',
-                        'price'      => round($price, 2),
+                        'markup_id'  => $markup->id,
                     ];
-                }
-                
-                // Prepare product-markup association
-                $markupProductRelations[] = [
-                    'product_id' => $product->id,
-                    'markup_id'  => $markup->id,
-                ];
 
-                // Prepare data for batch update in product_price_indices (for storefront display)
-                foreach ($customerGroups as $groupId) {
-                    $batchUpdateProductPriceIndices[] = [
-                        'product_id'         => $product->id,
-                        'customer_group_id'  => $groupId,
-                        'channel_id'         => 1, // Assuming default channel
-                        'min_price'          => round($price, 2),
-                        'regular_min_price'  => round($price, 2),
-                        'max_price'          => round($price, 2),
-                        'regular_max_price'  => round($price, 2),
-                    ];
+                    foreach ($customerGroups as $groupId) {
+                        $batchUpdateProductPriceIndices[] = [
+                            'product_id'         => $product->id,
+                            'customer_group_id'  => $groupId,
+                            'channel_id'         => 1, // Assuming default channel
+                            'min_price'          => round($price, 2),
+                            'regular_min_price'  => round($price, 2),
+                            'max_price'          => round($price, 2),
+                            'regular_max_price'  => round($price, 2),
+                        ];
+                    }
                 }
             }
         
@@ -230,45 +229,50 @@ class MarkupRepository extends Repository implements MarkupContract
         foreach ($chunks as $productChunk) {
             foreach ($productChunk as $product) {
 
-                if (isset($product->variants) && count($product->variants) > 0) {
-                    $price = $product->variants[0]->cost;
-                } else {
-                    $currentPrice = $prices[$product->id];
-                    if (!isset($costs[$product->id])) {
-                        $price = bcdiv($prices[$product->id], (1 + ($markup->percentage / 100)), 2);
-                    } else {
-                        $price = $costs[$product->id];
+                if (isset($costs[$product->id])) {
+                    $price = $costs[$product->id];
+                } elseif (!isset($costs[$product->id])) {
+                    if (isset($product->variants) && count($product->variants) > 0) {
+                        if (isset($costs[$product->variants[0]->id])) {
+                            $price = $costs[$product->variants[0]->id];
+                        } else {
+                            $price = '';
+                        }
                     }
+                } elseif (!isset($costs[$product->id]) && $product->type == 'simple') {
+                    $price = '';
                 }
 
-                foreach ($locales as $locale) {
-                    $batchUpdateProductAttributeValues[] = [
-                        'product_id'   => $product->id,
-                        'attribute_id' => 11,
-                        'locale'       => $locale,
-                        'channel'      => 'default',
-                        'float_value'  => round($price, 2),
-                    ];
-
-                    $batchUpdateProductFlat[] = [
-                        'product_id' => $product->id,
-                        'locale'     => $locale,
-                        'channel'    => 'default',
-                        'price'      => round($price, 2),
-                    ];
-                }
-
-                foreach ($customerGroupIds as $customerGroupId) {
-                    if (isset($price)) {
-                        $batchUpdateProductIndex[] = [
-                            'customer_group_id' => $customerGroupId,
-                            'product_id'        => $product->id,
-                            'channel_id'        => 1,
-                            'min_price'         => round($price, 2),
-                            'regular_min_price' => round($price, 2),
-                            'max_price'         => round($price, 2),
-                            'regular_max_price' => round($price, 2),
+                if ($price != '') {
+                    foreach ($locales as $locale) {
+                        $batchUpdateProductAttributeValues[] = [
+                            'product_id'   => $product->id,
+                            'attribute_id' => 11,
+                            'locale'       => $locale,
+                            'channel'      => 'default',
+                            'float_value'  => round($price, 2),
                         ];
+
+                        $batchUpdateProductFlat[] = [
+                            'product_id' => $product->id,
+                            'locale'     => $locale,
+                            'channel'    => 'default',
+                            'price'      => round($price, 2),
+                        ];
+                    }
+
+                    foreach ($customerGroupIds as $customerGroupId) {
+                        if (isset($price)) {
+                            $batchUpdateProductIndex[] = [
+                                'customer_group_id' => $customerGroupId,
+                                'product_id'        => $product->id,
+                                'channel_id'        => 1,
+                                'min_price'         => round($price, 2),
+                                'regular_min_price' => round($price, 2),
+                                'max_price'         => round($price, 2),
+                                'regular_max_price' => round($price, 2),
+                            ];
+                        }
                     }
                 }
             }
