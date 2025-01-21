@@ -113,10 +113,14 @@ class MarkupRepository extends Repository implements MarkupContract
                     $priceMarkup = $currentPrice * ($markup->percentage / 100);
                     $price = $currentPrice + $priceMarkup;
                 } elseif (!isset($costs[$product->id]) && $product->type == 'configurable') {
-                    $cost = $product->variants[0]->cost;
-                    $currentPrice = $cost;
-                    $priceMarkup = $currentPrice * ($markup->percentage / 100);
-                    $price = $currentPrice + $priceMarkup;
+                    if (isset($product->variants) && count($product->variants) > 0) {
+                        $cost = $product->variants[0]->cost;
+                        $currentPrice = $cost;
+                        $priceMarkup = $currentPrice * ($markup->percentage / 100);
+                        $price = $currentPrice + $priceMarkup;
+                    } else {
+                        $price = '';
+                    }
                 } elseif (!isset($costs[$product->id]) && $product->type == 'simple') {
                     $price = '';
                 }
